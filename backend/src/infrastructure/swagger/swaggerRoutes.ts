@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename)
 
 const router = Router()
 
-readFile(path.join(__dirname, '../api-docs.yaml'), 'utf8')
+readFile(path.join(__dirname, '../../../api-docs.yaml'), 'utf8')
     .then(file => {
         const swaggerDocument = YAML.parse(file)
         router.use('/', swaggerUi.serve)

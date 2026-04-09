@@ -1,8 +1,9 @@
 import express from "express"
 import cors from "cors"
-import { errorHandler } from "./middlewares/errorHandler.ts";
-import healthRoutes from "./infra/health/healthRoutes.ts";
-import swaggerRoutes from "./infra/swagger/swaggerRoutes.ts";
+import { errorHandler } from "../shared/middleware/error.middleware.ts"
+import healthRoutes from "../infrastructure/health/healthRoutes.ts"
+import swaggerRoutes from "../infrastructure/swagger/swaggerRoutes.ts"
+import apiRoutes from "../routes/index.ts"
 
 const app = express()
 
@@ -24,6 +25,7 @@ app.use(express.json())
 
 app.use("/health", healthRoutes)
 app.use("/docs", swaggerRoutes)
+app.use("/api/v1", apiRoutes)
 
 app.use(errorHandler)
 

@@ -2,10 +2,10 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "src/server.ts",
   "scripts": {
-    "dev": "set NODE_ENV=development&& node server.js",
-    "prod": "set NODE_ENV=production&& node server.js",
+    "dev": "set NODE_ENV=development&& node --experimental-strip-types src/server.ts",
+    "prod": "set NODE_ENV=production&& node --experimental-strip-types src/server.ts",
     "test": "cross-env NODE_ENV=test jest",
     "test:watch": "jest --watch"
   },
