@@ -1,0 +1,62 @@
+ENDPOINTS REST
+
+Base: /api/v1
+AUTH
+POST   /auth/register      Registrar usuario
+POST   /auth/login           Login 
+GET    /auth/me               Obtener usuario autenticado
+POST   /auth/logout         Logout 
+POST   /auth/refresh         Refresh token 
+
+USERS
+GET    /users                 Listar usuarios
+GET    /users/:id             Obtener usuario
+PATCH  /users/:id             Actualizar usuario
+DELETE /users/:id             Eliminar usuario 
+
+STICKERS 
+GET    /stickers                              Listar figuritas
+GET    /stickers/:id                          Obtener detalle
+
+USER STICKERS
+POST   /users/:userId/stickers                Agregar figurita (owned)
+POST   /users/:userId/stickers/missing        Agregar faltante
+GET    /users/:userId/stickers                Obtener colección
+GET    /users/:userId/stickers/missing        Obtener faltantes
+PATCH  /users/:userId/stickers/:stickerId     Actualizar (cantidad / disponibilidad)
+DELETE /users/:userId/stickers/:stickerId     Eliminar figurita
+
+TRADES 
+POST   /trades                       Crear propuesta
+GET    /trades/:id                   Obtener propuesta
+
+GET    /users/:userId/trades         Listar propuestas
+
+POST   /trades/:id/accept            Aceptar propuesta
+POST   /trades/:id/reject            Rechazar propuesta
+POST   /trades/:id/cancel            Cancelar propuesta
+
+AUCTIONS 
+POST   /auctions                     Crear subasta
+GET    /auctions                     Listar subastas
+GET    /auctions/:id                 Obtener subasta
+
+POST   /auctions/:id/bids            Ofertar
+GET    /auctions/:id/bids            Ver ofertas
+
+POST   /auctions/:id/finish          Finalizar subasta
+
+NOTIFICATIONS
+GET    /users/:userId/notifications      Listar notificaciones
+PATCH  /notifications/:id/read           Marcar como leída
+
+RATINGS 
+POST   /ratings                      Crear calificación
+GET    /users/:userId/ratings        Ver calificaciones
+
+MATCHING 
+GET    /users/:userId/suggestions    Sugerencias de intercambio
+GET    /matches?stickerId=           Usuarios que tienen esa figurita
+
+ADMIN
+GET    /admin/stats          Estadísticas generales
