@@ -5,7 +5,7 @@ enum Category {
   SHINY
 }
 
-enum UserType {
+enum UserRol {
   REGULAR
   ADMIN
 }
@@ -48,14 +48,14 @@ class User {
   -lastName: string
   -username: string
   -email: string
-  -type: UserType
+  -rol: UserRol
+  -reputation: number
+  -collection: Collection
 }
 
-class Collector {
-  -user: User
-  -collectionItems: CollectionItem[]
+class Collection {
+  -items: CollectionItem[]
   -missingStickers: Sticker[]
-  -reputation: number
 }
 
 class Rating {
@@ -72,16 +72,16 @@ interface CollectionItem {
 }
 
 class Offer {
-  -collector: Collector
+  -offerer: User
   -offerState: OfferState
   -createdAt: Date
-  -collectionItems: CollectionItem[]
+  -offered: CollectionItem[]
 }
 
 abstract class Post {
-  -collector: Collector
+  -owner: User
   -sticker: Sticker
-  -tradeState: PostState
+  -postState: PostState
   -offers: Offer[]
 }
 
@@ -90,8 +90,9 @@ class DirectTrade
 class Auction {
   -createdAt: Date
   -endsAt: Date
-  -minimumRequirement: CollectionItem
+  -minimumRequirements: CollectionItem[]
   +duration(): number
+  +lastOffer(): Offer
 }
 
 NationalTeam <-- Player
@@ -100,18 +101,19 @@ Club <-- Player
 Player <-- Sticker
 Category <-- Sticker
 
-User <-- Collector
-Sticker <-- Collector
+Sticker <-- Collection
+CollectionItem <-- Collection
 
 User <-- Rating
 
-UserType <-- User
+UserRol <-- User
+Collection <-- User
 
-Collector <-- Offer
+User <-- Offer
 CollectionItem <-- Offer
 OfferState <-- Offer
 
-Collector <-- Post
+User <-- Post
 Sticker <-- Post
 Offer <-- Post
 PostState <-- Post
