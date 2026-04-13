@@ -1,12 +1,12 @@
-@startuml class_diagram
+@startuml class-diagram
 
 enum Category {
   REGULAR
   SHINY
 }
 
-enum UserRol {
-  REGULAR
+enum UserRole {
+  STANDARD
   ADMIN
 }
 
@@ -48,9 +48,9 @@ class User {
   -lastName: string
   -username: string
   -email: string
-  -rol: UserRol
+  -role: UserRole
   -reputation: number
-  -collection: Collection
+  -collection: Collection | null
 }
 
 class Collection {
@@ -73,7 +73,7 @@ interface CollectionItem {
 
 class Offer {
   -offerer: User
-  -offerState: OfferState
+  -state: OfferState
   -createdAt: Date
   -offered: CollectionItem[]
 }
@@ -81,7 +81,7 @@ class Offer {
 abstract class Post {
   -owner: User
   -sticker: Sticker
-  -postState: PostState
+  -state: PostState
   -offers: Offer[]
 }
 
@@ -92,7 +92,7 @@ class Auction {
   -endsAt: Date
   -minimumRequirements: CollectionItem[]
   +duration(): number
-  +lastOffer(): Offer
+  +lastOffer(): Offer | null
 }
 
 NationalTeam <-- Player
@@ -106,7 +106,7 @@ CollectionItem <-- Collection
 
 User <-- Rating
 
-UserRol <-- User
+UserRole <-- User
 Collection <-- User
 
 User <-- Offer
