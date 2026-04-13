@@ -1,0 +1,126 @@
+@startuml class_diagram
+
+enum Category {
+  REGULAR
+  SHINY
+}
+
+enum UserRol {
+  REGULAR
+  ADMIN
+}
+
+enum OfferState {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PostState {
+  ACTIVE
+  COMPLETED
+  CLOSED
+}
+
+class NationalTeam {
+  -name: string
+}
+
+class Club {
+  -name: string
+}
+
+class Player {
+  -name: string
+  -nationalTeam: NationalTeam
+  -club: Club
+}
+
+class Sticker {
+  -number: number
+  -player: Player
+  -category: Category
+  -description: string
+}
+
+class User {
+  -firstName: string
+  -lastName: string
+  -username: string
+  -email: string
+  -rol: UserRol
+  -reputation: number
+  -collection: Collection
+}
+
+class Collection {
+  -items: CollectionItem[]
+  -missingStickers: Sticker[]
+}
+
+class Rating {
+  -reviewer: User
+  -reviewee: User
+  -score: number
+  -comment: string
+  -createdAt: Date
+}
+
+interface CollectionItem { 
+  -sticker: Sticker
+  -quantity: number
+}
+
+class Offer {
+  -offerer: User
+  -offerState: OfferState
+  -createdAt: Date
+  -offered: CollectionItem[]
+}
+
+abstract class Post {
+  -owner: User
+  -sticker: Sticker
+  -postState: PostState
+  -offers: Offer[]
+}
+
+class DirectTrade
+
+class Auction {
+  -createdAt: Date
+  -endsAt: Date
+  -minimumRequirements: CollectionItem[]
+  +duration(): number
+  +lastOffer(): Offer
+}
+
+NationalTeam <-- Player
+Club <-- Player
+
+Player <-- Sticker
+Category <-- Sticker
+
+Sticker <-- Collection
+CollectionItem <-- Collection
+
+User <-- Rating
+
+UserRol <-- User
+Collection <-- User
+
+User <-- Offer
+CollectionItem <-- Offer
+OfferState <-- Offer
+
+User <-- Post
+Sticker <-- Post
+Offer <-- Post
+PostState <-- Post
+
+Post <|-- DirectTrade
+Post <|-- Auction
+
+CollectionItem <-- Auction
+
+@enduml
