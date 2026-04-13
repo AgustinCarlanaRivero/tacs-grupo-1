@@ -1,11 +1,14 @@
-import { Router } from "express";
-import PostController from "./post.controller.ts";
+import { Router } from "express"
+import { asyncHandler } from "../../shared/middleware/async-handler.ts"
+import PostController from "./post.controller.ts"
 
-const router = Router();
-const postController = new PostController();
+const router = Router()
+const postController = new PostController()
 
-// Un solo endpoint para crear, sin importar si es subasta o trade
-router.post("/", postController.createPost);
-router.get("/:id", postController.getPostById);
+router.route("/").get(asyncHandler(postController.listPosts)).post(asyncHandler(postController.createPost))
 
-export default router;
+router.patch("/:postId/state", asyncHandler(postController.updatePostState))
+
+router.get("/:postId", asyncHandler(postController.getPostById))
+
+export default router
