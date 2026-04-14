@@ -1,0 +1,96 @@
+BASE: /api/v1
+1. AUTH (Sin cambios, es estándar)
+
+    POST   /auth/register
+
+    POST   /auth/login
+
+    GET    /auth/me
+
+    POST   /auth/logout
+
+    POST   /auth/refresh
+
+2. USERS
+
+    GET    /users - Listar usuarios
+
+    GET    /users/:userId - Obtener usuario
+
+    PATCH  /users/:userId - Actualizar usuario
+
+    DELETE /users/:userId - Eliminar usuario
+
+3. CATALOG (Actualizado por el dominio)
+
+    GET    /stickers - Listar figuritas (con filtros ?category=SHINY&team=Argentina)
+
+    GET    /stickers/:stickerId - Detalle de figurita
+
+    GET    /players - Listar jugadores
+
+    GET    /teams - Listar selecciones nacionales
+
+    GET    /clubs - Listar clubes
+
+4. COLLECTIONS (Reemplaza "User Stickers")
+
+Como Collection maneja tanto items (figuritas repetidas/poseídas con quantity) como missingStickers, los endpoints deben reflejar esta estructura.
+
+    GET    /users/:userId/collection - Obtener toda la colección del usuario (poseídas y faltantes)
+
+    POST   /users/:userId/collection/items - Agregar una figurita obtenida (Crea un CollectionItem)
+
+    PATCH  /users/:userId/collection/items/:stickerId - Actualiza la cantidad (quantity) de un ítem
+
+    DELETE /users/:userId/collection/items/:stickerId - Elimina el ítem de la colección
+
+    POST   /users/:userId/collection/missing - Agregar un Sticker a la lista de faltantes
+
+    DELETE /users/:userId/collection/missing/:stickerId - Eliminar de la lista de faltantes
+
+5. POSTS (Unifica Trades y Auctions)
+
+Dado que DirectTrade y Auction heredan de Post, es mejor tener un endpoint base para publicaciones, diferenciándolas por tipo y estado (PostState).
+
+    GET    /posts - Listar publicaciones (Usa query params: ?type=direct_trade, ?type=auction, ?state=ACTIVE)
+
+    POST   /posts - Crear publicación (En el body se define si es trade o auction, incluyendo los minimumRequirements si aplica)
+
+    GET    /posts/:postId - Ver detalle de publicación
+
+    PATCH  /posts/:postId/state - Cambiar el PostState (ej. marcar como COMPLETED o CLOSED)
+
+    GET    /users/:userId/posts - Listar las publicaciones de un usuario específico (owner)
+
+6. OFFERS (Unifica Trade Proposals y Auction Bids)
+
+Toda interacción hacia un Post (sea ofertar figuritas para un intercambio o pujar en una subasta) es un Offer según tu diagrama.
+
+    GET    /posts/:postId/offers - Ver todas las ofertas de una publicación
+
+    POST   /posts/:postId/offers - Crear una oferta (Enviando un array de CollectionItem en el body)
+
+    PATCH  /offers/:offerId/state - Cambiar el OfferState (APPROVED, REJECTED). Al aprobar una, la lógica de negocio debería rechazar las demás.
+
+    DELETE /offers/:offerId - Cancelar/Retirar una oferta (si está PENDING)
+
+7. RATINGS
+
+    POST   /users/:userId/ratings - Calificar a un usuario (reviewee es el userId de la URL, reviewer sale del token de Auth)
+
+    GET    /users/:userId/ratings - Ver las calificaciones que recibió un usuario
+
+8. MATCHING & NOTIFICATIONS (Sin cambios drásticos)
+
+    GET    /users/:userId/suggestions - Sugerencias de intercambio
+
+    GET    /matches?stickerId=... - Usuarios que tienen una figurita específica (ideal para cruzar con tus missingStickers)
+
+    GET    /users/:userId/notifications - Listar notificaciones
+
+    PATCH  /notifications/:id/read - Marcar como leída
+
+9. ADMIN
+
+    GET    /admin/stats - Estadísticas generales (depende del UserRol)
