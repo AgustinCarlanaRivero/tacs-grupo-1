@@ -1,0 +1,35 @@
+openapi: 3.0.3
+info:
+  title: TACS Grupo 1 API
+  description: API del TP de TACS
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Verifica que el servidor esté corriendo
+      tags:
+        - Health
+      responses:
+        "200":
+          description: El servidor está funcionando correctamente
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: ok
+
+  /api/v1:
+    get:
+      summary: API v1 (placeholder)
+      description: Endpoint base de la API v1
+      tags:
+        - API
+      responses:
+        "404":
+          description: No hay rutas configuradas aún
