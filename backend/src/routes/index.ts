@@ -5,8 +5,8 @@ import postRoutes from "../modules/posts/post.routes.ts"
 import notificationRoutes from "../modules/notifications/notification.routes.ts"
 import matchingRoutes from "../modules/matching/matching.routes.ts"
 import offerDirectRoutes from "../modules/offers/offer-direct.routes.ts"
-import authRoutes from "../modules/auth/auth.routes.ts"
-import { verifyJwt, attachUser } from "../modules/auth/auth.middleware.ts"
+import authRoutes from "../modules/auth/routes/auth.routes.ts"
+import { verifyJwt, attachUser } from "../modules/auth/middleware/auth.middleware.ts"
 
 const router = Router()
 

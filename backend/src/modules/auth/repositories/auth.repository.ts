@@ -1,5 +1,6 @@
-import { User } from "../users/user.entity.ts"
+import { User } from "../../users/user.entity.ts"
 
+//En memoria por ahora
 class AuthRepository {
     private users: Map<string, User> = new Map()
     private auth0Index: Map<string, string> = new Map()
