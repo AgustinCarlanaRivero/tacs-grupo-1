@@ -2,6 +2,8 @@ import { Collection } from "./collection.entity";
 import { UserRole } from "./user-role.enum";
 
 export class User {
+  id: string;
+  auth0Sub: string;
   firstName: string;
   lastName: string;
   username: string;
@@ -19,6 +21,8 @@ export class User {
     reputation = 0,
     collection: Collection | null = null,
   ) {
+    this.id = crypto.randomUUID();
+    this.auth0Sub = "";
     this.firstName = firstName;
     this.lastName = lastName;
     this.username = username;

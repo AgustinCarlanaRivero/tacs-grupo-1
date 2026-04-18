@@ -5,15 +5,18 @@ import postRoutes from "../modules/posts/post.routes.ts"
 import notificationRoutes from "../modules/notifications/notification.routes.ts"
 import matchingRoutes from "../modules/matching/matching.routes.ts"
 import offerDirectRoutes from "../modules/offers/offer-direct.routes.ts"
+import authRoutes from "../modules/auth/auth.routes.ts"
+import { verifyJwt, attachUser } from "../modules/auth/auth.middleware.ts"
 
 const router = Router()
 
-//router.use("/health", healthRoutes)
-router.use("/users", userRoutes)
+router.use("/auth", verifyJwt, attachUser, authRoutes)
+
+router.use("/users", verifyJwt, attachUser, userRoutes)
 router.use("/stickers", stickersRoutes)
-router.use("/posts", postRoutes)
-router.use("/offers", offerDirectRoutes)
-router.use("/notifications", notificationRoutes)
-router.use("/matches", matchingRoutes)
+router.use("/posts", verifyJwt, attachUser, postRoutes)
+router.use("/offers", verifyJwt, attachUser, offerDirectRoutes)
+router.use("/notifications", verifyJwt, attachUser, notificationRoutes)
+router.use("/matches", verifyJwt, attachUser, matchingRoutes)
 
 export default router

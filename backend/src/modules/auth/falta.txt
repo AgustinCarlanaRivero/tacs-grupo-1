@@ -1,0 +1,4 @@
+configurar en el Auth0 Dashboard:
+
+Agregar https://oauth.pstmn.io/v1/callback como Allowed Callback URL en tu Application
+Crear el API con audience https://api.tacs-figuritas.com 
