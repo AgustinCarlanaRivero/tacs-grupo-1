@@ -1,25 +1,106 @@
+import { Collection } from "../users/collection.entity.ts"
+import { CollectionItem } from "../users/collection-item.interface.ts"
+import StickerService from "../stickers/sticker.service.ts"
+import { CollectionRepository } from "../../infra/database/mongo/repositories/collection.repository.ts"
+
 export default class CollectionService {
-    static async getCollection(_userId: string) {
-        return {}
+    /**
+     * GET /users/:userId/collection
+     * Obtiene toda la coleccion del usuario
+     */
+    static async getCollection(userId: string) {
+        const collection = await CollectionRepository.getCollection(userId)
+        return collection || new Collection()
     }
 
-    static async addCollectionItem(_userId: string, _itemData: unknown) {
-        return {}
+    /**
+     * POST /users/:userId/collection/items
+     * Agregar una figurita obtenida
+     */
+    static async addCollectionItem(userId: string, itemData: { stickerId: number; quantity?: number }) {
+        const { stickerId, quantity = 1 } = itemData
+
+        // Validar que el sticker exista
+        const sticker = await StickerService.getStickerByIdOrFail(stickerId)
+
+        const newItem: CollectionItem = {
+            sticker,
+            quantity
+        }
+
+        const collection = await CollectionRepository.addCollectionItem(userId, newItem)
+        if (!collection) {
+            throw new Error(`User ${userId} not found`)
+        }
+
+        return newItem
     }
 
-    static async updateCollectionItemQuantity(_userId: string, _stickerId: string, _quantity: unknown) {
-        return {}
+    /**
+     * PATCH /users/:userId/collection/items/:stickerId
+     * Actualiza la cantidad de un item
+     */
+    static async updateCollectionItemQuantity(userId: string, stickerId: string, quantity: number) {
+        if (quantity < 0) {
+            throw new Error("Quantity cannot be negative")
+        }
+
+        const id = parseInt(stickerId, 10)
+        // Validar que el sticker exista
+        await StickerService.getStickerByIdOrFail(id)
+
+        const collection = await CollectionRepository.updateCollectionItemQuantity(userId, id, quantity)
+        if (!collection) {
+            throw new Error(`User ${userId} not found or collection not initialized`)
+        }
+
+        return { stickerId: id, quantity }
     }
 
-    static async removeCollectionItem(_userId: string, _stickerId: string) {
-        return
+    /**
+     * DELETE /users/:userId/collection/items/:stickerId
+     * Elimina el item de la coleccion
+     */
+    static async removeCollectionItem(userId: string, stickerId: string) {
+        const id = parseInt(stickerId, 10)
+        // Validar que el sticker exista
+        await StickerService.getStickerByIdOrFail(id)
+
+        const collection = await CollectionRepository.removeCollectionItem(userId, id)
+        if (!collection) {
+            throw new Error(`User ${userId} not found or collection not initialized`)
+        }
     }
 
-    static async addMissingSticker(_userId: string, _stickerId: string) {
-        return {}
+    /**
+     * POST /users/:userId/collection/missing
+     * Agregar un Sticker a la lista de faltantes
+     */
+    static async addMissingSticker(userId: string, stickerId: string) {
+        const id = parseInt(stickerId, 10)
+        // Validar que el sticker exista
+        const sticker = await StickerService.getStickerByIdOrFail(id)
+
+        const collection = await CollectionRepository.addMissingSticker(userId, sticker)
+        if (!collection) {
+            throw new Error(`User ${userId} not found`)
+        }
+
+        return { stickerId: id, sticker }
     }
 
-    static async removeMissingSticker(_userId: string, _stickerId: string) {
-        return
+    /**
+     * DELETE /users/:userId/collection/missing/:stickerId
+     * Eliminar de la lista de faltantes
+     */
+    static async removeMissingSticker(userId: string, stickerId: string) {
+        const id = parseInt(stickerId, 10)
+        // Validar que el sticker exista
+        await StickerService.getStickerByIdOrFail(id)
+
+        const collection = await CollectionRepository.removeMissingSticker(userId, id)
+        if (!collection) {
+            throw new Error(`User ${userId} not found or collection not initialized`)
+        }
     }
 }
