@@ -15,6 +15,10 @@ class AuthRepository {
         return this.users.get(id)
     }
 
+    findAll(): User[] {
+        return Array.from(this.users.values())
+    }
+
     save(user: User): User {
         this.users.set(user.id, user)
         if (user.auth0Sub) {

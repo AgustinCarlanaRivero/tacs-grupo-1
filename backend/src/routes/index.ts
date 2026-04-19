@@ -6,11 +6,13 @@ import notificationRoutes from "../modules/notifications/notification.routes.ts"
 import matchingRoutes from "../modules/matching/matching.routes.ts"
 import offerDirectRoutes from "../modules/offers/offer-direct.routes.ts"
 import authRoutes from "../modules/auth/routes/auth.routes.ts"
+import adminRoutes from "../modules/admin/routes/admin.routes.ts"
 import { verifyJwt, attachUser } from "../modules/auth/middleware/auth.middleware.ts"
 
 const router = Router()
 
 router.use("/auth", verifyJwt, attachUser, authRoutes)
+router.use("/admin", verifyJwt, attachUser, adminRoutes)
 
 router.use("/users", verifyJwt, attachUser, userRoutes)
 router.use("/stickers", stickersRoutes)
