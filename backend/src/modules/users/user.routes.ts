@@ -4,7 +4,7 @@ import UserController from "./user.controller.ts"
 import collectionRouter from "../collection/collection.routes.ts"
 import PostController from "../posts/post.controller.ts"
 import ratingRouter from "../ratings/rating.routes.ts"
-import userNotificationRouter from "../notifications/user-notification.routes.ts"
+import userNotificationRouter from "../notifications/routes/user-notification.routes.ts"
 import userMatchingRouter from "../matching/user-matching.routes.ts"
 
 const router = Router()
