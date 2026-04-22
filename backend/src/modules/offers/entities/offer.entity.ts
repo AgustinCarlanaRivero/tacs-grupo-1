@@ -1,6 +1,6 @@
-import { CollectionItem } from "../users/collection-item.interface";
-import { OfferState } from "./offer-state.enum";
-import { User } from "../users/user.entity";
+import { CollectionItem } from "../../collection/collection-item.interface";
+import { OfferState } from "../enums/offer-state.enum";
+import { User } from "../../users/entities/user.entity";
 
 export class Offer {
   offerer: User;

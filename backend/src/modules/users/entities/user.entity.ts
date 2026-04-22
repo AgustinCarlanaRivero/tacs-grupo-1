@@ -1,5 +1,5 @@
-import { Collection } from "./collection.entity";
-import { UserRole } from "./user-role.enum";
+import { Collection } from "../../collection/collection.entity";
+import { UserRole } from "../enums/user-role.enum";
 
 export class User {
   id: string;

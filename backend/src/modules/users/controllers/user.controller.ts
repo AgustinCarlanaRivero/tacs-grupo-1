@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
-import { AppError } from "../../shared/errors/app-error.ts"
-import UserService from "./user.service.ts"
+import { AppError } from "../../../shared/errors/app-error.ts"
+import UserService from "../services/user.service.ts"
 
 
 export default class UserController {

@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import PostService from "./post.service.ts"
+import PostService from "../services/post.service.ts"
 
 function paramAsString(value: string | string[] | undefined): string {
     if (value === undefined) return ""

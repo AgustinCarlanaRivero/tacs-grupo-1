@@ -1,9 +1,9 @@
-import { CollectionItem } from "../users/collection-item.interface";
-import { Offer } from "./offer.entity";
+import { CollectionItem } from "../../collection/collection-item.interface";
+import { Offer } from "../../offers/entities/offer.entity";
 import { Post } from "./post.entity";
-import { PostState } from "./post-state.enum";
-import { Sticker } from "../stickers/sticker.entity";
-import { User } from "../users/user.entity";
+import { PostState } from "../enums/post-state.enum";
+import { Sticker } from "../../stickers/sticker.entity";
+import { User } from "../../users/entities/user.entity";
 
 export class Auction extends Post {
   createdAt: Date;

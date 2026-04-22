@@ -1,6 +1,6 @@
 import { Router } from "express"
-import { asyncHandler } from "../../shared/middleware/async-handler.ts"
-import RatingController from "./rating.controller.ts"
+import { asyncHandler } from "../../../shared/middleware/async-handler.ts"
+import RatingController from "../controllers/rating.controller.ts"
 
 const router = Router({ mergeParams: true })
 const ratingController = new RatingController()
