@@ -1,5 +1,5 @@
-import './config/env.ts'
-import app from './app/app.ts'
+import './config/env'
+import app from './app/app'
 
 const PORT = process.env.PORT ?? 3000
 

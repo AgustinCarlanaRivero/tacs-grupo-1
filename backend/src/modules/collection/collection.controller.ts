@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
-import { AppError } from "../../shared/errors/app-error.ts" // Para manejar errores si el sticker no existe, por ej.
-import CollectionService from "./collection.service.ts"
+import { AppError } from "../../shared/errors/app-error" // Para manejar errores si el sticker no existe, por ej.
+import CollectionService from "./collection.service"
 
 export default class CollectionController {
     

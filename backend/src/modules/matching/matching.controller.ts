@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
-import { AppError } from "../../shared/errors/app-error.ts"
-import MatchingService from "./matching.service.ts"
+import { AppError } from "../../shared/errors/app-error"
+import MatchingService from "./matching.service"
 
 function paramAsString(value: string | string[] | undefined): string {
     if (value === undefined) return ""
