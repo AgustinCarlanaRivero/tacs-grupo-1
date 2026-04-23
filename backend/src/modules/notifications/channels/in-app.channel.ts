@@ -1,7 +1,7 @@
-import { NotificationChannel } from "./notification-channel.ts"
-import { Notification } from "../entities/notification.entity.ts"
-import notificationRepository from "../repositories/notification.repository.ts"
-import { notificationEmitter } from "../services/notification.emitter.ts"
+import { NotificationChannel } from "./notification-channel"
+import { Notification } from "../entities/notification.entity"
+import notificationRepository from "../repositories/notification.repository"
+import { notificationEmitter } from "../services/notification.emitter"
 
 export class InAppChannel implements NotificationChannel {
     async send(notification: Notification): Promise<void> {

@@ -1,6 +1,6 @@
 import { Router } from "express"
-import { asyncHandler } from "../../shared/middleware/async-handler.ts"
-import CollectionController from "./collection.controller.ts"
+import { asyncHandler } from "../../shared/middleware/async-handler"
+import CollectionController from "./collection.controller"
 
 // IMPORTANTE: mergeParams permite leer el :userId del router padre
 const router = Router({ mergeParams: true })

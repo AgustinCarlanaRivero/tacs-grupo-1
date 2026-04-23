@@ -1,6 +1,6 @@
 import { Router } from "express"
-import { asyncHandler } from "../../../shared/middleware/async-handler.ts"
-import NotificationController from "../controllers/notification.controller.ts"
+import { asyncHandler } from "../../../shared/middleware/async-handler"
+import NotificationController from "../controllers/notification.controller"
 
 const router = Router()
 const controller = new NotificationController()

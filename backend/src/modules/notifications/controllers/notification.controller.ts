@@ -1,8 +1,8 @@
 import { Request, Response } from "express"
-import { AppError } from "../../../shared/errors/app-error.ts"
-import notificationService from "../services/notification.service.ts"
-import { notificationEmitter } from "../services/notification.emitter.ts"
-import { Notification } from "../entities/notification.entity.ts"
+import { AppError } from "../../../shared/errors/app-error"
+import notificationService from "../services/notification.service"
+import { notificationEmitter } from "../services/notification.emitter"
+import { Notification } from "../entities/notification.entity"
 
 type AuthenticatedRequest = Request & { user?: { id: string; role: string } }
 

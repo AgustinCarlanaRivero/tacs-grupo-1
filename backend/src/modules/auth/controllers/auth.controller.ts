@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
-import { AppError } from "../../../shared/errors/app-error.ts"
-import AuthService from "../services/auth.service.ts"
+import { AppError } from "../../../shared/errors/app-error"
+import AuthService from "../services/auth.service"
 
 type AuthenticatedRequest = Request & { user?: { id: string; role: string } }
 

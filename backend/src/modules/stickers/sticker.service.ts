@@ -1,4 +1,4 @@
-import { StickerRepository } from "../../infra/database/mongo/repositories/sticker.repository.ts"
+import { StickerRepository } from "../../infra/database/mongo/repositories/sticker.repository"
 
 export default class StickerService {
     /**

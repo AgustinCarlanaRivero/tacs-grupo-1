@@ -1,6 +1,6 @@
 import { Router } from "express"
-import { asyncHandler } from "../../shared/middleware/async-handler.ts"
-import StickerController from "./sticker.controller.ts"
+import { asyncHandler } from "../../shared/middleware/async-handler"
+import StickerController from "./sticker.controller"
 
 const router = Router()
 const stickerController = new StickerController()

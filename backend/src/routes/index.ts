@@ -1,13 +1,13 @@
 import { Router } from "express"
-import userRoutes from "../modules/users/routes/user.routes.ts"
-import stickersRoutes from "../modules/stickers/sticker.routes.ts"
-import postRoutes from "../modules/posts/routes/post.routes.ts"
-import notificationRoutes from "../modules/notifications/routes/notification.routes.ts"
-import matchingRoutes from "../modules/matching/matching.routes.ts"
-import offerDirectRoutes from "../modules/offers/routes/offer-direct.routes.ts"
-import authRoutes from "../modules/auth/routes/auth.routes.ts"
-import adminRoutes from "../modules/admin/routes/admin.routes.ts"
-import { verifyJwt, attachUser } from "../modules/auth/middleware/auth.middleware.ts"
+import userRoutes from "../modules/users/routes/user.routes"
+import stickersRoutes from "../modules/stickers/sticker.routes"
+import postRoutes from "../modules/posts/routes/post.routes"
+import notificationRoutes from "../modules/notifications/routes/notification.routes"
+import matchingRoutes from "../modules/matching/matching.routes"
+import offerDirectRoutes from "../modules/offers/routes/offer-direct.routes"
+import authRoutes from "../modules/auth/routes/auth.routes"
+import adminRoutes from "../modules/admin/routes/admin.routes"
+import { verifyJwt, attachUser } from "../modules/auth/middleware/auth.middleware"
 
 const router = Router()
 

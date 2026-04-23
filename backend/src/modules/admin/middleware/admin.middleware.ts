@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express"
-import { AppError } from "../../../shared/errors/app-error.ts"
-import { UserRole } from "../../users/user-role.enum.ts"
+import { AppError } from "../../../shared/errors/app-error"
+import { UserRole } from "../../users/enums/user-role.enum"
 
 type AuthenticatedRequest = Request & { user?: { id: string; role: string } }
 

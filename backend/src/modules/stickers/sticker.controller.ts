@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
-import { AppError } from "../../shared/errors/app-error.ts"
-import StickerService from "./sticker.service.ts"
+import { AppError } from "../../shared/errors/app-error"
+import StickerService from "./sticker.service"
 
 
 export default class StickerController {

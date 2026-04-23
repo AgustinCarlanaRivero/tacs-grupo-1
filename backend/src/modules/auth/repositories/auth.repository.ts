@@ -1,4 +1,4 @@
-import { User } from "../../users/user.entity.ts"
+import { User } from "../../users/entities/user.entity"
 
 //En memoria por ahora
 class AuthRepository {

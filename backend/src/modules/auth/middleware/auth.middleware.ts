@@ -1,6 +1,6 @@
 import { auth } from "express-oauth2-jwt-bearer"
 import type { Request, Response, NextFunction } from "express"
-import AuthService from "../services/auth.service.ts"
+import AuthService from "../services/auth.service"
 
 export const verifyJwt = auth({
     issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,

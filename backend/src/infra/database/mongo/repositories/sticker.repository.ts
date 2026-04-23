@@ -1,4 +1,4 @@
-import { Sticker } from "../../../../modules/stickers/sticker.entity.ts"
+import { Sticker } from "../../../../modules/stickers/sticker.entity"
 
 export class StickerRepository {
     static async findAll(): Promise<Sticker[]> {

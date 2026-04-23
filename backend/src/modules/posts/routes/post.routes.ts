@@ -1,7 +1,7 @@
 import { Router } from "express"
-import { asyncHandler } from "../../../shared/middleware/async-handler.ts"
-import PostController from "../controllers/post.controller.ts"
-import offerRoutes from "../../offers/routes/offer.routes.ts"
+import { asyncHandler } from "../../../shared/middleware/async-handler"
+import PostController from "../controllers/post.controller"
+import offerRoutes from "../../offers/routes/offer.routes"
 
 const router = Router()
 const postController = new PostController()

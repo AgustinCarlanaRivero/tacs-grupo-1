@@ -1,4 +1,4 @@
-import HealthController from "./healthController.ts"
+import HealthController from "./healthController"
 import {Router} from 'express'
 
 const router = Router()
