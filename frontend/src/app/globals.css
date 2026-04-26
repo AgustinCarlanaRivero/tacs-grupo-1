@@ -75,6 +75,12 @@ a {
   padding: 0 20px;
 }
 
+/* Shiny card sweep animation */
+@keyframes shineSweep {
+  0%   { transform: translateX(-200%); }
+  100% { transform: translateX(200%); }
+}
+
 @layer base {
   :root {
     --background: oklch(1 0 0);

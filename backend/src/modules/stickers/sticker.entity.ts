@@ -62,8 +62,7 @@ export class Sticker {
   // --- MÉTODOS DE PRESENTACIÓN ---
 
   public getDisplayName(): string {
-    const categoryLabel = this.isShiny() ? " ✨" : "";
-    return `#${this.number} ${this.player.name}${categoryLabel}`;
+    return `#${this.number} ${this.player.name}`;
   }
 
   // Se ejecuta automáticamente al hacer res.json() o JSON.stringify()
