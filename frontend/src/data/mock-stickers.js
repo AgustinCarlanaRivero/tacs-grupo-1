@@ -3,45 +3,49 @@ export const mockStickers = [
     sticker: {
       number: 10,
       player: {
-        name: "Christian Pulisic",
-        nationalTeam: { name: "USA" },
-        club: { name: "AC Milan" }
+        name: "Lionel Messi",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "Inter Miami" },
+        image: "https://assets1.afa.com.ar/media/DANI/NOVIEMBRE/WebN-messicgol2.jpg"
       },
-      category: "REGULAR"
+      category: "SHINY"
     },
     quantity: 2
   },
   {
     sticker: {
-      number: 45,
+      number: 23,
       player: {
-        name: "Alphonso Davies",
-        nationalTeam: { name: "Canada" },
-        club: { name: "Bayern Munich" }
+        name: "Emiliano Martínez",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "Aston Villa" },
+        image: "https://statics.eleconomista.com.ar/2022/11/63727a837ac3c.jpg"
       },
-      category: "SHINY"
+      category: "REGULAR"
     },
     quantity: 1
   },
   {
     sticker: {
-      number: 88,
+      number: 11,
       player: {
-        name: "Santiago Giménez",
-        nationalTeam: { name: "Mexico" },
-        club: { name: "Feyenoord" }
+        name: "Ángel Di María",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "Benfica" },
+        image: "https://www.clarin.com/2024/08/30/v6SPsl63z_2000x1500__1.jpg"
       },
-      category: "REGULAR"
+      category: "SHINY"
     },
     quantity: 3
   },
   {
     sticker: {
-      number: 12,
+      number: 9,
       player: {
-        name: "Weston McKennie",
-        nationalTeam: { name: "USA" },
-        club: { name: "Juventus" }
+        name: "Julián Álvarez",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "Atlético Madrid" },
+        image: "https://fotos.perfil.com/2024/07/14/trim/1280/720/julian-alvarez-1835378.jpg"
       },
       category: "REGULAR"
     },
@@ -49,23 +53,25 @@ export const mockStickers = [
   },
   {
     sticker: {
-      number: 99,
+      number: 7,
       player: {
-        name: "Guillermo Ochoa",
-        nationalTeam: { name: "Mexico" },
-        club: { name: "Salernitana" }
+        name: "Rodrigo De Paul",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "Atlético Madrid" },
+        image: "https://media.topmercato.com/arg/2024/07/ICONSPORT_232907_0033.jpg"
       },
-      category: "SHINY"
+      category: "REGULAR"
     },
     quantity: 1
   },
   {
     sticker: {
-      number: 23,
+      number: 8,
       player: {
-        name: "Jonathan David",
-        nationalTeam: { name: "Canada" },
-        club: { name: "Lille OSC" }
+        name: "Enzo Fernández",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "Chelsea" },
+        image: "https://media.lmneuquen.com/p/072c3680e4a33f817d9a0d90a9273352/adjuntos/195/imagenes/007/736/0007736389/770x0/smart/enzo-fernandez-1jpg.jpg"
       },
       category: "REGULAR"
     },

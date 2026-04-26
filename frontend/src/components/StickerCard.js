@@ -3,23 +3,9 @@ import React from "react";
 export default function StickerCard({ item }) {
   const { sticker, quantity } = item;
   const isShiny = sticker.category === "SHINY";
-  
-  // Determine flag and abbreviation based on National Team
-  let flag = "🏳️";
-  let abbr = "UNK";
-  if (sticker.player.nationalTeam?.name === "USA") {
-    flag = "🇺🇸";
-    abbr = "USA";
-  } else if (sticker.player.nationalTeam?.name === "Mexico") {
-    flag = "🇲🇽";
-    abbr = "MEX";
-  } else if (sticker.player.nationalTeam?.name === "Canada") {
-    flag = "🇨🇦";
-    abbr = "CAN";
-  }
 
   return (
-    <div className="group relative w-full aspect-[4/5] bg-white p-2.5 sm:p-3 shadow-md border border-slate-200 rounded-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+    <div className="group relative w-full aspect-[4/5] bg-white p-2.5 sm:p-3 shadow-md border border-slate-200 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer">
       
       {/* Badge (only show if we have duplicates or none) */}
       {quantity !== 1 && (
@@ -51,29 +37,40 @@ export default function StickerCard({ item }) {
           </div>
 
           <img 
-            src="/placeholder.png" 
+            src={sticker.player.image || "/placeholder.png"} 
             alt="Player Portrait" 
             className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.05] z-0"
           />
         </div>
 
         {/* Bottom Area (30%): Info Section */}
-        <div className="bg-white border-t-4 border-slate-200 flex flex-col justify-center px-3 py-2 z-10 shrink-0 h-[30%]">
-          {/* Country & Club */}
-          <div className="flex justify-between items-center mb-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-lg leading-none filter drop-shadow-sm">{flag}</span>
-              <span className="text-[10px] font-bold text-slate-500 tracking-wider uppercase">{abbr}</span>
-            </div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase truncate max-w-[50%] text-right">
-              {sticker.player.club?.name || "CLUB"}
-            </span>
-          </div>
+        <div className="bg-white flex flex-col justify-end z-10 shrink-0 h-[30%] border-t border-slate-200">
           
-          {/* Player Name */}
-          <h3 className="text-sm sm:text-base font-black text-slate-800 uppercase tracking-widest truncate w-full text-center mt-1">
-            {sticker.player.name}
-          </h3>
+          {/* Country & Club Bar */}
+          <div className="flex-1 flex justify-between items-center px-3 bg-slate-50">
+            <div className="flex flex-col items-start w-[48%]">
+              <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">País</span>
+              <span className="text-[11px] sm:text-xs font-extrabold text-slate-700 tracking-wider uppercase truncate w-full">
+                {sticker.player.nationalTeam?.name || "COUNTRY"}
+              </span>
+            </div>
+            
+            <div className="h-full w-px bg-slate-200"></div>
+            
+            <div className="flex flex-col items-end w-[48%]">
+              <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">Club</span>
+              <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase truncate w-full text-right">
+                {sticker.player.club?.name || "CLUB"}
+              </span>
+            </div>
+          </div>
+
+          {/* Player Name Banner */}
+          <div className="w-full py-2 px-2 flex items-center justify-center border-t border-slate-200 bg-slate-50 min-h-[44px]">
+            <h3 className="text-sm sm:text-sm font-black text-slate-700 uppercase tracking-[0.2em] text-center leading-none break-words">
+              {sticker.player.name}
+            </h3>
+          </div>
         </div>
       </div>
     </div>

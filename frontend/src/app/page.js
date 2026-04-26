@@ -15,11 +15,8 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-gradient-to-br from-usa via-canada to-mexico flex items-center justify-center text-white font-bold">
-              WC
-            </div>
-            <h1 className="text-xl font-extrabold tracking-tight text-slate-800">Mi Colección 2026</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-extrabold tracking-tight text-slate-800 mt-1">Mundial 2026</h1>
           </div>
           <nav>
             <Button variant="outline" className="text-sm font-medium">
@@ -31,30 +28,18 @@ export default function Home() {
 
       <main className="container mx-auto px-4 mt-8">
         {/* Dashboard/Stats */}
-        <section className="mb-12 bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100">
+        <section className="my-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <h2 className="text-3xl font-bold text-slate-800 tracking-tight">¡Hola, Coleccionista!</h2>
-              <p className="text-slate-500 mt-2 text-lg">Aquí tienes el resumen de tus figuritas del Mundial 2026.</p>
-            </div>
-            
-            <div className="flex items-center gap-6 bg-slate-50 py-4 px-6 rounded-xl border border-slate-100">
-              <div className="text-center">
-                <p className="text-sm text-slate-500 font-medium uppercase tracking-wider mb-1">Únicas</p>
-                <p className="text-3xl font-black text-slate-800">{totalOwned}<span className="text-lg text-slate-400 font-medium">/{totalStickers}</span></p>
-              </div>
-              <div className="w-px h-12 bg-slate-200"></div>
-              <div className="text-center">
-                <p className="text-sm text-slate-500 font-medium uppercase tracking-wider mb-1">Progreso</p>
-                <p className="text-3xl font-black text-usa">{progress}%</p>
-              </div>
+              <p className="text-slate-500 mt-2 text-lg">Acá están tus figuritas del Mundial 2026.</p>
             </div>
           </div>
         </section>
 
         {/* Filters / Actions (Visual Mock) */}
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-slate-800">Tus Figuritas</h3>
+          <h3 className="text-xl font-bold text-slate-800">Mi Colección</h3>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" className="bg-slate-200 hover:bg-slate-300 text-slate-700">Todos</Button>
             <Button variant="ghost" size="sm" className="text-slate-500">Faltantes</Button>
