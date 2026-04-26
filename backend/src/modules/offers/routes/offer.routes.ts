@@ -1,6 +1,6 @@
 import { Router } from "express"
-import { asyncHandler } from "../../../shared/middleware/async-handler.ts"
-import OfferController from "../controllers/offer.controller.ts"
+import { asyncHandler } from "../../../shared/middleware/async-handler"
+import OfferController from "../controllers/offer.controller"
 
 const router = Router({ mergeParams: true })
 const offerController = new OfferController()

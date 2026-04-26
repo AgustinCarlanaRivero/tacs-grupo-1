@@ -1,4 +1,4 @@
-import { Notification } from "../entities/notification.entity.ts"
+import { Notification } from "../entities/notification.entity"
 
 class NotificationRepository {
     private notifications: Map<string, Notification> = new Map()

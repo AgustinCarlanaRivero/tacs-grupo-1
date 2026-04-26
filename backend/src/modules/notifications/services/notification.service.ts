@@ -1,9 +1,9 @@
-import { Notification } from "../entities/notification.entity.ts"
-import { NotificationType } from "../enums/notification-type.enum.ts"
-import { NotificationChannel } from "../channels/notification-channel.ts"
-import { InAppChannel } from "../channels/in-app.channel.ts"
-import { AppError } from "../../../shared/errors/app-error.ts"
-import notificationRepository from "../repositories/notification.repository.ts"
+import { Notification } from "../entities/notification.entity"
+import { NotificationType } from "../enums/notification-type.enum"
+import { NotificationChannel } from "../channels/notification-channel"
+import { InAppChannel } from "../channels/in-app.channel"
+import { AppError } from "../../../shared/errors/app-error"
+import notificationRepository from "../repositories/notification.repository"
 
 class NotificationService {
     private channels: NotificationChannel[] = [new InAppChannel()]

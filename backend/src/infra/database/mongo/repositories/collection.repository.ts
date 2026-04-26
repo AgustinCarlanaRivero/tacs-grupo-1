@@ -1,6 +1,6 @@
-import { Collection } from "../../../../modules/users/collection.entity.ts"
-import { CollectionItem } from "../../../../modules/users/collection-item.interface.ts"
-import { Sticker } from "../../../../modules/stickers/sticker.entity.ts"
+import { Collection } from "../../../../modules/collection/collection.entity"
+import { CollectionItem } from "../../../../modules/collection/collection-item.interface"
+import { Sticker } from "../../../../modules/stickers/sticker.entity"
 
 export class CollectionRepository {
     static async getCollection(userId: string): Promise<Collection | null> {

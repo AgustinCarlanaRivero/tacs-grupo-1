@@ -1,11 +1,11 @@
 import { Router } from "express"
-import { asyncHandler } from "../../../shared/middleware/async-handler.ts"
-import UserController from "../controllers/user.controller.ts"
-import collectionRouter from "../../collection/collection.routes.ts"
-import PostController from "../../posts/repositories/post.controller.ts"
-import ratingRouter from "../../ratings/routes/rating.routes.ts"
-import userNotificationRouter from "../../notifications/routes/user-notification.routes.ts"
-import userMatchingRouter from "../../matching/user-matching.routes.ts"
+import { asyncHandler } from "../../../shared/middleware/async-handler"
+import UserController from "../controllers/user.controller"
+import collectionRouter from "../../collection/collection.routes"
+import PostController from "../../posts/controllers/post.controller"
+import ratingRouter from "../../ratings/routes/rating.routes"
+import userNotificationRouter from "../../notifications/routes/user-notification.routes"
+import userMatchingRouter from "../../matching/user-matching.routes"
 
 const router = Router()
 const userController = new UserController()

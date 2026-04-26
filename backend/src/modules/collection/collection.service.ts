@@ -1,7 +1,7 @@
-import { Collection } from "../users/collection.entity.ts"
-import { CollectionItem } from "../users/collection-item.interface.ts"
-import StickerService from "../stickers/sticker.service.ts"
-import { CollectionRepository } from "../../infra/database/mongo/repositories/collection.repository.ts"
+import { Collection } from "../collection/collection.entity"
+import { CollectionItem } from "../collection/collection-item.interface"
+import StickerService from "../stickers/sticker.service"
+import { CollectionRepository } from "../../infra/database/mongo/repositories/collection.repository"
 
 export default class CollectionService {
     /**

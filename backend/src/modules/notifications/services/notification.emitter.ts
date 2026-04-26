@@ -1,5 +1,5 @@
 import { EventEmitter } from "events"
-import { Notification } from "../entities/notification.entity.ts"
+import { Notification } from "../entities/notification.entity"
 
 class NotificationEmitter {
     private emitter = new EventEmitter()

@@ -1,7 +1,7 @@
 import { Router } from "express"
-import { asyncHandler } from "../../../shared/middleware/async-handler.ts"
-import { requireAdmin } from "../middleware/admin.middleware.ts"
-import AdminController from "../controllers/admin.controller.ts"
+import { asyncHandler } from "../../../shared/middleware/async-handler"
+import { requireAdmin } from "../middleware/admin.middleware"
+import AdminController from "../controllers/admin.controller"
 
 const router = Router()
 const controller = new AdminController()

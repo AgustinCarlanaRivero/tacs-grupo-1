@@ -1,9 +1,9 @@
 import express from "express"
 import cors from "cors"
-import { errorHandler } from "../shared/middleware/error.middleware.ts"
-import healthRoutes from "../infra/health/healthRoutes.ts"
-import swaggerRoutes from "../infra/swagger/swaggerRoutes.ts"
-import apiRoutes from "../routes/index.ts"
+import { errorHandler } from "../shared/middleware/error.middleware"
+import healthRoutes from "../infra/health/healthRoutes"
+import swaggerRoutes from "../infra/swagger/swaggerRoutes"
+import apiRoutes from "../routes/index"
 
 const app = express()
 

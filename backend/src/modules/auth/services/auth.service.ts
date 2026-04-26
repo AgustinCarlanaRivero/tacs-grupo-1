@@ -1,6 +1,6 @@
-import { User } from "../../users/user.entity.ts"
-import { UserRole } from "../../users/user-role.enum.ts"
-import authRepository from "../repositories/auth.repository.ts"
+import { User } from "../../users/entities/user.entity"
+import { UserRole } from "../../users/enums/user-role.enum"
+import authRepository from "../repositories/auth.repository"
 
 interface Auth0Profile {
     email?: string

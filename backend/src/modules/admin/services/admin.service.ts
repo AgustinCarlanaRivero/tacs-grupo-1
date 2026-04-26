@@ -1,6 +1,6 @@
-import { AppError } from "../../../shared/errors/app-error.ts"
-import { UserRole } from "../../users/user-role.enum.ts"
-import authRepository from "../../auth/repositories/auth.repository.ts"
+import { AppError } from "../../../shared/errors/app-error"
+import { UserRole } from "../../users/enums/user-role.enum"
+import authRepository from "../../auth/repositories/auth.repository"
 
 export default class AdminService {
     static async getStats() {

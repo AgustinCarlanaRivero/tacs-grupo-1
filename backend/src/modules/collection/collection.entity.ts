@@ -1,5 +1,5 @@
-import { CollectionItem } from "./collection-item.interface.ts"
-import { Sticker } from "../stickers/sticker.entity.ts"
+import { CollectionItem } from "./collection-item.interface"
+import { Sticker } from "../stickers/sticker.entity"
 
 export class Collection {
   items: CollectionItem[]

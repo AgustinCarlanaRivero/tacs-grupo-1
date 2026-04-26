@@ -1,6 +1,6 @@
 import { Router } from "express"
-import { asyncHandler } from "../../../shared/middleware/async-handler.ts"
-import AuthController from "../controllers/auth.controller.ts"
+import { asyncHandler } from "../../../shared/middleware/async-handler"
+import AuthController from "../controllers/auth.controller"
 
 const router = Router()
 const controller = new AuthController()

@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import AdminService from "../services/admin.service.ts"
+import AdminService from "../services/admin.service"
 
 export default class AdminController {
     getStats = async (_req: Request, res: Response) => {
