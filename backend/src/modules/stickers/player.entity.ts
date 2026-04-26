@@ -5,10 +5,12 @@ export class Player {
   name: string;
   nationalTeam: NationalTeam;
   club: Club;
+  image: string;
 
-  constructor(name: string, nationalTeam: NationalTeam, club: Club) {
+  constructor(name: string, nationalTeam: NationalTeam, club: Club, image: string = "") {
     this.name = name;
     this.nationalTeam = nationalTeam;
     this.club = club;
+    this.image = image;
   }
 }
