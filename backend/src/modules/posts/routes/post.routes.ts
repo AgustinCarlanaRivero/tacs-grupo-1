@@ -1,18 +1,19 @@
 import { Router } from "express"
 import { asyncHandler } from "../../../shared/middleware/async-handler"
 import PostController from "../controllers/post.controller"
-import offerRoutes from "../../offers/routes/offer.routes"
+import offerPostRoutes from "../../offers/routes/offer-post.routes"
 
-const router = Router()
+const router = Router({ mergeParams: true })
 const postController = new PostController()
 
-router.route("/").get(asyncHandler(postController.listPosts)).post(asyncHandler(postController.createPost))
-
-router.patch("/:postId/state", asyncHandler(postController.updatePostState))
+router.route("/")
+    .get(asyncHandler(postController.listPostsByOwner))
+    .post(asyncHandler(postController.createPost))
 
 router.get("/:postId", asyncHandler(postController.getPostById))
 
-// Nested routes for offers under posts
-router.use("/:postId/offers", offerRoutes)
+router.patch("/:postId/state", asyncHandler(postController.updatePostState))
+
+router.use("/:postId/offers", offerPostRoutes)
 
 export default router

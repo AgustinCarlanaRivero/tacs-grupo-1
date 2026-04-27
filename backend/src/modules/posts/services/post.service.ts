@@ -1,5 +1,7 @@
+import type { PostType } from "../enums/post-type.enum"
+
 export default class PostService {
-    static async listPosts(_filters: { type?: string; state?: string }) {
+    static async listPosts(_filters: { type?: PostType; state?: string }) {
         return []
     }
 
@@ -7,11 +9,11 @@ export default class PostService {
         return []
     }
 
-    static async getPostById(_postId: string) {
+    static async getPostById(_ownerId: string, _postId: string) {
         return []
     }
 
-    static async updatePostState(_postId: string, _state: unknown) {
+    static async updatePostState(_ownerId: string, _postId: string, _state: unknown) {
         return []
     }
 

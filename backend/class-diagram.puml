@@ -14,13 +14,33 @@ enum OfferState {
   PENDING
   APPROVED
   REJECTED
+  CANCELLED
 }
+
+note right of OfferState
+  +canTransitionOfferState(from: OfferState, to: OfferState): boolean
+  +isTerminalOfferState(state: OfferState): boolean
+end note
 
 enum PostState {
   ACTIVE
   COMPLETED
   CLOSED
 }
+
+note right of PostState
+  +canTransitionPostState(from: PostState, to: PostState): boolean
+  +isTerminalPostState(state: PostState): boolean
+end note
+
+enum PostType {
+  DIRECT_TRADE
+  AUCTION
+}
+
+note right of PostType
+  +isPostType(value: unknown): boolean
+end note
 
 class NationalTeam {
   -name: string
@@ -44,6 +64,8 @@ class Sticker {
 }
 
 class User {
+  -id: string
+  -auth0Sub: string
   -firstName: string
   -lastName: string
   -username: string
@@ -51,6 +73,12 @@ class User {
   -role: UserRole
   -reputation: number
   -collection: Collection | null
+  +setId(id: string): void
+  +isAdmin(): boolean
+  +hasCollection(): boolean
+  +getFullName(): string
+  +canBeRatedBy(reviewer: User): boolean
+  +recalculateReputationFrom(ratings: Rating[]): number
 }
 
 class Collection {
@@ -59,11 +87,16 @@ class Collection {
 }
 
 class Rating {
+  -id: string?
   -reviewer: User
   -reviewee: User
   -score: number
   -comment: string
   -createdAt: Date
+  +setId(id: string): void
+  +isBy(user: User): boolean
+  +isFor(user: User): boolean
+  -ensureNotSelfRating(): void
 }
 
 interface CollectionItem { 
@@ -72,25 +105,54 @@ interface CollectionItem {
 }
 
 class Offer {
+  -id: string?
   -offerer: User
   -state: OfferState
   -createdAt: Date
   -offered: CollectionItem[]
+  +setId(id: string): void
+  +isPending(): boolean
+  +isByUser(user: User): boolean
+  +approve(): void
+  +reject(): void
+  +cancelBy(user: User): void
+  +transitionTo(nextState: OfferState): void
 }
 
 abstract class Post {
+  -id: string?
   -owner: User
   -sticker: Sticker
   -state: PostState
   -offers: Offer[]
+  {abstract} +getType(): PostType
+  +setId(id: string): void
+  +isOwnedBy(user: User): boolean
+  +isActive(): boolean
+  +canReceiveOffers(at: Date): boolean
+  +addOffer(offer: Offer, at: Date): void
+  +getOfferById(offerId: string): Offer | undefined
+  +approveOffer(offerId: string, actor: User): Offer
+  +rejectOffer(offerId: string, actor: User): Offer
+  +cancelOffer(offerId: string, actor: User): Offer
+  +changeState(nextState: PostState): void
+  +complete(): void
+  +close(): void
+  -ensureOwnerActor(actor: User): void
+  -requireOfferById(offerId: string): Offer
 }
 
-class DirectTrade
+class DirectTrade {
+  +getType(): PostType
+}
 
 class Auction {
   -createdAt: Date
   -endsAt: Date
   -minimumRequirements: CollectionItem[]
+  +getType(): PostType
+  +hasEnded(at: Date): boolean
+  +canReceiveOffers(at: Date): boolean
   +duration(): number
   +lastOffer(): Offer | null
 }
@@ -117,6 +179,7 @@ User <-- Post
 Sticker <-- Post
 Offer <-- Post
 PostState <-- Post
+PostType <-- Post
 
 Post <|-- DirectTrade
 Post <|-- Auction

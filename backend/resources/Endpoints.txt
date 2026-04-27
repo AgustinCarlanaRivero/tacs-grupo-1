@@ -51,29 +51,27 @@ Como Collection maneja tanto items (figuritas repetidas/poseídas con quantity) 
 
 5. POSTS (Unifica Trades y Auctions)
 
-Dado que DirectTrade y Auction heredan de Post, es mejor tener un endpoint base para publicaciones, diferenciándolas por tipo y estado (PostState).
+Dado que DirectTrade y Auction heredan de Post, se mantiene endpoint único de creación usando type en el body.
 
-    GET    /posts - Listar publicaciones (Usa query params: ?type=direct_trade, ?type=auction, ?state=ACTIVE)
+    GET    /users/:userId/posts - Listar publicaciones de un usuario
 
-    POST   /posts - Crear publicación (En el body se define si es trade o auction, incluyendo los minimumRequirements si aplica)
+    POST   /users/:userId/posts - Crear publicación del usuario (body con type=AUCTION|DIRECT_TRADE)
 
-    GET    /posts/:postId - Ver detalle de publicación
+    GET    /users/:userId/posts/:postId - Ver detalle de publicación
 
-    PATCH  /posts/:postId/state - Cambiar el PostState (ej. marcar como COMPLETED o CLOSED)
-
-    GET    /users/:userId/posts - Listar las publicaciones de un usuario específico (owner)
+    PATCH  /users/:userId/posts/:postId/state - Cambiar el PostState (ej. marcar como COMPLETED o CLOSED)
 
 6. OFFERS (Unifica Trade Proposals y Auction Bids)
 
 Toda interacción hacia un Post (sea ofertar figuritas para un intercambio o pujar en una subasta) es un Offer según tu diagrama.
 
-    GET    /posts/:postId/offers - Ver todas las ofertas de una publicación
+    GET    /users/:userId/offers?role=sent|received|all - Ver ofertas asociadas a un usuario
 
-    POST   /posts/:postId/offers - Crear una oferta (Enviando un array de CollectionItem en el body)
+    GET    /users/:userId/posts/:postId/offers - Ver todas las ofertas de una publicación
 
-    PATCH  /offers/:offerId/state - Cambiar el OfferState (APPROVED, REJECTED). Al aprobar una, la lógica de negocio debería rechazar las demás.
+    POST   /users/:userId/posts/:postId/offers - Crear una oferta (Enviando un array de CollectionItem en el body)
 
-    DELETE /offers/:offerId - Cancelar/Retirar una oferta (si está PENDING)
+    PATCH  /users/:userId/posts/:postId/offers/:offerId/state - Cambiar OfferState (APPROVED, REJECTED, CANCELLED)
 
 7. RATINGS
 

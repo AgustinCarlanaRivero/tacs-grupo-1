@@ -24,12 +24,275 @@ paths:
                 type: string
                 example: ok
 
-  /api/v1:
+  /api/v1/users:
     get:
-      summary: API v1 (placeholder)
-      description: Endpoint base de la API v1
+      summary: Listar usuarios
       tags:
-        - API
+        - Users
       responses:
-        "404":
-          description: No hay rutas configuradas aún
+        "200":
+          description: Lista de usuarios
+
+  /api/v1/users/{userId}:
+    get:
+      summary: Obtener usuario
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Usuario encontrado
+    patch:
+      summary: Actualizar usuario
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Usuario actualizado
+    delete:
+      summary: Eliminar usuario
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Usuario eliminado
+
+  /api/v1/users/{userId}/posts:
+    get:
+      summary: Listar publicaciones del usuario
+      tags:
+        - Posts
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista de publicaciones
+    post:
+      summary: Crear publicación
+      tags:
+        - Posts
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+              properties:
+                type:
+                  type: string
+                  enum: [DIRECT_TRADE, AUCTION]
+      responses:
+        "201":
+          description: Publicación creada
+
+  /api/v1/users/{userId}/posts/{postId}:
+    get:
+      summary: Obtener publicación
+      tags:
+        - Posts
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Publicación encontrada
+
+  /api/v1/users/{userId}/posts/{postId}/state:
+    patch:
+      summary: Cambiar estado de publicación
+      tags:
+        - Posts
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+      responses:
+        "200":
+          description: Estado actualizado
+
+  /api/v1/users/{userId}/offers:
+    get:
+      summary: Listar ofertas del usuario
+      tags:
+        - Offers
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [sent, received, all]
+      responses:
+        "200":
+          description: Lista de ofertas
+
+  /api/v1/users/{userId}/posts/{postId}/offers:
+    get:
+      summary: Listar ofertas de una publicación
+      tags:
+        - Offers
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista de ofertas de la publicación
+    post:
+      summary: Crear oferta para publicación
+      tags:
+        - Offers
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Oferta creada
+
+  /api/v1/users/{userId}/posts/{postId}/offers/{offerId}/state:
+    patch:
+      summary: Cambiar estado de oferta
+      tags:
+        - Offers
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+                  enum: [PENDING, APPROVED, REJECTED, CANCELLED]
+      responses:
+        "200":
+          description: Estado de oferta actualizado
+
+  /api/v1/users/{userId}/ratings:
+    get:
+      summary: Listar ratings recibidos
+      tags:
+        - Ratings
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista de ratings
+    post:
+      summary: Crear rating al usuario
+      tags:
+        - Ratings
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Rating creado

@@ -1,4 +1,5 @@
 import { Collection } from "../../collection/collection.entity";
+import type { Rating } from "../../ratings/entities/rating.entity";
 import { UserRole } from "../enums/user-role.enum";
 
 export class User {
@@ -20,8 +21,9 @@ export class User {
     role: UserRole = UserRole.STANDARD,
     reputation = 0,
     collection: Collection | null = null,
+    id: string = "",
   ) {
-    this.id = crypto.randomUUID();
+    this.id = id;
     this.auth0Sub = "";
     this.firstName = firstName;
     this.lastName = lastName;
@@ -30,5 +32,42 @@ export class User {
     this.role = role;
     this.reputation = reputation;
     this.collection = collection;
+  }
+
+  setId(id: string): void {
+    this.id = id;
+  }
+
+  isAdmin(): boolean {
+    return this.role === UserRole.ADMIN;
+  }
+
+  hasCollection(): boolean {
+    return this.collection !== null;
+  }
+
+  getFullName(): string {
+    return `${this.firstName} ${this.lastName}`.trim();
+  }
+
+  canBeRatedBy(reviewer: User): boolean {
+    if (this.id && reviewer.id) {
+      return this.id !== reviewer.id;
+    }
+
+    return this !== reviewer;
+  }
+
+  recalculateReputationFrom(ratings: readonly Rating[]): number {
+    const receivedRatings = ratings.filter((rating) => rating.isFor(this));
+
+    if (receivedRatings.length === 0) {
+      this.reputation = 0;
+      return this.reputation;
+    }
+
+    const totalScore = receivedRatings.reduce((acc, rating) => acc + rating.score, 0);
+    this.reputation = Number((totalScore / receivedRatings.length).toFixed(2));
+    return this.reputation;
   }
 }
