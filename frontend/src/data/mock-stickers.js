@@ -76,5 +76,18 @@ export const mockStickers = [
       category: "REGULAR"
     },
     quantity: 5
+  },
+  {
+    sticker: {
+      number: 7,
+      player: {
+        name: "Kylian Mbappé",
+        nationalTeam: { name: "Francia" },
+        club: { name: "Real Madrid" },
+        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR40uDMbB1wsTWFqhMl7q9eHeY_FAnbwom1mw&s"
+      },
+      category: "SHINY"
+    },
+    quantity: 1
   }
 ];

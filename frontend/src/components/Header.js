@@ -4,11 +4,12 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Gavel, User } from "lucide-react";
+import { LayoutGrid, Gavel, ArrowLeftRight, User } from "lucide-react";
 
 const NAV_LINKS = [
   { href: "/", label: "Mi Colección", icon: LayoutGrid },
   { href: "/auctions", label: "Subastas", icon: Gavel },
+  { href: "/trades", label: "Intercambios", icon: ArrowLeftRight },
   { href: "/profile", label: "Perfil", icon: User },
 ];
 
