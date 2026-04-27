@@ -76,7 +76,8 @@ export class Sticker {
       player: {
         name: this.player.name,
         nationalTeam: this.player.nationalTeam?.name,
-        club: this.player.club?.name
+        club: this.player.club?.name,
+        image: this.player.image
       }
     };
   }
