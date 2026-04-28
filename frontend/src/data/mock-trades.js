@@ -3,7 +3,7 @@ export const mockTrades = [
     id: 1,
     state: "ACTIVE",
     sticker: {
-      number: 7,
+      number: 12,
       player: {
         name: "Kylian Mbappé",
         nationalTeam: { name: "Francia" },

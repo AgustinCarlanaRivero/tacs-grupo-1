@@ -5,7 +5,7 @@ import { Search } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import TradeCard from "@/components/TradeCard";
-import TradeOfferPanel from "@/components/TradeOfferPanel";
+import OfferModal from "@/components/OfferModal";
 import { mockTrades } from "@/data/mock-trades";
 import { mockStickers } from "@/data/mock-stickers";
 
@@ -55,8 +55,8 @@ export default function TradesPage() {
       )}
 
       {selectedTrade && (
-        <TradeOfferPanel
-          trade={selectedTrade}
+        <OfferModal
+          post={selectedTrade}
           myCollection={myCollection}
           onClose={() => setSelectedTrade(null)}
           onSubmit={stickers => console.log("Oferta enviada:", stickers)}

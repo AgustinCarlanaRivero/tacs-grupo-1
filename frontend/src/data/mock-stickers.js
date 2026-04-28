@@ -79,7 +79,7 @@ export const mockStickers = [
   },
   {
     sticker: {
-      number: 7,
+      number: 12,
       player: {
         name: "Kylian Mbappé",
         nationalTeam: { name: "Francia" },
