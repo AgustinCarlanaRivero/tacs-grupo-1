@@ -125,7 +125,19 @@ Definidas en `docker-compose.yml`:
 |-----------------------|-----------|------------------------------------------|
 | `NODE_ENV`            | backend   | Entorno de ejecución (`production`)      |
 | `PORT`                | backend   | Puerto del servidor Express              |
+| `AUTH0_ISSUER_BASE_URL` | backend | Issuer del tenant de Auth0 (ej. `https://dev-xxx.us.auth0.com`) |
+| `AUTH0_AUDIENCE`      | backend   | Audience del API en Auth0                |
 | `NEXT_PUBLIC_API_URL` | frontend  | URL del backend (para llamadas a la API) |
+
+---
+
+## Configuración de Auth0
+
+Pendientes a configurar en el Auth0 Dashboard:
+
+1. Agregar `https://oauth.pstmn.io/v1/callback` como **Allowed Callback URL** en la Application (para probar desde Postman).
+2. Crear el API con **audience** `https://api.tacs-figuritas.com`.
+3. Si se requiere disponer de `email` / `name` en el access token, configurar una Action/Rule que los agregue como custom claims (Auth0 no los incluye por defecto).
 
 ---
 

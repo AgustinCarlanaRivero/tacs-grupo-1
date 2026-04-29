@@ -1,57 +1,101 @@
-import { AppError } from "../../../shared/errors/app-error"
+import { BadRequestError, NotFoundError } from "../../../shared/errors/http-errors"
 import { UserRole } from "../../users/enums/user-role.enum"
 import authRepository from "../../auth/repositories/auth.repository"
+import notificationRepository from "../../notifications/repositories/notification.repository"
+import { NotificationType } from "../../notifications/enums/notification-type.enum"
+import { toUserResponseDto, type UserResponseDto } from "../../auth/dto/user-response.dto"
+import type { StatsResponseDto } from "../dto/stats-response.dto"
+import type { RoleUpdateResponseDto } from "../dto/role-update-response.dto"
 
 export default class AdminService {
-    static async getStats() {
+    /**
+     * Devuelve estadísticas agregadas de uso de la plataforma. Hoy cubre usuarios
+     * (totales y por rol) y notificaciones (totales, por tipo y por estado de
+     * lectura). A medida que los módulos de posts/ofertas/subastas estén con
+     * persistencia real, sumar acá las métricas correspondientes.
+     */
+    static async getStats(): Promise<StatsResponseDto> {
         const users = authRepository.findAll()
+        const notifications = notificationRepository.findAll()
+
+        const notificationsByType: Record<string, number> = {}
+        for (const type of Object.values(NotificationType)) {
+            notificationsByType[type] = 0
+        }
+        let unread = 0
+        for (const n of notifications) {
+            notificationsByType[n.type] = (notificationsByType[n.type] ?? 0) + 1
+            if (!n.read) unread++
+        }
 
         return {
-            totalUsers: users.length,
-            usersByRole: {
-                standard: users.filter(u => u.role === UserRole.STANDARD).length,
-                admin: users.filter(u => u.role === UserRole.ADMIN).length,
+            users: {
+                total: users.length,
+                byRole: {
+                    standard: users.filter(u => u.role === UserRole.STANDARD).length,
+                    admin: users.filter(u => u.role === UserRole.ADMIN).length,
+                },
+                topByReputation: [...users]
+                    .sort((a, b) => b.reputation - a.reputation)
+                    .slice(0, 5)
+                    .map(u => ({ id: u.id, username: u.username, reputation: u.reputation })),
+            },
+            notifications: {
+                total: notifications.length,
+                unread,
+                read: notifications.length - unread,
+                byType: notificationsByType,
             },
         }
     }
 
-    static async getUsers() {
-        return authRepository.findAll().map(user => ({
-            id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            reputation: user.reputation,
-        }))
+    static async getUsers(): Promise<UserResponseDto[]> {
+        return authRepository.findAll().map(toUserResponseDto)
     }
 
-    static async getUserById(userId: string) {
+    static async getUserById(userId: string): Promise<UserResponseDto> {
         const user = authRepository.findById(userId)
         if (!user) {
-            throw new AppError("Usuario no encontrado", 404)
+            throw new NotFoundError("Usuario no encontrado")
         }
-
-        return {
-            id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            reputation: user.reputation,
-        }
+        return toUserResponseDto(user)
     }
 
-    static async updateUserRole(userId: string, newRole: string) {
+    /**
+     * Cambia el rol de un usuario. Aplica dos guards:
+     *  - un admin no puede degradar su propio rol (evita perder acceso por error).
+     *  - el sistema no puede quedarse con 0 admins.
+     *
+     * @throws BadRequestError si el rol es inválido o se rompe alguno de los guards.
+     * @throws NotFoundError si el usuario objetivo no existe.
+     */
+    static async updateUserRole(
+        userId: string,
+        newRole: string,
+        requesterId: string,
+    ): Promise<RoleUpdateResponseDto> {
         if (newRole !== UserRole.STANDARD && newRole !== UserRole.ADMIN) {
-            throw new AppError("Rol inválido. Debe ser STANDARD o ADMIN", 400)
+            throw new BadRequestError("Rol inválido. Debe ser STANDARD o ADMIN")
         }
 
         const user = authRepository.findById(userId)
         if (!user) {
-            throw new AppError("Usuario no encontrado", 404)
+            throw new NotFoundError("Usuario no encontrado")
+        }
+
+        const isDemotingFromAdmin = user.role === UserRole.ADMIN && newRole !== UserRole.ADMIN
+
+        if (isDemotingFromAdmin && user.id === requesterId) {
+            throw new BadRequestError("Un admin no puede degradar su propio rol")
+        }
+
+        if (isDemotingFromAdmin) {
+            const remainingAdmins = authRepository
+                .findAll()
+                .filter(u => u.role === UserRole.ADMIN && u.id !== user.id).length
+            if (remainingAdmins === 0) {
+                throw new BadRequestError("No se puede degradar al último admin")
+            }
         }
 
         user.role = newRole
