@@ -1,6 +1,6 @@
-import { Collection } from "../../../../modules/collection/collection.entity"
-import { CollectionItem } from "../../../../modules/collection/collection-item.interface"
-import { Sticker } from "../../../../modules/stickers/sticker.entity"
+import { Collection } from "./collection.entity"
+import { CollectionItem } from "./collection-item.interface"
+import { Sticker } from "../stickers/sticker.entity"
 
 export class CollectionRepository {
     static async getCollection(userId: string): Promise<Collection | null> {

@@ -1,14 +1,15 @@
 import { Request, Response } from "express"
 import { AppError } from "../../shared/errors/app-error"
 import StickerService from "./sticker.service"
+import { StickerTag } from "./category.enum"
 
 
 export default class StickerController {
     getStickers = async (req: Request, res: Response) => {
-        const { category, team, club } = req.query;
+        const { tags, team, club } = req.query;
         
         const filters = {
-            category: category as string | undefined,
+            tags: tags ? (Array.isArray(tags) ? tags as StickerTag[] : [tags as StickerTag]) : undefined,
             team: team as string | undefined,
             club: club as string | undefined
         };
@@ -18,11 +19,11 @@ export default class StickerController {
     }
 
     getStickerById = async (req: Request, res: Response) => {
-        const { id } = req.params;
+        const id = req.params.id as string;
         const sticker = await StickerService.getStickerById(id);
         
         if (!sticker) {
-            throw new AppError(404, `Sticker #${id} not found`);
+            throw new AppError(`Sticker #${id} not found`, 404);
         }
         
         return res.status(200).json(sticker);

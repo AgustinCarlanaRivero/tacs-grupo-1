@@ -1,27 +1,69 @@
-import { Category } from "./category.enum";
+import { StickerTag, StickerTags, TYPE_TAGS, CONDITION_TAGS } from "./category.enum";
 import { Player } from "./player.entity";
 
 export class Sticker {
   number: number;
   player: Player;
-  category: Category;
+  tags: StickerTag[];
   description: string;
 
-  constructor(number: number, player: Player, category: Category = Category.REGULAR, description: string = "") {
+  constructor(number: number, player: Player, tags: StickerTag[] = [StickerTags.REGULAR, StickerTags.NUEVO], description: string = "") {
     this.number = number;
     this.player = player;
-    this.category = category;
+    this.tags = tags;
     this.description = description;
+    this.validateTags();
   }
 
   // --- MÉTODOS DE VALIDACIÓN/DOMINIO ---
 
+  private validateTags(): void {
+    // Verificar que no haya tags inválidos
+    const validTags = Object.values(StickerTags);
+    const invalidTags = this.tags.filter(tag => !validTags.includes(tag));
+    if (invalidTags.length > 0) {
+      throw new Error(`Invalid tags: ${invalidTags.join(', ')}`);
+    }
+
+    // Verificar que no haya más de un tag de tipo
+    const typeTags = this.tags.filter(tag => TYPE_TAGS.includes(tag));
+    if (typeTags.length > 1) {
+      throw new Error(`Sticker cannot have multiple type tags: ${typeTags.join(', ')}`);
+    }
+
+    // Verificar que no haya más de un tag de condición
+    const conditionTags = this.tags.filter(tag => CONDITION_TAGS.includes(tag));
+    if (conditionTags.length > 1) {
+      throw new Error(`Sticker cannot have multiple condition tags: ${conditionTags.join(', ')}`);
+    }
+
+    // Asegurar que tenga al menos un tag de cada grupo (por defecto)
+    if (typeTags.length === 0) {
+      this.tags.push(StickerTags.REGULAR);
+    }
+    if (conditionTags.length === 0) {
+      this.tags.push(StickerTags.NUEVO);
+    }
+  }
+
   public isShiny(): boolean {
-    return this.category === Category.SHINY;
+    return this.tags.includes(StickerTags.SHINY);
   }
 
   public isRegular(): boolean {
-    return this.category === Category.REGULAR;
+    return this.tags.includes(StickerTags.REGULAR);
+  }
+
+  public isNuevo(): boolean {
+    return this.tags.includes(StickerTags.NUEVO);
+  }
+
+  public isUsado(): boolean {
+    return this.tags.includes(StickerTags.USADO);
+  }
+
+  public isDañado(): boolean {
+    return this.tags.includes(StickerTags.DAÑADO);
   }
 
   public playsForNationalTeam(teamName: string): boolean {
@@ -36,9 +78,9 @@ export class Sticker {
     return this.player.name.toLowerCase() === playerName.toLowerCase();
   }
 
-  public matchesCategory(category: Category | undefined): boolean {
-    if (!category) return true;
-    return this.category === category;
+  public matchesTags(tags: StickerTag[] | undefined): boolean {
+    if (!tags || tags.length === 0) return true;
+    return tags.every(tag => this.tags.includes(tag));
   }
 
   public matchesTeam(teamName: string | undefined): boolean {
@@ -51,9 +93,9 @@ export class Sticker {
     return this.playsForClub(clubName);
   }
 
-  public matchesFilters(filters: { category?: Category; team?: string; club?: string }): boolean {
+  public matchesFilters(filters: { tags?: StickerTag[]; team?: string; club?: string }): boolean {
     return (
-      this.matchesCategory(filters.category) &&
+      this.matchesTags(filters.tags) &&
       this.matchesTeam(filters.team) &&
       this.matchesClub(filters.club)
     );
@@ -62,8 +104,9 @@ export class Sticker {
   // --- MÉTODOS DE PRESENTACIÓN ---
 
   public getDisplayName(): string {
-    const categoryLabel = this.isShiny() ? " ✨" : "";
-    return `#${this.number} ${this.player.name}${categoryLabel}`;
+    const shinyLabel = this.isShiny() ? " ✨" : "";
+    const conditionLabel = this.isDañado() ? " (Dañado)" : this.isUsado() ? " (Usado)" : "";
+    return `#${this.number} ${this.player.name}${shinyLabel}${conditionLabel}`;
   }
 
   // Se ejecuta automáticamente al hacer res.json() o JSON.stringify()
@@ -71,7 +114,7 @@ export class Sticker {
     return {
       id: this.number,
       title: this.getDisplayName(),
-      category: this.category,
+      tags: this.tags,
       description: this.description,
       player: {
         name: this.player.name,

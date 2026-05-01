@@ -1,4 +1,5 @@
-import { Sticker } from "../../../../modules/stickers/sticker.entity"
+import { Sticker } from "./sticker.entity"
+import { StickerTag } from "./category.enum"
 
 export class StickerRepository {
     static async findAll(): Promise<Sticker[]> {
@@ -12,7 +13,7 @@ export class StickerRepository {
     }
 
     static async findByFilters(filters: {
-        category?: string
+        tags?: StickerTag[]
         team?: string
         club?: string
     }): Promise<Sticker[]> {

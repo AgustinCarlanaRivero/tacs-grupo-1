@@ -5,7 +5,7 @@ import StickerController from "./sticker.controller"
 const router = Router()
 const stickerController = new StickerController()
 
-// GET /stickers - Listar figuritas (con filtros ?category=SHINY&team=Argentina)
+// GET /stickers - Listar figuritas (con filtros ?tags=SHINY,NUEVO&team=Argentina)
 router.route("/").get(asyncHandler(stickerController.getStickers))
 
 // GET /players - Listar jugadores

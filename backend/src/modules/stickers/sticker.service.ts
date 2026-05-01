@@ -1,11 +1,12 @@
-import { StickerRepository } from "../../infra/database/mongo/repositories/sticker.repository"
+import { StickerRepository } from "./sticker.repository"
+import { StickerTag } from "./category.enum"
 
 export default class StickerService {
     /**
      * Obtiene todos los stickers con filtros opcionales
-     * @param filters - { category?: Category, team?: string, club?: string }
+     * @param filters - { tags?: StickerTag[], team?: string, club?: string }
      */
-    static async getStickers(filters?: { category?: string; team?: string; club?: string }) {
+    static async getStickers(filters?: { tags?: StickerTag[]; team?: string; club?: string }) {
         if (filters && Object.keys(filters).length > 0) {
             return await StickerRepository.findByFilters(filters)
         }
@@ -15,15 +16,15 @@ export default class StickerService {
     /**
      * Obtiene un sticker por su número
      */
-    static async getStickerById(stickerId: string | number) {
-        const id = typeof stickerId === 'string' ? parseInt(stickerId, 10) : stickerId
+    static async getStickerById(stickerId: string) {
+        const id = parseInt(stickerId, 10)
         return await StickerRepository.findById(id)
     }
 
     /**
      * Obtiene un sticker con validación, lanza error si no existe
      */
-    static async getStickerByIdOrFail(stickerId: string | number) {
+    static async getStickerByIdOrFail(stickerId: string) {
         const sticker = await this.getStickerById(stickerId)
         if (!sticker) {
             throw new Error(`Sticker #${stickerId} not found`)
