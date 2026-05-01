@@ -5,28 +5,31 @@ import QuantityBadge from "@/components/sticker/QuantityBadge";
 import StickerFace from "@/components/sticker/StickerFace";
 import StickerModal from "@/components/sticker/StickerModal";
 
-const CARD_BASE = "group relative w-full aspect-[4/5] bg-white p-[6px] shadow-md border border-slate-200 transition-all duration-300";
-const CARD_ACTIVE = "hover:shadow-xl hover:-translate-y-1 cursor-pointer";
-const CARD_MISSING = "grayscale opacity-60";
-
-export default function StickerCard({ item, missing = false }) {
+// item prop → modo interactivo (click abre modal, quantity badge, hover)
+// sticker prop → modo estático (solo visual, sin interacción)
+export default function StickerCard({ item, sticker: stickerProp, missing = false }) {
   const [showModal, setShowModal] = useState(false);
-  const { sticker, quantity } = item;
+
+  const sticker = item?.sticker ?? stickerProp;
+  const isInteractive = !!item && !missing;
 
   return (
     <>
       <div
-        className={`${CARD_BASE} ${missing ? CARD_MISSING : CARD_ACTIVE}`}
-        onClick={missing ? undefined : () => setShowModal(true)}
+        className={`group relative w-full aspect-[4/5] bg-white p-[6px] border border-slate-200 transition-all duration-300
+          ${isInteractive ? "shadow-md hover:shadow-xl hover:-translate-y-1 cursor-pointer" : ""}
+          ${missing ? "grayscale opacity-60" : ""}
+        `}
+        onClick={isInteractive ? () => setShowModal(true) : undefined}
       >
-        {!missing && <QuantityBadge quantity={quantity} />}
+        {isInteractive && <QuantityBadge quantity={item.quantity} />}
         <StickerFace
           sticker={sticker}
-          imageClassName={missing ? "" : "transition-transform duration-300 group-hover:scale-105"}
+          imageClassName={isInteractive ? "transition-transform duration-300 group-hover:scale-105" : ""}
         />
       </div>
 
-      {showModal && !missing && (
+      {showModal && (
         <StickerModal item={item} onClose={() => setShowModal(false)} />
       )}
     </>

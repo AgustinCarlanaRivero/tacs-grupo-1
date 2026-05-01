@@ -6,10 +6,12 @@ import EmptyState from "@/components/common/EmptyState";
 import SearchBar from "@/components/common/SearchBar";
 import PageTabs from "@/components/common/PageTabs";
 import TradeCard from "@/components/trade/TradeCard";
+import TradeOffersModal from "@/components/trade/TradeOffersModal";
 import OfferModal from "@/components/auction/OfferModal";
 import { useSearch } from "@/hooks/useSearch";
 import { mockTrades } from "@/data/mock-trades";
 import { mockStickers } from "@/data/mock-stickers";
+import { mockOffers } from "@/data/mock-offers";
 import { currentUser } from "@/data/mock-user";
 
 const myCollection = mockStickers.filter(item => item.quantity > 0);
@@ -31,9 +33,10 @@ export default function TradesPage() {
   const myTrades = filtered.filter(t => t.owner.id === currentUser.id);
   const activeList = tab === "market" ? marketTrades : myTrades;
 
-  function handleCancel(trade) {
+  function cancelTrade(trade) {
     if (window.confirm(`¿Cancelar el intercambio de ${trade.sticker.player.name}?`)) {
       setAllTrades(prev => prev.filter(t => t.id !== trade.id));
+      setSelectedTrade(null);
     }
   }
 
@@ -74,13 +77,22 @@ export default function TradesPage() {
               key={trade.id}
               trade={trade}
               isOwner={tab === "mine"}
-              onSelect={tab === "mine" ? handleCancel : setSelectedTrade}
+              onSelect={setSelectedTrade}
             />
           ))}
         </div>
       )}
 
-      {selectedTrade && (
+      {selectedTrade && tab === "mine" && (
+        <TradeOffersModal
+          trade={selectedTrade}
+          offers={mockOffers[selectedTrade.id] ?? []}
+          onClose={() => setSelectedTrade(null)}
+          onCancelTrade={() => cancelTrade(selectedTrade)}
+        />
+      )}
+
+      {selectedTrade && tab === "market" && (
         <OfferModal
           post={selectedTrade}
           myCollection={myCollection}

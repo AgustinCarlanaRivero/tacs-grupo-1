@@ -6,7 +6,7 @@ import { PlayerInfoOverlay } from "@/components/sticker/PlayerInfo";
 
 export function ShinyFace({ sticker, imageClassName }) {
   return (
-    <div className="relative w-full h-full overflow-hidden ring-1 ring-yellow-400/50">
+    <div className="aspect-[4/5] border border-slate-200 bg-slate-100 relative overflow-hidden flex flex-col">
       <PlayerImage src={sticker.player.image} alt={sticker.player.name} className={imageClassName} />
       <ShinyOverlays />
       <NumberBadge number={sticker.number} variant="shiny" />
@@ -20,7 +20,7 @@ export function RegularFace({ sticker, imageClassName }) {
   const club = sticker.player.club?.name || "CLUB";
 
   return (
-    <div className="relative w-full h-full overflow-hidden flex flex-col">
+    <div className="aspect-[4/5] border border-slate-200 bg-slate-100 relative overflow-hidden flex flex-col">
       <div className="bg-[#002B5E] flex items-center justify-between px-2.5 py-1 shrink-0">
         <span className="text-white font-black text-xs tracking-wider">#{sticker.number}</span>
         <span className="text-blue-200 font-bold text-[9px] uppercase tracking-widest">{country}</span>

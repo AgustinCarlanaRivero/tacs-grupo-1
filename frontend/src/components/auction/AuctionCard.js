@@ -1,39 +1,11 @@
 "use client";
 
 import React from "react";
-import StickerFace from "@/components/sticker/StickerFace";
+import StickerCard from "@/components/sticker/StickerCard";
+import OwnerBadge from "@/components/common/OwnerBadge";
+import StickerRow from "@/components/common/StickerRow";
 import { useCountdown, formatCountdown } from "@/hooks/useCountdown";
 import { Clock, AlertCircle } from "lucide-react";
-
-function OwnerBadge({ name }) {
-  const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-  return (
-    <div className="flex items-center gap-2">
-      <div className="w-6 h-6 rounded-full bg-[#002B5E] flex items-center justify-center">
-        <span className="text-[10px] font-bold text-white">{initials}</span>
-      </div>
-      <span className="text-md text-slate-600 font-medium">{name}</span>
-    </div>
-  );
-}
-
-function RequirementRow({ req }) {
-  const isShiny = req.sticker.category === "SHINY";
-  return (
-    <div className="flex items-center justify-between text-xs bg-white px-3 py-2 rounded border border-slate-200 gap-2">
-      <div className="flex items-center gap-2 min-w-0">
-        <span className="font-bold text-slate-500">#{req.sticker.number}</span>
-        <span className="font-medium text-slate-700 truncate">{req.sticker.player.name}</span>
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${isShiny ? "bg-yellow-100 text-yellow-700 border-yellow-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
-          {isShiny ? "Shiny" : "Regular"}
-        </span>
-        <span className="font-black bg-[#002B5E] text-white px-2 py-0.5 rounded">x{req.quantity}</span>
-      </div>
-    </div>
-  );
-}
 
 export default function AuctionCard({ auction, onSelect, isOwner = false }) {
   const { sticker, owner, endsAt, minimumRequirements } = auction;
@@ -44,8 +16,8 @@ export default function AuctionCard({ auction, onSelect, isOwner = false }) {
   return (
     <div className={`flex flex-col md:flex-row bg-white border ${isEnded ? "border-red-200 opacity-80" : "border-slate-200"}`}>
       <div className="p-3 flex items-center justify-center">
-        <div className="w-48 p-2 border aspect-[4/5] flex items-center justify-center">
-          <StickerFace sticker={sticker} />
+        <div className="w-48">
+          <StickerCard sticker={sticker} />
         </div>
       </div>
 
@@ -80,7 +52,7 @@ export default function AuctionCard({ auction, onSelect, isOwner = false }) {
           {minimumRequirements?.length > 0 ? (
             <div className="flex flex-col gap-2 mb-4">
               {minimumRequirements.map(req => (
-                <RequirementRow key={req.sticker.number} req={req} />
+                <StickerRow key={req.sticker.number} sticker={req.sticker} quantity={req.quantity} />
               ))}
             </div>
           ) : (

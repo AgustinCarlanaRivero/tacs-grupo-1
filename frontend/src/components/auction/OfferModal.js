@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { X, Check, AlertCircle, Search, ChevronDown, ChevronUp } from "lucide-react";
+import StickerCard from "@/components/sticker/StickerCard";
 import StickerFace from "@/components/sticker/StickerFace";
+import StickerRow from "@/components/common/StickerRow";
 
 function SelectableSticker({ item, selected, onToggle, requiredQuantity }) {
   const { sticker, quantity } = item;
@@ -115,8 +117,8 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }) {
               Figurita en juego
             </p>
             <div className="flex flex-row md:flex-col items-center md:items-start gap-4">
-              <div className="w-48 aspect-[4/5] bg-white p-2 border border-slate-200">
-                <StickerFace sticker={sticker} />
+              <div className="w-48">
+                <StickerCard sticker={sticker} />
               </div>
               <div className="flex-1 min-w-0 md:w-full">
                 <p className="font-bold text-slate-800 text-base md:text-lg leading-tight">{sticker.player.name}</p>
@@ -147,11 +149,7 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }) {
                 {showRequirements && (
                   <div className="flex flex-col gap-2 pt-2">
                     {minimumRequirements.map(req => (
-                      <div key={req.sticker.number} className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded border border-slate-200 shadow-sm w-full">
-                        <span className="text-xs font-bold text-slate-700">#{req.sticker.number}</span>
-                        <span className="text-xs text-slate-600 flex-1 truncate">{req.sticker.player.name}</span>
-                        <span className="text-[10px] font-black bg-slate-800 text-white px-1.5 py-0.5 rounded-sm ml-1 shrink-0">x{req.quantity}</span>
-                      </div>
+                      <StickerRow key={req.sticker.number} sticker={req.sticker} quantity={req.quantity} />
                     ))}
                   </div>
                 )}
