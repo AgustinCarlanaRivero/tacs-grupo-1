@@ -1,12 +1,11 @@
 import { StickerRepository } from "./sticker.repository"
-import { StickerTag } from "./category.enum"
 
 export default class StickerService {
     /**
      * Obtiene todos los stickers con filtros opcionales
-     * @param filters - { tags?: StickerTag[], team?: string, club?: string }
+     * @param filters - { state?: string, type?: string, team?: string, club?: string }
      */
-    static async getStickers(filters?: { tags?: StickerTag[]; team?: string; club?: string }) {
+    static async getStickers(filters?: { state?: string; type?: string; team?: string; club?: string }) {
         if (filters && Object.keys(filters).length > 0) {
             return await StickerRepository.findByFilters(filters)
         }
@@ -51,5 +50,19 @@ export default class StickerService {
      */
     static async getClubs() {
         return await StickerRepository.getClubs()
+    }
+
+    /**
+     * Obtiene todos los estados válidos de stickers
+     */
+    static getValidStates(): string[] {
+        return ["NEW", "DAMAGED"]
+    }
+
+    /**
+     * Obtiene todos los tipos válidos de stickers
+     */
+    static getValidTypes(): string[] {
+        return ["REGULAR", "SHINY"]
     }
 }

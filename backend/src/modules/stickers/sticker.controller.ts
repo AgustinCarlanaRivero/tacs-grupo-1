@@ -1,15 +1,15 @@
 import { Request, Response } from "express"
 import { AppError } from "../../shared/errors/app-error"
 import StickerService from "./sticker.service"
-import { StickerTag } from "./category.enum"
 
 
 export default class StickerController {
     getStickers = async (req: Request, res: Response) => {
-        const { tags, team, club } = req.query;
+        const { state, type, team, club } = req.query;
         
         const filters = {
-            tags: tags ? (Array.isArray(tags) ? tags as StickerTag[] : [tags as StickerTag]) : undefined,
+            state: state as string | undefined,
+            type: type as string | undefined,
             team: team as string | undefined,
             club: club as string | undefined
         };

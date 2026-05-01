@@ -1,13 +1,12 @@
-export const StickerTags = {
-  REGULAR: "REGULAR",
-  SHINY: "SHINY",
-  NUEVO: "NUEVO",
-  USADO: "USADO",
-  DAÑADO: "DAÑADO"
-} as const;
+export type StickerState = "NEW" | "DAMAGED";
+export type StickerType = "REGULAR" | "SHINY";
 
-export type StickerTag = typeof StickerTags[keyof typeof StickerTags];
+export class StickerTags {
+  state: StickerState;
+  type: StickerType;
 
-// Grupos mutuamente excluyentes
-export const TYPE_TAGS: StickerTag[] = [StickerTags.REGULAR, StickerTags.SHINY];
-export const CONDITION_TAGS: StickerTag[] = [StickerTags.NUEVO, StickerTags.USADO];
+  constructor(state: StickerState, type: StickerType) {
+    this.state = state;
+    this.type = type;
+  }
+}
