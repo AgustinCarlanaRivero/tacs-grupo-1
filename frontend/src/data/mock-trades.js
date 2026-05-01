@@ -88,5 +88,36 @@ export const mockTrades = [
       category: "SHINY"
     },
     owner: { id: 7, name: "Sofía Ruiz" }
+  },
+  // Intercambios del usuario actual (id: 1)
+  {
+    id: 7,
+    state: "ACTIVE",
+    sticker: {
+      number: 11,
+      player: {
+        name: "Ángel Di María",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "Benfica" },
+        image: "https://www.clarin.com/2024/08/30/v6SPsl63z_2000x1500__1.jpg"
+      },
+      category: "SHINY"
+    },
+    owner: { id: 1, name: "Mateo Díaz" }
+  },
+  {
+    id: 8,
+    state: "ACTIVE",
+    sticker: {
+      number: 8,
+      player: {
+        name: "Enzo Fernández",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "Chelsea" },
+        image: "https://media.lmneuquen.com/p/072c3680e4a33f817d9a0d90a9273352/adjuntos/195/imagenes/007/736/0007736389/770x0/smart/enzo-fernandez-1jpg.jpg"
+      },
+      category: "REGULAR"
+    },
+    owner: { id: 1, name: "Mateo Díaz" }
   }
 ];

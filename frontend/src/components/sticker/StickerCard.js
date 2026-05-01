@@ -13,11 +13,12 @@ export default function StickerCard({ item, missing = false }) {
   const [showModal, setShowModal] = useState(false);
   const { sticker, quantity } = item;
 
-  const cardClassName = `${CARD_BASE} ${missing ? CARD_MISSING : CARD_ACTIVE}`;
-
   return (
     <>
-      <div className={cardClassName} onClick={missing ? undefined : () => setShowModal(true)}>
+      <div
+        className={`${CARD_BASE} ${missing ? CARD_MISSING : CARD_ACTIVE}`}
+        onClick={missing ? undefined : () => setShowModal(true)}
+      >
         {!missing && <QuantityBadge quantity={quantity} />}
         <StickerFace
           sticker={sticker}

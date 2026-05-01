@@ -1,28 +1,46 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search } from "lucide-react";
-import PageHeader from "@/components/PageHeader";
-import EmptyState from "@/components/EmptyState";
-import AuctionCard from "@/components/AuctionCard";
-import OfferModal from "@/components/OfferModal";
+import React, { useState, useCallback } from "react";
+import PageHeader from "@/components/common/PageHeader";
+import EmptyState from "@/components/common/EmptyState";
+import SearchBar from "@/components/common/SearchBar";
+import PageTabs from "@/components/common/PageTabs";
+import AuctionCard from "@/components/auction/AuctionCard";
+import OfferModal from "@/components/auction/OfferModal";
+import { useSearch } from "@/hooks/useSearch";
 import { mockAuctions } from "@/data/mock-auctions";
 import { mockStickers } from "@/data/mock-stickers";
+import { currentUser } from "@/data/mock-user";
 
 const myCollection = mockStickers.filter(item => item.quantity > 0);
 
+const getSearchFields = ({ sticker }) => [
+  sticker.player.name,
+  sticker.player.nationalTeam?.name,
+  sticker.player.club?.name,
+];
+
 export default function AuctionsPage() {
-  const [search, setSearch] = useState("");
+  const [tab, setTab] = useState("market");
+  const [allAuctions, setAllAuctions] = useState(mockAuctions);
   const [selectedAuction, setSelectedAuction] = useState(null);
 
-  const filtered = mockAuctions.filter(({ sticker }) => {
-    const q = search.toLowerCase();
-    return (
-      sticker.player.name.toLowerCase().includes(q) ||
-      (sticker.player.nationalTeam?.name || "").toLowerCase().includes(q) ||
-      (sticker.player.club?.name || "").toLowerCase().includes(q)
-    );
-  });
+  const { query, setQuery, filtered } = useSearch(allAuctions, useCallback(getSearchFields, []));
+
+  const marketAuctions = filtered.filter(a => a.owner.id !== currentUser.id);
+  const myAuctions = filtered.filter(a => a.owner.id === currentUser.id);
+  const activeList = tab === "market" ? marketAuctions : myAuctions;
+
+  function handleCancel(auction) {
+    if (window.confirm(`¿Cancelar la subasta de ${auction.sticker.player.name}?`)) {
+      setAllAuctions(prev => prev.filter(a => a.id !== auction.id));
+    }
+  }
+
+  const tabs = [
+    { key: "market", label: "Mercado" },
+    { key: "mine", label: "Mis subastas" },
+  ];
 
   return (
     <main className="container mx-auto px-4 pb-20">
@@ -31,25 +49,33 @@ export default function AuctionsPage() {
         subtitle="Encontrá subastas activas, pujá y llevate las figuritas más difíciles."
       />
 
-      <div className="relative mb-6 max-w-sm">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-        <input
-          type="text"
-          placeholder="Buscar por jugador, selección o club..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 border border-slate-200 bg-white text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#002B5E]/20 focus:border-[#002B5E] transition-all"
-        />
-      </div>
+      <PageTabs tabs={tabs} active={tab} onChange={setTab} />
 
-      {filtered.length === 0 ? (
+      <SearchBar
+        value={query}
+        onChange={setQuery}
+        placeholder="Buscar por jugador, selección o club..."
+      />
+
+      {activeList.length === 0 ? (
         <EmptyState
-          message={search ? `No se encontraron subastas para "${search}".` : "No hay subastas activas."}
+          message={
+            query
+              ? `No se encontraron subastas para "${query}".`
+              : tab === "mine"
+                ? "No publicaste ninguna subasta todavía."
+                : "No hay subastas activas."
+          }
         />
       ) : (
         <div className="flex flex-col gap-3 md:gap-4">
-          {filtered.map(auction => (
-            <AuctionCard key={auction.id} auction={auction} onSelect={setSelectedAuction} />
+          {activeList.map(auction => (
+            <AuctionCard
+              key={auction.id}
+              auction={auction}
+              isOwner={tab === "mine"}
+              onSelect={tab === "mine" ? handleCancel : setSelectedAuction}
+            />
           ))}
         </div>
       )}
@@ -59,7 +85,7 @@ export default function AuctionsPage() {
           post={selectedAuction}
           myCollection={myCollection}
           onClose={() => setSelectedAuction(null)}
-          onSubmit={stickers => console.log("Puja enviada a la subasta:", stickers)}
+          onSubmit={stickers => console.log("Puja enviada:", stickers)}
         />
       )}
     </main>

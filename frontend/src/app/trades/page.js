@@ -1,28 +1,46 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search } from "lucide-react";
-import PageHeader from "@/components/PageHeader";
-import EmptyState from "@/components/EmptyState";
-import TradeCard from "@/components/TradeCard";
-import OfferModal from "@/components/OfferModal";
+import React, { useState, useCallback } from "react";
+import PageHeader from "@/components/common/PageHeader";
+import EmptyState from "@/components/common/EmptyState";
+import SearchBar from "@/components/common/SearchBar";
+import PageTabs from "@/components/common/PageTabs";
+import TradeCard from "@/components/trade/TradeCard";
+import OfferModal from "@/components/auction/OfferModal";
+import { useSearch } from "@/hooks/useSearch";
 import { mockTrades } from "@/data/mock-trades";
 import { mockStickers } from "@/data/mock-stickers";
+import { currentUser } from "@/data/mock-user";
 
 const myCollection = mockStickers.filter(item => item.quantity > 0);
 
+const getSearchFields = ({ sticker }) => [
+  sticker.player.name,
+  sticker.player.nationalTeam?.name,
+  sticker.player.club?.name,
+];
+
 export default function TradesPage() {
-  const [search, setSearch] = useState("");
+  const [tab, setTab] = useState("market");
+  const [allTrades, setAllTrades] = useState(mockTrades);
   const [selectedTrade, setSelectedTrade] = useState(null);
 
-  const filtered = mockTrades.filter(({ sticker }) => {
-    const q = search.toLowerCase();
-    return (
-      sticker.player.name.toLowerCase().includes(q) ||
-      (sticker.player.nationalTeam?.name || "").toLowerCase().includes(q) ||
-      (sticker.player.club?.name || "").toLowerCase().includes(q)
-    );
-  });
+  const { query, setQuery, filtered } = useSearch(allTrades, useCallback(getSearchFields, []));
+
+  const marketTrades = filtered.filter(t => t.owner.id !== currentUser.id);
+  const myTrades = filtered.filter(t => t.owner.id === currentUser.id);
+  const activeList = tab === "market" ? marketTrades : myTrades;
+
+  function handleCancel(trade) {
+    if (window.confirm(`¿Cancelar el intercambio de ${trade.sticker.player.name}?`)) {
+      setAllTrades(prev => prev.filter(t => t.id !== trade.id));
+    }
+  }
+
+  const tabs = [
+    { key: "market", label: "Mercado" },
+    { key: "mine", label: "Mis intercambios" },
+  ];
 
   return (
     <main className="container mx-auto px-4 pb-20">
@@ -31,25 +49,33 @@ export default function TradesPage() {
         subtitle="Encontrá figuritas que te faltan y ofrecé las tuyas."
       />
 
-      <div className="relative mb-6 max-w-sm">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-        <input
-          type="text"
-          placeholder="Buscar por jugador, selección o club..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 border border-slate-200 bg-white text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#002B5E]/20 focus:border-[#002B5E] transition-all"
-        />
-      </div>
+      <PageTabs tabs={tabs} active={tab} onChange={setTab} />
 
-      {filtered.length === 0 ? (
+      <SearchBar
+        value={query}
+        onChange={setQuery}
+        placeholder="Buscar por jugador, selección o club..."
+      />
+
+      {activeList.length === 0 ? (
         <EmptyState
-          message={search ? `No se encontraron figuritas para "${search}".` : "No hay intercambios disponibles."}
+          message={
+            query
+              ? `No se encontraron figuritas para "${query}".`
+              : tab === "mine"
+                ? "No publicaste ningún intercambio todavía."
+                : "No hay intercambios disponibles."
+          }
         />
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-          {filtered.map(trade => (
-            <TradeCard key={trade.id} trade={trade} onSelect={setSelectedTrade} />
+          {activeList.map(trade => (
+            <TradeCard
+              key={trade.id}
+              trade={trade}
+              isOwner={tab === "mine"}
+              onSelect={tab === "mine" ? handleCancel : setSelectedTrade}
+            />
           ))}
         </div>
       )}

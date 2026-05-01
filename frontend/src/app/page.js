@@ -1,6 +1,6 @@
 import React from "react";
-import PageHeader from "@/components/PageHeader";
-import StickerGrid from "@/components/StickerGrid";
+import PageHeader from "@/components/common/PageHeader";
+import StickerGrid from "@/components/sticker/StickerGrid";
 import { mockStickers, mockMissingStickers } from "@/data/mock-stickers";
 
 export default function Home() {

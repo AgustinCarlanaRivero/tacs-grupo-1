@@ -6,25 +6,22 @@ import StickerFace from "@/components/sticker/StickerFace";
 
 function SelectableSticker({ item, selected, onToggle, requiredQuantity }) {
   const { sticker, quantity } = item;
-
-  // If this sticker is required for an auction, show if they don't have enough
   const hasEnough = requiredQuantity ? quantity >= requiredQuantity : true;
-  const isSelectable = hasEnough;
 
   return (
     <button
-      onClick={() => isSelectable && onToggle(sticker.number)}
-      disabled={!isSelectable}
-      className={`group relative w-full aspect-[4/5] bg-white p-2 transition-all duration-150 ${selected
-        ? "ring-2 ring-[#002B5E] ring-offset-1 shadow-md"
-        : isSelectable
-          ? "ring-1 ring-slate-200 hover:ring-slate-300 shadow-sm hover:shadow-md"
-          : "ring-1 ring-red-200 opacity-60 cursor-not-allowed"
-        }`}
+      onClick={() => hasEnough && onToggle(sticker.number)}
+      disabled={!hasEnough}
+      className={`group relative w-full aspect-[4/5] bg-white p-2 transition-all duration-150 ${
+        selected
+          ? "ring-2 ring-[#002B5E] ring-offset-1 shadow-md"
+          : hasEnough
+            ? "ring-1 ring-slate-200 hover:ring-slate-300 shadow-sm hover:shadow-md"
+            : "ring-1 ring-red-200 opacity-60 cursor-not-allowed"
+      }`}
     >
       <StickerFace sticker={sticker} />
 
-      {/* Selection overlay */}
       {selected && (
         <div className="absolute inset-0 bg-[#002B5E]/20 flex items-center justify-center pointer-events-none z-30">
           <div className="w-8 h-8 rounded-full bg-[#002B5E] shadow-lg flex items-center justify-center">
@@ -33,14 +30,12 @@ function SelectableSticker({ item, selected, onToggle, requiredQuantity }) {
         </div>
       )}
 
-      {/* Quantity badge */}
       {quantity > 1 && (
         <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] text-white bg-gray-900 shadow-md z-30">
           x{quantity}
         </div>
       )}
 
-      {/* Required badge warning */}
       {!hasEnough && requiredQuantity && (
         <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-max px-2 py-0.5 rounded-full flex items-center justify-center font-bold text-[9px] text-white bg-red-500 shadow-md z-30">
           Faltan {requiredQuantity - quantity}
@@ -54,16 +49,14 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }) {
   const [selected, setSelected] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showRequirements, setShowRequirements] = useState(false);
+
   const { sticker, owner, minimumRequirements } = post;
   const isShiny = sticker.category === "SHINY";
   const isAuction = !!minimumRequirements;
 
-  // Prevent background scrolling when modal is open
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = "auto"; };
   }, []);
 
   function toggleSticker(number) {
@@ -83,21 +76,16 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }) {
     );
   });
 
-  // Validation logic
   let canSubmit = selected.length > 0;
   let validationMessage = "";
 
   if (isAuction && minimumRequirements.length > 0) {
-    const missingRequirements = minimumRequirements.filter(req => {
-      // Must be selected
+    const missing = minimumRequirements.filter(req => {
       if (!selected.includes(req.sticker.number)) return true;
-      // Must have enough quantity in collection
-      const collectionItem = myCollection.find(c => c.sticker.number === req.sticker.number);
-      if (!collectionItem || collectionItem.quantity < req.quantity) return true;
-      return false;
+      const item = myCollection.find(c => c.sticker.number === req.sticker.number);
+      return !item || item.quantity < req.quantity;
     });
-
-    if (missingRequirements.length > 0) {
+    if (missing.length > 0) {
       canSubmit = false;
       validationMessage = "Debés seleccionar todas las figuritas requeridas para esta subasta.";
     }
@@ -105,13 +93,9 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }) {
 
   return (
     <div className="fixed inset-0 z-50 flex md:flex-row items-center justify-center p-0 md:p-4">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal Content */}
       <div className="relative bg-white flex flex-col overflow-hidden w-full h-full md:h-[80vh] md:max-h-[800px] md:w-[900px] md:max-w-[95vw] md:rounded-xl shadow-2xl">
-
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 md:py-4 border-b border-slate-100 shrink-0 bg-white">
           <div>
             <h3 className="font-bold text-slate-800 text-base md:text-lg">
@@ -124,10 +108,8 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }) {
           </button>
         </div>
 
-        {/* Body container: Column on mobile, Row on desktop */}
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-
-          {/* Wanted sticker preview (Left side on desktop) */}
+          {/* Sticker en juego */}
           <div className="md:w-1/3 lg:w-2/5 flex flex-col shrink-0 px-4 py-4 md:px-6 md:py-5 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100 md:overflow-y-auto">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
               Figurita en juego
@@ -141,17 +123,15 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }) {
                 <p className="text-sm text-slate-500 mt-1">
                   {sticker.player.nationalTeam?.name} · {sticker.player.club?.name}
                 </p>
-                <span className={`inline-block mt-2 text-[10px] md:text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded ${isShiny ? "bg-yellow-100 text-yellow-700" : "bg-slate-100 text-slate-500"
-                  }`}>
+                <span className={`inline-block mt-2 text-[10px] md:text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded ${isShiny ? "bg-yellow-100 text-yellow-700" : "bg-slate-100 text-slate-500"}`}>
                   {isShiny ? "✦ Shiny" : "Regular"}
                 </span>
               </div>
             </div>
 
-            {/* Minimum Requirements Display (for Auctions) */}
             {isAuction && minimumRequirements.length > 0 && (
               <div className="mt-4 border-t border-slate-200/60">
-                <button 
+                <button
                   onClick={() => setShowRequirements(!showRequirements)}
                   className="w-full flex items-center justify-between pt-4 pb-2 group"
                 >
@@ -159,9 +139,11 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }) {
                     <AlertCircle size={12} className="text-blue-500" /> Requisitos mínimos
                     <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-sm text-[9px] ml-1">{minimumRequirements.length}</span>
                   </p>
-                  {showRequirements ? <ChevronUp size={14} className="text-slate-400 group-hover:text-[#002B5E]" /> : <ChevronDown size={14} className="text-slate-400 group-hover:text-[#002B5E]" />}
+                  {showRequirements
+                    ? <ChevronUp size={14} className="text-slate-400 group-hover:text-[#002B5E]" />
+                    : <ChevronDown size={14} className="text-slate-400 group-hover:text-[#002B5E]" />
+                  }
                 </button>
-                
                 {showRequirements && (
                   <div className="flex flex-col gap-2 pt-2">
                     {minimumRequirements.map(req => (
@@ -177,12 +159,10 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }) {
             )}
           </div>
 
-            {/* Collection picker (Right side on desktop) */}
+          {/* Selector de figuritas */}
           <div className="flex flex-col flex-1 px-4 py-4 md:px-6 md:py-5 bg-white overflow-y-auto overscroll-contain">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                Elegí qué ofrecés
-              </p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Elegí qué ofrecés</p>
               {selected.length > 0 && (
                 <span className="text-sm font-bold text-[#002B5E] bg-blue-50 px-2 py-0.5 rounded">
                   {selected.length} seleccionada{selected.length > 1 ? "s" : ""}
@@ -227,26 +207,21 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }) {
               </div>
             )}
           </div>
-
         </div>
 
-        {/* Submit */}
         <div className="shrink-0 p-4 md:p-6 border-t border-slate-100 bg-white">
           {!canSubmit && validationMessage && (
-            <p className="text-xs text-red-500 font-medium text-center mb-3">
-              {validationMessage}
-            </p>
+            <p className="text-xs text-red-500 font-medium text-center mb-3">{validationMessage}</p>
           )}
           <button
             disabled={!canSubmit}
             onClick={() => { onSubmit(selected); onClose(); }}
-            className="w-full py-3.5 md:py-4 rounded-lg text-sm md:text-base font-bold uppercase tracking-wide transition-all
-              bg-[#002B5E] hover:bg-[#003a7a] text-white shadow-lg shadow-blue-900/20
-              disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+            className="w-full py-3.5 md:py-4 rounded-lg text-sm md:text-base font-bold uppercase tracking-wide transition-all bg-[#002B5E] hover:bg-[#003a7a] text-white shadow-lg shadow-blue-900/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {selected.length === 0
               ? "Seleccioná figuritas para ofrecer"
-              : `Enviar propuesta · ${selected.length} figurita${selected.length > 1 ? "s" : ""}`}
+              : `Enviar propuesta · ${selected.length} figurita${selected.length > 1 ? "s" : ""}`
+            }
           </button>
         </div>
       </div>

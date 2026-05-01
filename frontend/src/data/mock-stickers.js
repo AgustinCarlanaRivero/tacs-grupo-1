@@ -84,7 +84,7 @@ export const mockStickers = [
         name: "Kylian Mbappé",
         nationalTeam: { name: "Francia" },
         club: { name: "Real Madrid" },
-        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR40uDMbB1wsTWFqhMl7q9eHeY_FAnbwom1mw&s"
+        image: "https://abcmundial.com/sites/default/files/noticias/2022/05/21/Kylian%20Mbappe%20signs%20new%20three-year%20deal%20with%20PSG.%C2%A0.jpg"
       },
       category: "SHINY"
     },
@@ -100,7 +100,7 @@ export const mockMissingStickers = [
         name: "Lautaro Martínez",
         nationalTeam: { name: "Argentina" },
         club: { name: "Inter de Milán" },
-        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Lautaro_Mart%C3%ADnez_2024.jpg/220px-Lautaro_Mart%C3%ADnez_2024.jpg"
+        image: "https://cdn.futbolargentino.com/sdi/2025/01/29/inter-de-milan-vencio-3-0-a-monaco-con-tres-goles-de-lautaro-martinez-por-la-champions-league-1271126.jpg"
       },
       category: "REGULAR"
     },
@@ -113,7 +113,7 @@ export const mockMissingStickers = [
         name: "Exequiel Palacios",
         nationalTeam: { name: "Argentina" },
         club: { name: "Bayer Leverkusen" },
-        image: "https://img.a.transfermarkt.technology/portrait/big/476641-1696613966.jpg"
+        image: "https://www.afa.com.ar/Sitio/media/manager/1000/750/c/aHR0cHM6Ly93d3cuYWZhLmNvbS5hci91cGxvYWQvdG9ybmVvL3dpZGdldHMvYXZhdGFyX3VzdWFyaW9zL0p1Z2Fkb3Jlcy9wYWxhY2lvc19iYXllci5qcGc_"
       },
       category: "REGULAR"
     },
@@ -126,7 +126,7 @@ export const mockMissingStickers = [
         name: "Paulo Dybala",
         nationalTeam: { name: "Argentina" },
         club: { name: "AS Roma" },
-        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Paulo_Dybala_2022.jpg/220px-Paulo_Dybala_2022.jpg"
+        image: "https://assets-es.imgfoot.com/media/cache/1200x1200/paulo-dybala-2526.jpg"
       },
       category: "SHINY"
     },
@@ -139,7 +139,7 @@ export const mockMissingStickers = [
         name: "Cristian Romero",
         nationalTeam: { name: "Argentina" },
         club: { name: "Tottenham" },
-        image: "https://img.a.transfermarkt.technology/portrait/big/355915-1694590556.jpg"
+        image: "https://media.tycsports.com/files/2026/04/29/945222/cuti-romero_w862.webp"
       },
       category: "REGULAR"
     },
