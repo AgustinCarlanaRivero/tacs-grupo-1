@@ -51,7 +51,7 @@ export default function AuctionCard({ auction, onSelect }) {
       </div>
 
       <div className="flex-1 flex flex-col md:flex-row">
-        
+
         {/* Info Box */}
         <div className="flex-1 p-4 flex flex-col">
           <div className="flex items-center gap-2 mb-1">

@@ -91,3 +91,58 @@ export const mockStickers = [
     quantity: 1
   }
 ];
+
+export const mockMissingStickers = [
+  {
+    sticker: {
+      number: 5,
+      player: {
+        name: "Lautaro Martínez",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "Inter de Milán" },
+        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Lautaro_Mart%C3%ADnez_2024.jpg/220px-Lautaro_Mart%C3%ADnez_2024.jpg"
+      },
+      category: "REGULAR"
+    },
+    quantity: 0
+  },
+  {
+    sticker: {
+      number: 14,
+      player: {
+        name: "Exequiel Palacios",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "Bayer Leverkusen" },
+        image: "https://img.a.transfermarkt.technology/portrait/big/476641-1696613966.jpg"
+      },
+      category: "REGULAR"
+    },
+    quantity: 0
+  },
+  {
+    sticker: {
+      number: 21,
+      player: {
+        name: "Paulo Dybala",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "AS Roma" },
+        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Paulo_Dybala_2022.jpg/220px-Paulo_Dybala_2022.jpg"
+      },
+      category: "SHINY"
+    },
+    quantity: 0
+  },
+  {
+    sticker: {
+      number: 3,
+      player: {
+        name: "Cristian Romero",
+        nationalTeam: { name: "Argentina" },
+        club: { name: "Tottenham" },
+        image: "https://img.a.transfermarkt.technology/portrait/big/355915-1694590556.jpg"
+      },
+      category: "REGULAR"
+    },
+    quantity: 0
+  },
+];
