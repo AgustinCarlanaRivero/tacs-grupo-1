@@ -2,16 +2,24 @@ import { Notification } from "../entities/notification.entity"
 import { NotificationType } from "../enums/notification-type.enum"
 import { NotificationChannel } from "../channels/notification-channel"
 import { InAppChannel } from "../channels/in-app.channel"
-import { AppError } from "../../../shared/errors/app-error"
+import { ForbiddenError, NotFoundError } from "../../../shared/errors/http-errors"
 import notificationRepository from "../repositories/notification.repository"
 
 class NotificationService {
     private channels: NotificationChannel[] = [new InAppChannel()]
 
+    /**
+     * Registra un nuevo canal de entrega (in-app, email, telegram, etc).
+     * Cualquier `notify` posterior va a despachar por todos los canales registrados.
+     */
     addChannel(channel: NotificationChannel) {
         this.channels.push(channel)
     }
 
+    /**
+     * Crea la notificación y la entrega por todos los canales en paralelo.
+     * Si un canal falla, propaga el error (Promise.all).
+     */
     async notify(
         userId: string,
         type: NotificationType,
@@ -34,19 +42,29 @@ class NotificationService {
         return notificationRepository.findByUserId(userId)
     }
 
-    async markAsRead(notificationId: string) {
+    /**
+     * Marca como leída la notificación si pertenece al usuario indicado.
+     * @throws AppError 404 si no existe, 403 si el usuario no es el dueño.
+     */
+    async markAsRead(notificationId: string, requesterId: string) {
         const notification = notificationRepository.findById(notificationId)
         if (!notification) {
-            throw new AppError("Notificación no encontrada", 404)
+            throw new NotFoundError("Notificación no encontrada")
+        }
+        if (notification.userId !== requesterId) {
+            throw new ForbiddenError("No autorizado para marcar esta notificación")
         }
 
         notification.read = true
-        return notification
+        return notificationRepository.save(notification)
     }
 
     async markAllAsRead(userId: string) {
         const unread = notificationRepository.findUnreadByUserId(userId)
-        unread.forEach(n => { n.read = true })
+        unread.forEach(n => {
+            n.read = true
+            notificationRepository.save(n)
+        })
         return { marked: unread.length }
     }
 

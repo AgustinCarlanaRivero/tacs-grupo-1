@@ -8,6 +8,14 @@ interface Auth0Profile {
 }
 
 export default class AuthService {
+    /**
+     * Busca un usuario por su Auth0 sub. Si no existe, lo crea con datos del perfil
+     * (JIT provisioning) y le asigna un id único antes de persistirlo.
+     *
+     * @param auth0Sub identificador único de Auth0 (claim `sub` del JWT)
+     * @param profile datos opcionales tomados del access token / userinfo
+     * @returns el usuario existente o el recién creado
+     */
     static async getOrCreateUser(auth0Sub: string, profile: Auth0Profile): Promise<User> {
         const existing = authRepository.findByAuth0Sub(auth0Sub)
         if (existing) return existing
@@ -21,12 +29,16 @@ export default class AuthService {
             UserRole.STANDARD,
             0,
             null,
+            crypto.randomUUID(),
         )
         user.auth0Sub = auth0Sub
 
         return authRepository.save(user)
     }
 
+    /**
+     * Devuelve el usuario actual autenticado por su id interno.
+     */
     static async getCurrentUser(userId: string): Promise<User | undefined> {
         return authRepository.findById(userId)
     }

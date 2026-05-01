@@ -5,11 +5,14 @@ class NotificationRepository {
     private userIndex: Map<string, string[]> = new Map()
 
     save(notification: Notification): Notification {
+        const isNew = !this.notifications.has(notification.id)
         this.notifications.set(notification.id, notification)
 
-        const userNotifications = this.userIndex.get(notification.userId) ?? []
-        userNotifications.push(notification.id)
-        this.userIndex.set(notification.userId, userNotifications)
+        if (isNew) {
+            const userNotifications = this.userIndex.get(notification.userId) ?? []
+            userNotifications.push(notification.id)
+            this.userIndex.set(notification.userId, userNotifications)
+        }
 
         return notification
     }
@@ -32,6 +35,22 @@ class NotificationRepository {
 
     countUnreadByUserId(userId: string): number {
         return this.findUnreadByUserId(userId).length
+    }
+
+    countAll(): number {
+        return this.notifications.size
+    }
+
+    findAll(): Notification[] {
+        return Array.from(this.notifications.values())
+    }
+
+    /**
+     * Vacía los índices. Sólo se usa en tests para aislar casos.
+     */
+    clear(): void {
+        this.notifications.clear()
+        this.userIndex.clear()
     }
 }
 

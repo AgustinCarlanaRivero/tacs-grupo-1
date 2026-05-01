@@ -1,6 +1,10 @@
 import { User } from "../../users/entities/user.entity"
 
-//En memoria por ahora
+/**
+ * Repositorio in-memory de usuarios. Mantiene dos índices: por id interno y por
+ * Auth0 sub. Pensado para reemplazar por una implementación persistente (Mongo)
+ * en próximas entregas.
+ */
 class AuthRepository {
     private users: Map<string, User> = new Map()
     private auth0Index: Map<string, string> = new Map()
@@ -25,6 +29,14 @@ class AuthRepository {
             this.auth0Index.set(user.auth0Sub, user.id)
         }
         return user
+    }
+
+    /**
+     * Vacía los índices. Sólo se usa en tests para aislar casos.
+     */
+    clear(): void {
+        this.users.clear()
+        this.auth0Index.clear()
     }
 }
 
