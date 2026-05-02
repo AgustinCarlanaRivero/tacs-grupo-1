@@ -1,38 +1,74 @@
 import { Sticker } from "./sticker.entity"
 
-export class StickerRepository {
-    static async findAll(): Promise<Sticker[]> {
-        // TODO: Implementar consulta a BD
-        throw new Error("Not implemented")
+/**
+ * Repositorio in-memory de stickers. Mantiene un índice principal por id y
+ * índices secundarios para búsquedas rápidas.
+ * Pensado para reemplazar por una implementación persistente (Mongo)
+ * en próximas entregas.
+ */
+class StickerRepository {
+    private stickers: Map<number, Sticker> = new Map()
+
+    async findAll(): Promise<Sticker[]> {
+        return Array.from(this.stickers.values())
     }
 
-    static async findById(id: number): Promise<Sticker | null> {
-        // TODO: Implementar consulta a BD
-        throw new Error("Not implemented")
+    async findById(id: number): Promise<Sticker | null> {
+        return this.stickers.get(id) || null
     }
 
-    static async findByFilters(filters: {
+    async findByFilters(filters: {
         state?: string
         type?: string
         team?: string
         club?: string
     }): Promise<Sticker[]> {
-        // TODO: Implementar consulta a BD con filtros
-        throw new Error("Not implemented")
+        const all = Array.from(this.stickers.values())
+        return all.filter(sticker => sticker.matchesFilters(filters))
     }
 
-    static async getPlayers(): Promise<any[]> {
-        // TODO: Implementar consulta a BD
-        throw new Error("Not implemented")
+    async getPlayers(): Promise<string[]> {
+        const players = new Set<string>()
+        for (const sticker of this.stickers.values()) {
+            players.add(sticker.player.name)
+        }
+        return Array.from(players).sort()
     }
 
-    static async getTeams(): Promise<any[]> {
-        // TODO: Implementar consulta a BD
-        throw new Error("Not implemented")
+    async getTeams(): Promise<string[]> {
+        const teams = new Set<string>()
+        for (const sticker of this.stickers.values()) {
+            if (sticker.player.nationalTeam) {
+                teams.add(sticker.player.nationalTeam.name)
+            }
+        }
+        return Array.from(teams).sort()
     }
 
-    static async getClubs(): Promise<any[]> {
-        // TODO: Implementar consulta a BD
-        throw new Error("Not implemented")
+    async getClubs(): Promise<string[]> {
+        const clubs = new Set<string>()
+        for (const sticker of this.stickers.values()) {
+            if (sticker.player.club) {
+                clubs.add(sticker.player.club.name)
+            }
+        }
+        return Array.from(clubs).sort()
+    }
+
+    /**
+     * Método auxiliar para agregar stickers en tests o inicialización.
+     * No es parte de la interfaz pública del repositorio.
+     */
+    save(sticker: Sticker): void {
+        this.stickers.set(sticker.number, sticker)
+    }
+
+    /**
+     * Vacía los índices. Sólo se usa en tests para aislar casos.
+     */
+    clear(): void {
+        this.stickers.clear()
     }
 }
+
+export default new StickerRepository()

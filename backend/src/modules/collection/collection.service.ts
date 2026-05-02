@@ -1,7 +1,7 @@
 import { Collection } from "../collection/collection.entity"
 import { CollectionItem } from "../collection/collection-item.interface"
 import StickerService from "../stickers/sticker.service"
-import { CollectionRepository } from "./collection.repository"
+import collectionRepository from "./collection.repository"
 
 export default class CollectionService {
     /**
@@ -9,7 +9,7 @@ export default class CollectionService {
      * Obtiene toda la coleccion del usuario
      */
     static async getCollection(userId: string) {
-        const collection = await CollectionRepository.getCollection(userId)
+        const collection = await collectionRepository.getCollection(userId)
         return collection || new Collection()
     }
 
@@ -28,7 +28,7 @@ export default class CollectionService {
             quantity
         }
 
-        const collection = await CollectionRepository.addCollectionItem(userId, newItem)
+        const collection = await collectionRepository.addCollectionItem(userId, newItem)
         if (!collection) {
             throw new Error(`User ${userId} not found`)
         }
@@ -49,7 +49,7 @@ export default class CollectionService {
         // Validar que el sticker exista
         await StickerService.getStickerByIdOrFail(stickerId)
 
-        const collection = await CollectionRepository.updateCollectionItemQuantity(userId, id, quantity)
+        const collection = await collectionRepository.updateCollectionItemQuantity(userId, id, quantity)
         if (!collection) {
             throw new Error(`User ${userId} not found or collection not initialized`)
         }
@@ -66,7 +66,7 @@ export default class CollectionService {
         // Validar que el sticker exista
         await StickerService.getStickerByIdOrFail(stickerId)
 
-        const collection = await CollectionRepository.removeCollectionItem(userId, id)
+        const collection = await collectionRepository.removeCollectionItem(userId, id)
         if (!collection) {
             throw new Error(`User ${userId} not found or collection not initialized`)
         }
@@ -81,7 +81,7 @@ export default class CollectionService {
         // Validar que el sticker exista
         const sticker = await StickerService.getStickerByIdOrFail(stickerId)
 
-        const collection = await CollectionRepository.addMissingSticker(userId, sticker)
+        const collection = await collectionRepository.addMissingSticker(userId, sticker)
         if (!collection) {
             throw new Error(`User ${userId} not found`)
         }
@@ -98,7 +98,7 @@ export default class CollectionService {
         // Validar que el sticker exista
         await StickerService.getStickerByIdOrFail(stickerId)
 
-        const collection = await CollectionRepository.removeMissingSticker(userId, id)
+        const collection = await collectionRepository.removeMissingSticker(userId, id)
         if (!collection) {
             throw new Error(`User ${userId} not found or collection not initialized`)
         }

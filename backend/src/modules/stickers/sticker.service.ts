@@ -1,4 +1,4 @@
-import { StickerRepository } from "./sticker.repository"
+import stickerRepository from "./sticker.repository"
 
 export default class StickerService {
     /**
@@ -7,9 +7,9 @@ export default class StickerService {
      */
     static async getStickers(filters?: { state?: string; type?: string; team?: string; club?: string }) {
         if (filters && Object.keys(filters).length > 0) {
-            return await StickerRepository.findByFilters(filters)
+            return await stickerRepository.findByFilters(filters)
         }
-        return await StickerRepository.findAll()
+        return await stickerRepository.findAll()
     }
 
     /**
@@ -17,7 +17,7 @@ export default class StickerService {
      */
     static async getStickerById(stickerId: string) {
         const id = parseInt(stickerId, 10)
-        return await StickerRepository.findById(id)
+        return await stickerRepository.findById(id)
     }
 
     /**
@@ -35,21 +35,21 @@ export default class StickerService {
      * Obtiene todos los jugadores únicos
      */
     static async getPlayers() {
-        return await StickerRepository.getPlayers()
+        return await stickerRepository.getPlayers()
     }
 
     /**
      * Obtiene todos los equipos únicos
      */
     static async getTeams() {
-        return await StickerRepository.getTeams()
+        return await stickerRepository.getTeams()
     }
 
     /**
      * Obtiene todos los clubes únicos
      */
     static async getClubs() {
-        return await StickerRepository.getClubs()
+        return await stickerRepository.getClubs()
     }
 
     /**

@@ -2,39 +2,71 @@ import { Collection } from "./collection.entity"
 import { CollectionItem } from "./collection-item.interface"
 import { Sticker } from "../stickers/sticker.entity"
 
-export class CollectionRepository {
-    static async getCollection(userId: string): Promise<Collection | null> {
-        // TODO: Implementar consulta a BD
-        throw new Error("Not implemented")
+/**
+ * Repositorio in-memory de colecciones. Mantiene un índice por userId.
+ * Pensado para reemplazar por una implementación persistente (Mongo)
+ * en próximas entregas.
+ */
+class CollectionRepository {
+    private collections: Map<string, Collection> = new Map()
+
+    async getCollection(userId: string): Promise<Collection | null> {
+        return this.collections.get(userId) || null
     }
 
-    static async addCollectionItem(userId: string, collectionItem: CollectionItem): Promise<Collection | null> {
-        // TODO: Implementar inserción en BD
-        throw new Error("Not implemented")
+    async addCollectionItem(userId: string, collectionItem: CollectionItem): Promise<Collection | null> {
+        let collection = this.collections.get(userId)
+        if (!collection) {
+            collection = new Collection()
+        }
+        collection.addItem(collectionItem)
+        this.collections.set(userId, collection)
+        return collection
     }
 
-    static async updateCollectionItemQuantity(userId: string, stickerId: number, quantity: number): Promise<Collection | null> {
-        // TODO: Implementar actualización en BD
-        throw new Error("Not implemented")
+    async updateCollectionItemQuantity(userId: string, stickerId: number, quantity: number): Promise<Collection | null> {
+        const collection = this.collections.get(userId)
+        if (!collection) return null
+        collection.updateItemQuantity(stickerId, quantity)
+        return collection
     }
 
-    static async removeCollectionItem(userId: string, stickerId: number): Promise<Collection | null> {
-        // TODO: Implementar eliminación en BD
-        throw new Error("Not implemented")
+    async removeCollectionItem(userId: string, stickerId: number): Promise<Collection | null> {
+        const collection = this.collections.get(userId)
+        if (!collection) return null
+        collection.removeItem(stickerId)
+        return collection
     }
 
-    static async addMissingSticker(userId: string, sticker: Sticker): Promise<Collection | null> {
-        // TODO: Implementar inserción en BD
-        throw new Error("Not implemented")
+    async addMissingSticker(userId: string, sticker: Sticker): Promise<Collection | null> {
+        let collection = this.collections.get(userId)
+        if (!collection) {
+            collection = new Collection()
+        }
+        collection.addMissing(sticker)
+        this.collections.set(userId, collection)
+        return collection
     }
 
-    static async removeMissingSticker(userId: string, stickerId: number): Promise<Collection | null> {
-        // TODO: Implementar eliminación en BD
-        throw new Error("Not implemented")
+    async removeMissingSticker(userId: string, stickerId: number): Promise<Collection | null> {
+        const collection = this.collections.get(userId)
+        if (!collection) return null
+        collection.removeMissing(stickerId)
+        return collection
     }
 
-    static async initializeCollection(userId: string): Promise<Collection> {
-        // TODO: Implementar inicialización en BD
-        throw new Error("Not implemented")
+    async initializeCollection(userId: string): Promise<Collection> {
+        const collection = new Collection()
+        this.collections.set(userId, collection)
+        return collection
+    }
+
+    /**
+     * Vacía el índice. Sólo se usa en tests para aislar casos.
+     */
+    clear(): void {
+        this.collections.clear()
     }
 }
+
+export default new CollectionRepository()
