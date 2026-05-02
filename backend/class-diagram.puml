@@ -1,6 +1,15 @@
 @startuml class-diagram
 
-enum Category {
+' ============================================================
+' Enums
+' ============================================================
+
+enum StickerState {
+  NEW
+  DAMAGED
+}
+
+enum StickerType {
   REGULAR
   SHINY
 }
@@ -42,6 +51,19 @@ note right of PostType
   +isPostType(value: unknown): boolean
 end note
 
+enum NotificationType {
+  STICKER_AVAILABLE
+  AUCTION_ENDING
+  OFFER_RECEIVED
+  OFFER_ACCEPTED
+  OFFER_REJECTED
+  RATING_RECEIVED
+}
+
+' ============================================================
+' Value objects / catálogo de figuritas
+' ============================================================
+
 class NationalTeam {
   -name: string
 }
@@ -54,6 +76,12 @@ class Player {
   -name: string
   -nationalTeam: NationalTeam
   -club: Club
+  -image: string
+}
+
+class Category {
+  -state: StickerState
+  -type: StickerType
 }
 
 class Sticker {
@@ -61,7 +89,20 @@ class Sticker {
   -player: Player
   -category: Category
   -description: string
+  +isShiny(): boolean
+  +isRegular(): boolean
+  +isNew(): boolean
+  +isDamaged(): boolean
+  +playsForNationalTeam(teamName: string): boolean
+  +playsForClub(clubName: string): boolean
+  +belongsToPlayer(playerName: string): boolean
+  +matchesFilters(filters: { state?, type?, team?, club? }): boolean
+  +getDisplayName(): string
 }
+
+' ============================================================
+' Usuario y colección
+' ============================================================
 
 class User {
   -id: string
@@ -81,10 +122,33 @@ class User {
   +recalculateReputationFrom(ratings: Rating[]): number
 }
 
+interface CollectionItem {
+  -sticker: Sticker
+  -quantity: number
+}
+
 class Collection {
   -items: CollectionItem[]
   -missingStickers: Sticker[]
+  +getItemByStickerId(stickerId: number): CollectionItem | undefined
+  +hasSticker(stickerId: number): boolean
+  +getQuantity(stickerId: number): number
+  +addItem(item: CollectionItem): void
+  +updateItemQuantity(stickerId: number, newQuantity: number): void
+  +removeItem(stickerId: number): void
+  +isMissing(stickerId: number): boolean
+  +addMissing(sticker: Sticker): void
+  +removeMissing(stickerId: number): void
+  +getTotalUnique(): number
+  +getTotalQuantity(): number
+  +getTotalMissing(): number
+  +getProgress(totalStickers: number): number
+  +isComplete(totalStickers: number): boolean
 }
+
+' ============================================================
+' Reputación
+' ============================================================
 
 class Rating {
   -id: string?
@@ -99,10 +163,9 @@ class Rating {
   -ensureNotSelfRating(): void
 }
 
-interface CollectionItem { 
-  -sticker: Sticker
-  -quantity: number
-}
+' ============================================================
+' Ofertas
+' ============================================================
 
 class Offer {
   -id: string?
@@ -118,6 +181,10 @@ class Offer {
   +cancelBy(user: User): void
   +transitionTo(nextState: OfferState): void
 }
+
+' ============================================================
+' Publicaciones (DirectTrade vs Auction)
+' ============================================================
 
 abstract class Post {
   -id: string?
@@ -157,24 +224,59 @@ class Auction {
   +lastOffer(): Offer | null
 }
 
+' ============================================================
+' Notificaciones (entity + Strategy de entrega)
+' ============================================================
+
+class Notification {
+  -id: string
+  -userId: string
+  -type: NotificationType
+  -message: string
+  -read: boolean
+  -payload: Record<string, unknown>
+  -createdAt: Date
+}
+
+interface NotificationChannel {
+  +send(notification: Notification): Promise<void>
+}
+
+class InAppChannel {
+  +send(notification: Notification): Promise<void>
+}
+
+' ============================================================
+' Relaciones
+' ============================================================
+
+' Catálogo
 NationalTeam <-- Player
 Club <-- Player
 
 Player <-- Sticker
 Category <-- Sticker
+StickerState <-- Category
+StickerType <-- Category
 
+' Colección
 Sticker <-- Collection
 CollectionItem <-- Collection
+Sticker <-- CollectionItem
 
-User <-- Rating
-
+' Usuario
 UserRole <-- User
 Collection <-- User
 
+' Reputación
+User <-- Rating
+
+' Ofertas
 User <-- Offer
 CollectionItem <-- Offer
 OfferState <-- Offer
 
+' Publicaciones
 User <-- Post
 Sticker <-- Post
 Offer <-- Post
@@ -185,5 +287,10 @@ Post <|-- DirectTrade
 Post <|-- Auction
 
 CollectionItem <-- Auction
+
+' Notificaciones
+NotificationType <-- Notification
+NotificationChannel <|.. InAppChannel
+Notification <-- InAppChannel
 
 @enduml

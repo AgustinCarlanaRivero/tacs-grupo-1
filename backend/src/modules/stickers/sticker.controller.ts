@@ -1,47 +1,45 @@
 import { Request, Response } from "express"
-import { AppError } from "../../shared/errors/app-error"
+import type { z } from "zod"
+import { NotFoundError } from "../../shared/errors/http-errors"
+import {
+    stickerFilterQuerySchema,
+    stickerNumericIdParamSchema,
+} from "../../shared/validation/schemas"
 import StickerService from "./sticker.service"
 
+type StickerFilterQuery = z.infer<typeof stickerFilterQuerySchema>
+type StickerIdParams = z.infer<typeof stickerNumericIdParamSchema>
 
 export default class StickerController {
     getStickers = async (req: Request, res: Response) => {
-        const { state, type, team, club } = req.query;
-        
-        const filters = {
-            state: state as string | undefined,
-            type: type as string | undefined,
-            team: team as string | undefined,
-            club: club as string | undefined
-        };
-        
-        const stickers = await StickerService.getStickers(filters);
-        return res.status(200).json(stickers);
+        const filters = req.query as unknown as StickerFilterQuery
+        const stickers = await StickerService.getStickers(filters)
+        return res.status(200).json(stickers)
     }
 
     getStickerById = async (req: Request, res: Response) => {
-        const id = req.params.id as string;
-        const sticker = await StickerService.getStickerById(id);
-        
+        const { id } = req.params as StickerIdParams
+        const sticker = await StickerService.getStickerById(id)
+
         if (!sticker) {
-            throw new AppError(`Sticker #${id} not found`, 404);
+            throw new NotFoundError(`Sticker #${id} not found`)
         }
-        
-        return res.status(200).json(sticker);
+
+        return res.status(200).json(sticker)
     }
 
-    getPlayers = async (req: Request, res: Response) => {
-        const players = await StickerService.getPlayers();
-        return res.status(200).json(players);
+    getPlayers = async (_req: Request, res: Response) => {
+        const players = await StickerService.getPlayers()
+        return res.status(200).json(players)
     }
 
-    getTeams = async (req: Request, res: Response) => {
-        const teams = await StickerService.getTeams();
-        return res.status(200).json(teams);
+    getTeams = async (_req: Request, res: Response) => {
+        const teams = await StickerService.getTeams()
+        return res.status(200).json(teams)
     }
 
-    getClubs = async (req: Request, res: Response) => {
-        const clubs = await StickerService.getClubs();
-        return res.status(200).json(clubs);
+    getClubs = async (_req: Request, res: Response) => {
+        const clubs = await StickerService.getClubs()
+        return res.status(200).json(clubs)
     }
-
 }

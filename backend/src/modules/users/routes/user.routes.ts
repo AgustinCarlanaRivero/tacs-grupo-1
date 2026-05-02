@@ -1,5 +1,13 @@
 import { Router } from "express"
 import { asyncHandler } from "../../../shared/middleware/async-handler"
+import {
+    validateBody,
+    validateParams,
+} from "../../../shared/middleware/validation.middleware"
+import {
+    userIdParamSchema,
+    userUpdateRequestSchema,
+} from "../../../shared/validation/schemas"
 import UserController from "../controllers/user.controller"
 import collectionRouter from "../../collection/collection.routes"
 import postRouter from "../../posts/routes/post.routes"
@@ -22,8 +30,12 @@ router.use("/:userId/notifications", userNotificationRouter)
 router.use("/:userId/suggestions", userMatchingRouter)
 
 router.route("/:userId")
-    .get(asyncHandler(userController.getUserById))
-    .patch(asyncHandler(userController.updateUser))
-    .delete(asyncHandler(userController.deleteUser))
+    .get(validateParams(userIdParamSchema), asyncHandler(userController.getUserById))
+    .patch(
+        validateParams(userIdParamSchema),
+        validateBody(userUpdateRequestSchema),
+        asyncHandler(userController.updateUser),
+    )
+    .delete(validateParams(userIdParamSchema), asyncHandler(userController.deleteUser))
 
 export default router

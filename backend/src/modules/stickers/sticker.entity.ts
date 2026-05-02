@@ -1,35 +1,35 @@
-import { StickerTags } from "./category.enum";
+import { Category } from "./category.entity";
 import { Player } from "./player.entity";
 
 export class Sticker {
   number: number;
   player: Player;
-  tags: StickerTags;
+  category: Category;
   description: string;
 
-  constructor(number: number, player: Player, tags: StickerTags = new StickerTags("NEW", "REGULAR"), description: string = "") {
+  constructor(number: number, player: Player, category: Category = new Category("NEW", "REGULAR"), description: string = "") {
     this.number = number;
     this.player = player;
-    this.tags = tags;
+    this.category = category;
     this.description = description;
   }
 
   // --- MÉTODOS DE VALIDACIÓN/DOMINIO ---
 
   public isShiny(): boolean {
-    return this.tags.type === "SHINY";
+    return this.category.type === "SHINY";
   }
 
   public isRegular(): boolean {
-    return this.tags.type === "REGULAR";
+    return this.category.type === "REGULAR";
   }
 
   public isNew(): boolean {
-    return this.tags.state === "NEW";
+    return this.category.state === "NEW";
   }
 
   public isDamaged(): boolean {
-    return this.tags.state === "DAMAGED";
+    return this.category.state === "DAMAGED";
   }
 
   public playsForNationalTeam(teamName: string): boolean {
@@ -46,12 +46,12 @@ export class Sticker {
 
   public matchesState(state: string | undefined): boolean {
     if (!state) return true;
-    return this.tags.state === state;
+    return this.category.state === state;
   }
 
   public matchesType(type: string | undefined): boolean {
     if (!type) return true;
-    return this.tags.type === type;
+    return this.category.type === type;
   }
 
   public matchesTeam(teamName: string | undefined): boolean {
@@ -86,8 +86,8 @@ export class Sticker {
     return {
       id: this.number,
       title: this.getDisplayName(),
-      state: this.tags.state,
-      type: this.tags.type,
+      state: this.category.state,
+      type: this.category.type,
       description: this.description,
       player: {
         name: this.player.name,

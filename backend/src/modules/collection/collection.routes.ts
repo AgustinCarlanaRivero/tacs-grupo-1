@@ -1,5 +1,16 @@
 import { Router } from "express"
 import { asyncHandler } from "../../shared/middleware/async-handler"
+import {
+    validateBody,
+    validateParams,
+} from "../../shared/middleware/validation.middleware"
+import {
+    collectionItemAddRequestSchema,
+    collectionItemUpdateQuantityRequestSchema,
+    missingStickerAddRequestSchema,
+    userIdParamSchema,
+    userStickerParamsSchema,
+} from "../../shared/validation/schemas"
 import CollectionController from "./collection.controller"
 
 // IMPORTANTE: mergeParams permite leer el :userId del router padre
@@ -10,23 +21,41 @@ const collectionController = new CollectionController()
 
 router
     .route("/")
-    .get(asyncHandler(collectionController.getCollection))
+    .get(validateParams(userIdParamSchema), asyncHandler(collectionController.getCollection))
 
 router
     .route("/items")
-    .post(asyncHandler(collectionController.addCollectionItem))
+    .post(
+        validateParams(userIdParamSchema),
+        validateBody(collectionItemAddRequestSchema),
+        asyncHandler(collectionController.addCollectionItem),
+    )
 
 router
     .route("/items/:stickerId")
-    .patch(asyncHandler(collectionController.updateCollectionItemQuantity))
-    .delete(asyncHandler(collectionController.removeCollectionItem))
+    .patch(
+        validateParams(userStickerParamsSchema),
+        validateBody(collectionItemUpdateQuantityRequestSchema),
+        asyncHandler(collectionController.updateCollectionItemQuantity),
+    )
+    .delete(
+        validateParams(userStickerParamsSchema),
+        asyncHandler(collectionController.removeCollectionItem),
+    )
 
 router
     .route("/missing")
-    .post(asyncHandler(collectionController.addMissingSticker))
+    .post(
+        validateParams(userIdParamSchema),
+        validateBody(missingStickerAddRequestSchema),
+        asyncHandler(collectionController.addMissingSticker),
+    )
 
 router
     .route("/missing/:stickerId")
-    .delete(asyncHandler(collectionController.removeMissingSticker))
+    .delete(
+        validateParams(userStickerParamsSchema),
+        asyncHandler(collectionController.removeMissingSticker),
+    )
 
 export default router

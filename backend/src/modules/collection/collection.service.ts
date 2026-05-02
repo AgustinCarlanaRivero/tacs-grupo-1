@@ -1,7 +1,7 @@
 import { Collection } from "../collection/collection.entity"
 import { CollectionItem } from "../collection/collection-item.interface"
 import StickerService from "../stickers/sticker.service"
-import { CollectionRepository } from "../../infra/database/mongo/repositories/collection.repository"
+import { CollectionRepository } from "./collection.repository"
 
 export default class CollectionService {
     /**
@@ -21,7 +21,7 @@ export default class CollectionService {
         const { stickerId, quantity = 1 } = itemData
 
         // Validar que el sticker exista
-        const sticker = await StickerService.getStickerByIdOrFail(stickerId)
+        const sticker = await StickerService.getStickerByIdOrFail(String(stickerId))
 
         const newItem: CollectionItem = {
             sticker,
@@ -47,7 +47,7 @@ export default class CollectionService {
 
         const id = parseInt(stickerId, 10)
         // Validar que el sticker exista
-        await StickerService.getStickerByIdOrFail(id)
+        await StickerService.getStickerByIdOrFail(stickerId)
 
         const collection = await CollectionRepository.updateCollectionItemQuantity(userId, id, quantity)
         if (!collection) {
@@ -64,7 +64,7 @@ export default class CollectionService {
     static async removeCollectionItem(userId: string, stickerId: string) {
         const id = parseInt(stickerId, 10)
         // Validar que el sticker exista
-        await StickerService.getStickerByIdOrFail(id)
+        await StickerService.getStickerByIdOrFail(stickerId)
 
         const collection = await CollectionRepository.removeCollectionItem(userId, id)
         if (!collection) {
@@ -79,7 +79,7 @@ export default class CollectionService {
     static async addMissingSticker(userId: string, stickerId: string) {
         const id = parseInt(stickerId, 10)
         // Validar que el sticker exista
-        const sticker = await StickerService.getStickerByIdOrFail(id)
+        const sticker = await StickerService.getStickerByIdOrFail(stickerId)
 
         const collection = await CollectionRepository.addMissingSticker(userId, sticker)
         if (!collection) {
@@ -96,7 +96,7 @@ export default class CollectionService {
     static async removeMissingSticker(userId: string, stickerId: string) {
         const id = parseInt(stickerId, 10)
         // Validar que el sticker exista
-        await StickerService.getStickerByIdOrFail(id)
+        await StickerService.getStickerByIdOrFail(stickerId)
 
         const collection = await CollectionRepository.removeMissingSticker(userId, id)
         if (!collection) {

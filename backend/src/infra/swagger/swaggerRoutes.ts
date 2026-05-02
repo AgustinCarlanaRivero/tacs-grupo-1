@@ -1,23 +1,18 @@
-import { Router } from 'express'
-import swaggerUi from 'swagger-ui-express'
-import { readFile } from 'fs/promises'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import YAML from 'yaml'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import { Router } from "express"
+import * as swaggerUi from "swagger-ui-express"
+import { openApiDocument } from "../openapi/document"
 
 const router = Router()
 
-readFile(path.join(__dirname, '../../../api-docs.yaml'), 'utf8')
-    .then(file => {
-        const swaggerDocument = YAML.parse(file)
-        router.use('/', swaggerUi.serve)
-        router.get('/', swaggerUi.setup(swaggerDocument))
-    })
-    .catch(err => {
-        console.error('Error cargando api-docs.yaml:', err)
-    })
+router.use("/", swaggerUi.serve)
+router.get("/", swaggerUi.setup(openApiDocument))
+
+/**
+ * Expone el documento OpenAPI crudo (JSON) para que clientes externos
+ * (Postman, generadores de SDK, etc.) puedan importarlo.
+ */
+router.get("/openapi.json", (_req, res) => {
+    res.json(openApiDocument)
+})
 
 export default router

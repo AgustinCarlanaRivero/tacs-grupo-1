@@ -1,7 +1,7 @@
 export type StickerState = "NEW" | "DAMAGED";
 export type StickerType = "REGULAR" | "SHINY";
 
-export class StickerTags {
+export class Category {
   state: StickerState;
   type: StickerType;
 

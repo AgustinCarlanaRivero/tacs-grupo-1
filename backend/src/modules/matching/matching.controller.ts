@@ -1,36 +1,29 @@
 import { Request, Response } from "express"
-import { AppError } from "../../shared/errors/app-error"
+import type { z } from "zod"
+import {
+    matchesQuerySchema,
+    paginationQuerySchema,
+    userIdParamSchema,
+} from "../../shared/validation/schemas"
 import MatchingService from "./matching.service"
 
-function paramAsString(value: string | string[] | undefined): string {
-    if (value === undefined) return ""
-    return Array.isArray(value) ? (value[0] ?? "") : value
-}
-
-function getPageParams(req: Request): { page: number; limit: number } {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1)
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))
-    return { page, limit }
-}
+type UserParams = z.infer<typeof userIdParamSchema>
+type PaginationQuery = z.infer<typeof paginationQuerySchema>
+type MatchesQuery = z.infer<typeof matchesQuerySchema>
 
 export default class MatchingController {
     // GET /users/:userId/suggestions?page=1&limit=20
     getSuggestionsByUser = async (req: Request, res: Response) => {
-        const userId = paramAsString(req.params.userId)
-        const { page, limit } = getPageParams(req)
-        
+        const { userId } = req.params as UserParams
+        const { page, limit } = req.query as unknown as PaginationQuery
+
         const suggestions = await MatchingService.getSuggestionsByUser(userId, page, limit)
         return res.status(200).json(suggestions)
     }
 
     // GET /matches?stickerId=...&page=1&limit=20
     getMatches = async (req: Request, res: Response) => {
-        const stickerId = req.query.stickerId
-        if (typeof stickerId !== "string" || stickerId.trim() === "") {
-            throw new AppError("stickerId es requerido", 400)
-        }
-
-        const { page, limit } = getPageParams(req)
+        const { stickerId, page, limit } = req.query as unknown as MatchesQuery
         const matches = await MatchingService.getMatches(stickerId, page, limit)
         return res.status(200).json(matches)
     }

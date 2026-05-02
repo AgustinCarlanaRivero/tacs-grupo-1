@@ -1,12 +1,20 @@
 import { Request, Response } from "express"
+import type { z } from "zod"
+import { UnauthorizedError, ForbiddenError } from "../../../shared/errors/http-errors"
+import {
+    postCreateRequestSchema,
+    postFilterQuerySchema,
+    postStateUpdateRequestSchema,
+    userIdParamSchema,
+    userPostParamsSchema,
+} from "../../../shared/validation/schemas"
 import PostService from "../services/post.service"
-import { AppError } from "../../../shared/errors/app-error"
-import { isPostType } from "../enums/post-type.enum"
 
-function paramAsString(value: string | string[] | undefined): string {
-    if (value === undefined) return ""
-    return Array.isArray(value) ? (value[0] ?? "") : value
-}
+type UserParams = z.infer<typeof userIdParamSchema>
+type UserPostParams = z.infer<typeof userPostParamsSchema>
+type PostFilterQuery = z.infer<typeof postFilterQuerySchema>
+type CreatePostBody = z.infer<typeof postCreateRequestSchema>
+type UpdateStateBody = z.infer<typeof postStateUpdateRequestSchema>
 
 function getAuthUserId(req: Request): string | undefined {
     const user = (req as Request & { user?: { id: string } }).user
@@ -15,58 +23,43 @@ function getAuthUserId(req: Request): string | undefined {
 
 export default class PostController {
     listPosts = async (req: Request, res: Response) => {
-        const { type, state } = req.query
-        const postType = typeof type === "string" && isPostType(type) ? type : undefined
-
-        const posts = await PostService.listPosts({
-            type: postType,
-            state: typeof state === "string" ? state : undefined,
-        })
+        const { type, state } = req.query as unknown as PostFilterQuery
+        const posts = await PostService.listPosts({ type, state })
         return res.status(200).json(posts)
     }
 
     createPost = async (req: Request, res: Response) => {
-        const ownerId = paramAsString(req.params.userId)
+        const { userId: ownerId } = req.params as UserParams
         const authUserId = getAuthUserId(req)
 
         if (!authUserId) {
-            throw new AppError("No autenticado", 401)
-        }
-
-        if (!ownerId) {
-            throw new AppError("El parámetro userId es requerido", 400)
+            throw new UnauthorizedError()
         }
 
         if (ownerId !== authUserId) {
-            throw new AppError("No autorizado para crear publicaciones en otro usuario", 403)
+            throw new ForbiddenError("No autorizado para crear publicaciones en otro usuario")
         }
 
-        const { type } = req.body as { type?: string }
-        if (!isPostType(type)) {
-            throw new AppError("Tipo de publicación inválido", 400)
-        }
-
-        const newPost = await PostService.createPost(ownerId, req.body)
+        const body = req.body as CreatePostBody
+        const newPost = await PostService.createPost(ownerId, body)
         return res.status(201).json(newPost)
     }
 
     getPostById = async (req: Request, res: Response) => {
-        const ownerId = paramAsString(req.params.userId)
-        const postId = paramAsString(req.params.postId)
+        const { userId: ownerId, postId } = req.params as UserPostParams
         const post = await PostService.getPostById(ownerId, postId)
         return res.status(200).json(post)
     }
 
     updatePostState = async (req: Request, res: Response) => {
-        const ownerId = paramAsString(req.params.userId)
-        const postId = paramAsString(req.params.postId)
-        const { state } = req.body as { state?: unknown }
+        const { userId: ownerId, postId } = req.params as UserPostParams
+        const { state } = req.body as UpdateStateBody
         const updated = await PostService.updatePostState(ownerId, postId, state)
         return res.status(200).json(updated)
     }
 
     listPostsByOwner = async (req: Request, res: Response) => {
-        const userId = paramAsString(req.params.userId)
+        const { userId } = req.params as UserParams
         const posts = await PostService.listPostsByOwner(userId)
         return res.status(200).json(posts)
     }
