@@ -4,10 +4,8 @@ import {
     validateBody,
     validateParams,
 } from "../../../shared/middleware/validation.middleware"
-import {
-    roleUpdateRequestSchema,
-    userIdParamSchema,
-} from "../../../shared/validation/schemas"
+import { userIdParamSchema } from "../../../shared/validation/common"
+import { roleUpdateRequestSchema } from "../schemas/admin.schemas"
 import { requireAdmin } from "../middleware/admin.middleware"
 import AdminController from "../controllers/admin.controller"
 

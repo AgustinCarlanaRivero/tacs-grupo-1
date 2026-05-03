@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import type { z } from "zod"
 import { UnauthorizedError } from "../../../shared/errors/http-errors"
-import { roleUpdateRequestSchema } from "../../../shared/validation/schemas"
+import { roleUpdateRequestSchema } from "../schemas/admin.schemas"
 import AdminService from "../services/admin.service"
 
 type AuthenticatedRequest = Request & { user?: { id: string; role: string } }

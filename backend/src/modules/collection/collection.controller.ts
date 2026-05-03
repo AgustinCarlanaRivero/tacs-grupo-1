@@ -1,12 +1,14 @@
 import { Request, Response } from "express"
 import type { z } from "zod"
 import {
+    userIdParamSchema,
+    userStickerParamsSchema,
+} from "../../shared/validation/common"
+import {
     collectionItemAddRequestSchema,
     collectionItemUpdateQuantityRequestSchema,
     missingStickerAddRequestSchema,
-    userIdParamSchema,
-    userStickerParamsSchema,
-} from "../../shared/validation/schemas"
+} from "./collection.schemas"
 import CollectionService from "./collection.service"
 
 type AddItemBody = z.infer<typeof collectionItemAddRequestSchema>

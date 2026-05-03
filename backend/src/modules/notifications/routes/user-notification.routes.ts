@@ -4,10 +4,8 @@ import {
     validateParams,
     validateQuery,
 } from "../../../shared/middleware/validation.middleware"
-import {
-    notificationQuerySchema,
-    userIdParamSchema,
-} from "../../../shared/validation/schemas"
+import { userIdParamSchema } from "../../../shared/validation/common"
+import { notificationQuerySchema } from "../schemas/notification.schemas"
 import NotificationController from "../controllers/notification.controller"
 
 const router = Router({ mergeParams: true })

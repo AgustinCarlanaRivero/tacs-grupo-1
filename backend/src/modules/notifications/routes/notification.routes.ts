@@ -1,7 +1,7 @@
 import { Router } from "express"
 import { asyncHandler } from "../../../shared/middleware/async-handler"
 import { validateParams } from "../../../shared/middleware/validation.middleware"
-import { notificationIdParamSchema } from "../../../shared/validation/schemas"
+import { notificationIdParamSchema } from "../../../shared/validation/common"
 import NotificationController from "../controllers/notification.controller"
 
 const router = Router()

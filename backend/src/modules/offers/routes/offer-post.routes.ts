@@ -5,11 +5,13 @@ import {
     validateParams,
 } from "../../../shared/middleware/validation.middleware"
 import {
-    offerCreateRequestSchema,
-    offerStateUpdateRequestSchema,
     userPostOfferParamsSchema,
     userPostParamsSchema,
-} from "../../../shared/validation/schemas"
+} from "../../../shared/validation/common"
+import {
+    offerCreateRequestSchema,
+    offerStateUpdateRequestSchema,
+} from "../schemas/offer.schemas"
 import OfferController from "../controllers/offer.controller"
 
 const router = Router({ mergeParams: true })

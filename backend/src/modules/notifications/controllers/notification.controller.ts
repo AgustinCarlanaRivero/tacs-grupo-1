@@ -4,9 +4,9 @@ import { AppError } from "../../../shared/errors/app-error"
 import { ForbiddenError, UnauthorizedError } from "../../../shared/errors/http-errors"
 import {
     notificationIdParamSchema,
-    notificationQuerySchema,
     userIdParamSchema,
-} from "../../../shared/validation/schemas"
+} from "../../../shared/validation/common"
+import { notificationQuerySchema } from "../schemas/notification.schemas"
 import { UserRole } from "../../users/enums/user-role.enum"
 import notificationService from "../services/notification.service"
 import { notificationEmitter } from "../services/notification.emitter"

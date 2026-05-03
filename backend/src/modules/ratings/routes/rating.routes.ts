@@ -4,10 +4,8 @@ import {
     validateBody,
     validateParams,
 } from "../../../shared/middleware/validation.middleware"
-import {
-    ratingCreateRequestSchema,
-    userIdParamSchema,
-} from "../../../shared/validation/schemas"
+import { userIdParamSchema } from "../../../shared/validation/common"
+import { ratingCreateRequestSchema } from "../schemas/rating.schemas"
 import RatingController from "../controllers/rating.controller"
 
 const router = Router({ mergeParams: true })

@@ -6,12 +6,14 @@ import {
     validateQuery,
 } from "../../../shared/middleware/validation.middleware"
 import {
+    userIdParamSchema,
+    userPostParamsSchema,
+} from "../../../shared/validation/common"
+import {
     postCreateRequestSchema,
     postFilterQuerySchema,
     postStateUpdateRequestSchema,
-    userIdParamSchema,
-    userPostParamsSchema,
-} from "../../../shared/validation/schemas"
+} from "../schemas/post.schemas"
 import PostController from "../controllers/post.controller"
 import offerPostRoutes from "../../offers/routes/offer-post.routes"
 

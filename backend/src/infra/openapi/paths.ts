@@ -1,38 +1,53 @@
 import { z } from "zod"
 import { registry } from "./registry"
+import { nonEmptyString, paginationQuerySchema } from "../../shared/validation/common"
 import {
     collectionItemAddRequestSchema,
     collectionItemResponseSchema,
     collectionItemUpdateQuantityRequestSchema,
     collectionResponseSchema,
+    missingStickerAddRequestSchema,
+} from "../../modules/collection/collection.schemas"
+import {
     matchesQuerySchema,
     matchesResponseSchema,
-    missingStickerAddRequestSchema,
-    nonEmptyString,
+    suggestionsResponseSchema,
+} from "../../modules/matching/matching.schemas"
+import {
     notificationQuerySchema,
     notificationResponseSchema,
+    unreadCountResponseSchema,
+    markAllReadResponseSchema,
+} from "../../modules/notifications/schemas/notification.schemas"
+import {
     offerCreateRequestSchema,
     offerResponseSchema,
     offerRoleQuerySchema,
     offerStateUpdateRequestSchema,
-    paginationQuerySchema,
+} from "../../modules/offers/schemas/offer.schemas"
+import {
     postCreateRequestSchema,
     postFilterQuerySchema,
     postResponseSchema,
     postStateUpdateRequestSchema,
+} from "../../modules/posts/schemas/post.schemas"
+import {
     ratingCreateRequestSchema,
     ratingResponseSchema,
+} from "../../modules/ratings/schemas/rating.schemas"
+import {
     roleUpdateRequestSchema,
     roleUpdateResponseSchema,
     statsResponseSchema,
+} from "../../modules/admin/schemas/admin.schemas"
+import {
     stickerFilterQuerySchema,
     stickerResponseSchema,
-    suggestionsResponseSchema,
-    unreadCountResponseSchema,
-    markAllReadResponseSchema,
+} from "../../modules/stickers/sticker.schemas"
+import {
     userResponseSchema,
     userUpdateRequestSchema,
-} from "../../shared/validation/schemas"
+} from "../../modules/users/schemas/user.schemas"
 
 const bearer = [{ bearerAuth: [] }]
 

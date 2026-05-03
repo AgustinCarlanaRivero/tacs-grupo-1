@@ -5,12 +5,14 @@ import {
     validateParams,
 } from "../../shared/middleware/validation.middleware"
 import {
+    userIdParamSchema,
+    userStickerParamsSchema,
+} from "../../shared/validation/common"
+import {
     collectionItemAddRequestSchema,
     collectionItemUpdateQuantityRequestSchema,
     missingStickerAddRequestSchema,
-    userIdParamSchema,
-    userStickerParamsSchema,
-} from "../../shared/validation/schemas"
+} from "./collection.schemas"
 import CollectionController from "./collection.controller"
 
 // IMPORTANTE: mergeParams permite leer el :userId del router padre

@@ -2,12 +2,14 @@ import { Request, Response } from "express"
 import type { z } from "zod"
 import { UnauthorizedError, ForbiddenError } from "../../../shared/errors/http-errors"
 import {
+    userIdParamSchema,
+    userPostParamsSchema,
+} from "../../../shared/validation/common"
+import {
     postCreateRequestSchema,
     postFilterQuerySchema,
     postStateUpdateRequestSchema,
-    userIdParamSchema,
-    userPostParamsSchema,
-} from "../../../shared/validation/schemas"
+} from "../schemas/post.schemas"
 import PostService from "../services/post.service"
 
 type UserParams = z.infer<typeof userIdParamSchema>

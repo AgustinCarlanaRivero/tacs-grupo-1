@@ -4,10 +4,8 @@ import {
     validateParams,
     validateQuery,
 } from "../../../shared/middleware/validation.middleware"
-import {
-    offerRoleQuerySchema,
-    userIdParamSchema,
-} from "../../../shared/validation/schemas"
+import { userIdParamSchema } from "../../../shared/validation/common"
+import { offerRoleQuerySchema } from "../schemas/offer.schemas"
 import OfferController from "../controllers/offer.controller"
 
 const router = Router({ mergeParams: true })

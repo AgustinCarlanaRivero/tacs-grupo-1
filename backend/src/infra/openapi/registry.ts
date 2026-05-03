@@ -9,7 +9,7 @@ import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi/dist/index.mjs"
  * etc.) ya no extienden `ZodType.prototype`, por lo que el parche que
  * `extendZodWithOpenApi` aplica al prototipo nunca llega a las instancias y
  * `.openapi()` queda sin definir. En su lugar, cada schema "público" usa
- * `.meta({ id: "Nombre" })` (API nativa de Zod 4) en `shared/validation/schemas.ts`.
+ * `.meta({ id: "Nombre" })` (API nativa de Zod 4) en los `<modulo>.schemas.ts`.
  * El generador respeta ese id como nombre del componente y emite `$ref` cuando
  * el schema se referencia en una respuesta o request.
  */

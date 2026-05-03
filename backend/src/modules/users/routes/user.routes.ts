@@ -4,10 +4,8 @@ import {
     validateBody,
     validateParams,
 } from "../../../shared/middleware/validation.middleware"
-import {
-    userIdParamSchema,
-    userUpdateRequestSchema,
-} from "../../../shared/validation/schemas"
+import { userIdParamSchema } from "../../../shared/validation/common"
+import { userUpdateRequestSchema } from "../schemas/user.schemas"
 import UserController from "../controllers/user.controller"
 import collectionRouter from "../../collection/collection.routes"
 import postRouter from "../../posts/routes/post.routes"

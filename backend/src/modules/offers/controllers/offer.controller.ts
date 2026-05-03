@@ -3,13 +3,15 @@ import type { z } from "zod"
 import OfferService from "../services/offer.service"
 import { UnauthorizedError } from "../../../shared/errors/http-errors"
 import {
-    offerCreateRequestSchema,
-    offerRoleQuerySchema,
-    offerStateUpdateRequestSchema,
     userIdParamSchema,
     userPostOfferParamsSchema,
     userPostParamsSchema,
-} from "../../../shared/validation/schemas"
+} from "../../../shared/validation/common"
+import {
+    offerCreateRequestSchema,
+    offerRoleQuerySchema,
+    offerStateUpdateRequestSchema,
+} from "../schemas/offer.schemas"
 
 type AuthenticatedRequest = Request & { user?: { id: string } }
 type UserParams = z.infer<typeof userIdParamSchema>

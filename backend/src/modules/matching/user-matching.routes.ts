@@ -7,7 +7,7 @@ import {
 import {
     paginationQuerySchema,
     userIdParamSchema,
-} from "../../shared/validation/schemas"
+} from "../../shared/validation/common"
 import MatchingController from "./matching.controller"
 
 const router = Router({ mergeParams: true })

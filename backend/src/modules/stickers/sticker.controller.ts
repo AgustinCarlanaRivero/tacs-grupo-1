@@ -1,10 +1,8 @@
 import { Request, Response } from "express"
 import type { z } from "zod"
 import { NotFoundError } from "../../shared/errors/http-errors"
-import {
-    stickerFilterQuerySchema,
-    stickerNumericIdParamSchema,
-} from "../../shared/validation/schemas"
+import { stickerNumericIdParamSchema } from "../../shared/validation/common"
+import { stickerFilterQuerySchema } from "./sticker.schemas"
 import StickerService from "./sticker.service"
 
 type StickerFilterQuery = z.infer<typeof stickerFilterQuerySchema>

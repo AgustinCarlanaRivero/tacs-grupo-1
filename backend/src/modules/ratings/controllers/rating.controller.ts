@@ -1,10 +1,8 @@
 import { Request, Response } from "express"
 import type { z } from "zod"
 import { UnauthorizedError } from "../../../shared/errors/http-errors"
-import {
-    ratingCreateRequestSchema,
-    userIdParamSchema,
-} from "../../../shared/validation/schemas"
+import { userIdParamSchema } from "../../../shared/validation/common"
+import { ratingCreateRequestSchema } from "../schemas/rating.schemas"
 import RatingService from "../services/rating.service"
 
 type AuthenticatedRequest = Request & { user?: { id: string } }

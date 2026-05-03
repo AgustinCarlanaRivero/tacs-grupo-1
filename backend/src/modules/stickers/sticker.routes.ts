@@ -4,10 +4,8 @@ import {
     validateParams,
     validateQuery,
 } from "../../shared/middleware/validation.middleware"
-import {
-    stickerFilterQuerySchema,
-    stickerNumericIdParamSchema,
-} from "../../shared/validation/schemas"
+import { stickerNumericIdParamSchema } from "../../shared/validation/common"
+import { stickerFilterQuerySchema } from "./sticker.schemas"
 import StickerController from "./sticker.controller"
 
 const router = Router()
