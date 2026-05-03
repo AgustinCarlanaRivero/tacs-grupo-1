@@ -33,7 +33,7 @@ export default class CollectionService {
             throw new Error(`User ${userId} not found`)
         }
 
-        return newItem
+        return { stickerId, quantity }
     }
 
     /**
