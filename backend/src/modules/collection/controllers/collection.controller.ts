@@ -3,13 +3,13 @@ import type { z } from "zod"
 import {
     userIdParamSchema,
     userStickerParamsSchema,
-} from "../../shared/validation/common"
+} from "../../../shared/validation/common"
 import {
     collectionItemAddRequestSchema,
     collectionItemUpdateQuantityRequestSchema,
     missingStickerAddRequestSchema,
-} from "./collection.schemas"
-import CollectionService from "./collection.service"
+} from "../schemas/collection.schemas"
+import CollectionService from "../services/collection.service"
 
 type AddItemBody = z.infer<typeof collectionItemAddRequestSchema>
 type UpdateQuantityBody = z.infer<typeof collectionItemUpdateQuantityRequestSchema>

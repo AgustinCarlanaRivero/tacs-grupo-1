@@ -1,5 +1,5 @@
-import { Sticker } from "../stickers/sticker.entity"
-import { User } from "../users/entities/user.entity"
+import { Sticker } from "../../stickers/entities/sticker.entity"
+import { User } from "../../users/entities/user.entity"
 
 /**
  * Repository con índices secundarios para búsquedas eficientes en matching

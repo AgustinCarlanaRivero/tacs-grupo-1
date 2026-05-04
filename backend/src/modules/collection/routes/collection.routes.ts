@@ -1,19 +1,19 @@
 import { Router } from "express"
-import { asyncHandler } from "../../shared/middleware/async-handler"
+import { asyncHandler } from "../../../shared/middleware/async-handler"
 import {
     validateBody,
     validateParams,
-} from "../../shared/middleware/validation.middleware"
+} from "../../../shared/middleware/validation.middleware"
 import {
     userIdParamSchema,
     userStickerParamsSchema,
-} from "../../shared/validation/common"
+} from "../../../shared/validation/common"
 import {
     collectionItemAddRequestSchema,
     collectionItemUpdateQuantityRequestSchema,
     missingStickerAddRequestSchema,
-} from "./collection.schemas"
-import CollectionController from "./collection.controller"
+} from "../schemas/collection.schemas"
+import CollectionController from "../controllers/collection.controller"
 
 // IMPORTANTE: mergeParams permite leer el :userId del router padre
 const router = Router({ mergeParams: true })

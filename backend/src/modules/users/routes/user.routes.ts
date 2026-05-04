@@ -8,12 +8,12 @@ import {
 import { userIdParamSchema } from "../../../shared/validation/common"
 import { userQuerySchema, userUpdateRequestSchema } from "../schemas/user.schemas"
 import UserController from "../controllers/user.controller"
-import collectionRouter from "../../collection/collection.routes"
+import collectionRouter from "../../collection/routes/collection.routes"
 import postRouter from "../../posts/routes/post.routes"
 import offerUserRouter from "../../offers/routes/offer-user.routes"
 import ratingRouter from "../../ratings/routes/rating.routes"
 import userNotificationRouter from "../../notifications/routes/user-notification.routes"
-import userMatchingRouter from "../../matching/user-matching.routes"
+import userMatchingRouter from "../../matching/routes/user-matching.routes"
 
 const router = Router()
 const userController = new UserController()

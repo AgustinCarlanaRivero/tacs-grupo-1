@@ -1,6 +1,6 @@
 import { CollectionItem } from "./collection-item.interface"
-import { Sticker } from "../stickers/sticker.entity"
-import { BadRequestError, NotFoundError } from "../../shared/errors/http-errors"
+import { Sticker } from "../../stickers/entities/sticker.entity"
+import { BadRequestError, NotFoundError } from "../../../shared/errors/http-errors"
 
 export class Collection {
   items: CollectionItem[]

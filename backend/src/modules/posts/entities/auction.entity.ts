@@ -2,7 +2,7 @@ import { Offer } from "../../offers/entities/offer.entity";
 import { Post } from "./post.entity";
 import { PostState } from "../enums/post-state.enum";
 import { PostType } from "../enums/post-type.enum";
-import { Sticker } from "../../stickers/sticker.entity";
+import { Sticker } from "../../stickers/entities/sticker.entity";
 import { User } from "../../users/entities/user.entity";
 import { BadRequestError } from "../../../shared/errors/http-errors";
 

@@ -1,6 +1,6 @@
 import { z } from "zod"
-import { stickerResponseSchema } from "../stickers/sticker.schemas"
-import { nonNegativeInt, positiveInt } from "../../shared/validation/common"
+import { stickerResponseSchema } from "../../stickers/schemas/sticker.schemas"
+import { nonNegativeInt, positiveInt } from "../../../shared/validation/common"
 
 /** POST /users/:userId/collection/items */
 export const collectionItemAddRequestSchema = z.object({

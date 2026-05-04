@@ -1,8 +1,8 @@
-import { Collection } from "../collection/collection.entity"
-import { CollectionItem } from "../collection/collection-item.interface"
-import StickerService from "../stickers/sticker.service"
-import collectionRepository from "./collection.repository"
-import { BadRequestError, NotFoundError } from "../../shared/errors/http-errors"
+import { Collection } from "../entities/collection.entity"
+import { CollectionItem } from "../entities/collection-item.interface"
+import StickerService from "../../stickers/services/sticker.service"
+import collectionRepository from "../repositories/collection.repository"
+import { BadRequestError, NotFoundError } from "../../../shared/errors/http-errors"
 
 export default class CollectionService {
     /**

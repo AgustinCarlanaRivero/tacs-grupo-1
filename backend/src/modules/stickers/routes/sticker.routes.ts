@@ -1,12 +1,12 @@
 import { Router } from "express"
-import { asyncHandler } from "../../shared/middleware/async-handler"
+import { asyncHandler } from "../../../shared/middleware/async-handler"
 import {
     validateParams,
     validateQuery,
-} from "../../shared/middleware/validation.middleware"
-import { stickerNumericIdParamSchema } from "../../shared/validation/common"
-import { stickerFilterQuerySchema } from "./sticker.schemas"
-import StickerController from "./sticker.controller"
+} from "../../../shared/middleware/validation.middleware"
+import { stickerNumericIdParamSchema } from "../../../shared/validation/common"
+import { stickerFilterQuerySchema } from "../schemas/sticker.schemas"
+import StickerController from "../controllers/sticker.controller"
 
 const router = Router()
 const stickerController = new StickerController()

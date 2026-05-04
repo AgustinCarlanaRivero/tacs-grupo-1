@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { nonEmptyString, positiveInt, queryString } from "../../shared/validation/common"
+import { nonEmptyString, positiveInt, queryString } from "../../../shared/validation/common"
 
 export const stickerStateEnum = z.enum(["NEW", "DAMAGED"])
 export const stickerTypeEnum = z.enum(["REGULAR", "SHINY"])

@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach, jest } from "@jest/globals"
-import CollectionService from "../../modules/collection/collection.service"
-import collectionRepository from "../../modules/collection/collection.repository"
-import { Sticker } from "../../modules/stickers/sticker.entity"
-import { Player } from "../../modules/stickers/player.entity"
-import { Category } from "../../modules/stickers/category.entity"
-import { NationalTeam } from "../../modules/stickers/national-team.entity"
-import { Club } from "../../modules/stickers/club.entity"
+import CollectionService from "../../modules/collection/services/collection.service"
+import collectionRepository from "../../modules/collection/repositories/collection.repository"
+import { Sticker } from "../../modules/stickers/entities/sticker.entity"
+import { Player } from "../../modules/stickers/entities/player.entity"
+import { Category } from "../../modules/stickers/entities/category.entity"
+import { NationalTeam } from "../../modules/stickers/entities/national-team.entity"
+import { Club } from "../../modules/stickers/entities/club.entity"
 
 // Mock StickerService
-jest.mock("../../modules/stickers/sticker.service")
-import StickerService from "../../modules/stickers/sticker.service"
+jest.mock("../../modules/stickers/services/sticker.service")
+import StickerService from "../../modules/stickers/services/sticker.service"
 
 describe("CollectionService", () => {
     beforeEach(() => {

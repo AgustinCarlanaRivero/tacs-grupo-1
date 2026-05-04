@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { PostType } from "../enums/post-type.enum"
 import { PostState } from "../enums/post-state.enum"
-import { stickerResponseSchema } from "../../stickers/sticker.schemas"
+import { stickerResponseSchema } from "../../stickers/schemas/sticker.schemas"
 import {
     isoDateTime,
     nonEmptyString,

@@ -1,4 +1,4 @@
-import { Sticker } from "../stickers/sticker.entity";
+import { Sticker } from "../../stickers/entities/sticker.entity";
 
 export interface CollectionItem {
   sticker: Sticker;

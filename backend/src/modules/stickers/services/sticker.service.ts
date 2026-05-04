@@ -1,6 +1,6 @@
-import stickerRepository from "./sticker.repository"
-import { NotFoundError } from "../../shared/errors/http-errors"
-import { getStickerSearchValues, matchesAnyQuery, normalizeQuery } from "../../shared/utils/query"
+import stickerRepository from "../repositories/sticker.repository"
+import { NotFoundError } from "../../../shared/errors/http-errors"
+import { getStickerSearchValues, matchesAnyQuery, normalizeQuery } from "../../../shared/utils/query"
 
 export default class StickerService {
     /**

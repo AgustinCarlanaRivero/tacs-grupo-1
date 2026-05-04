@@ -1,6 +1,6 @@
-import { Collection } from "./collection.entity"
-import { CollectionItem } from "./collection-item.interface"
-import { Sticker } from "../stickers/sticker.entity"
+import { Collection } from "../entities/collection.entity"
+import { CollectionItem } from "../entities/collection-item.interface"
+import { Sticker } from "../../stickers/entities/sticker.entity"
 
 /**
  * Repositorio in-memory de colecciones. Mantiene un índice por userId.

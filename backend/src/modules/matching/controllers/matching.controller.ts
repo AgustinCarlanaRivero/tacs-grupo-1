@@ -1,8 +1,8 @@
 import { Request, Response } from "express"
 import type { z } from "zod"
-import { paginationQuerySchema, userIdParamSchema } from "../../shared/validation/common"
-import { matchesQuerySchema } from "./matching.schemas"
-import MatchingService from "./matching.service"
+import { paginationQuerySchema, userIdParamSchema } from "../../../shared/validation/common"
+import { matchesQuerySchema } from "../schemas/matching.schemas"
+import MatchingService from "../services/matching.service"
 
 type UserParams = z.infer<typeof userIdParamSchema>
 type PaginationQuery = z.infer<typeof paginationQuerySchema>

@@ -1,4 +1,4 @@
-import { CollectionItem } from "../../collection/collection-item.interface";
+import { CollectionItem } from "../../collection/entities/collection-item.interface";
 import { canTransitionOfferState, OfferState } from "../enums/offer-state.enum";
 import { User } from "../../users/entities/user.entity";
 import { ConflictError, ForbiddenError } from "../../../shared/errors/http-errors";

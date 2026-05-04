@@ -1,9 +1,9 @@
-import AuthRepository from "../auth/repositories/auth.repository.ts"
-import { Sticker } from "../stickers/sticker.entity.ts"
-import { CollectionItem } from "../collection/collection-item.interface.ts"
-import MatchingRepository from "./matching.repository.ts"
-import { paginate } from "../../shared/utils/query.ts"
-import { BadRequestError } from "../../shared/errors/http-errors.ts"
+import AuthRepository from "../../auth/repositories/auth.repository.ts"
+import { Sticker } from "../../stickers/entities/sticker.entity.ts"
+import { CollectionItem } from "../../collection/entities/collection-item.interface.ts"
+import MatchingRepository from "../repositories/matching.repository.ts"
+import { paginate } from "../../../shared/utils/query.ts"
+import { BadRequestError } from "../../../shared/errors/http-errors.ts"
 
 export default class MatchingService {
     /**

@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { OfferState } from "../enums/offer-state.enum"
-import { collectionItemAddRequestSchema, collectionItemResponseSchema } from "../../collection/collection.schemas"
+import { collectionItemAddRequestSchema, collectionItemResponseSchema } from "../../collection/schemas/collection.schemas"
 import {
     isoDateTime,
     nonEmptyString,

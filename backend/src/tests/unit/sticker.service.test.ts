@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach } from "@jest/globals"
-import StickerService from "../../modules/stickers/sticker.service"
-import stickerRepository from "../../modules/stickers/sticker.repository"
-import { Sticker } from "../../modules/stickers/sticker.entity"
-import { Player } from "../../modules/stickers/player.entity"
-import { Category } from "../../modules/stickers/category.entity"
-import { NationalTeam } from "../../modules/stickers/national-team.entity"
-import { Club } from "../../modules/stickers/club.entity"
+import StickerService from "../../modules/stickers/services/sticker.service"
+import stickerRepository from "../../modules/stickers/repositories/sticker.repository"
+import { Sticker } from "../../modules/stickers/entities/sticker.entity"
+import { Player } from "../../modules/stickers/entities/player.entity"
+import { Category } from "../../modules/stickers/entities/category.entity"
+import { NationalTeam } from "../../modules/stickers/entities/national-team.entity"
+import { Club } from "../../modules/stickers/entities/club.entity"
 
 describe("StickerService", () => {
     beforeEach(() => {

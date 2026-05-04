@@ -1,4 +1,4 @@
-import { Collection } from "../../collection/collection.entity";
+import { Collection } from "../../collection/entities/collection.entity";
 import type { Rating } from "../../ratings/entities/rating.entity";
 import { UserRole } from "../enums/user-role.enum";
 

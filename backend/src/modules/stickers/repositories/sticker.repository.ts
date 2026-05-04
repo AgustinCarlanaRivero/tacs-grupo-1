@@ -1,4 +1,4 @@
-import { Sticker } from "./sticker.entity"
+import { Sticker } from "../entities/sticker.entity"
 
 /**
  * Repositorio in-memory de stickers. Mantiene un índice principal por id y

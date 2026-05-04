@@ -7,12 +7,12 @@ import {
     collectionItemUpdateQuantityRequestSchema,
     collectionResponseSchema,
     missingStickerAddRequestSchema,
-} from "../../modules/collection/collection.schemas"
+} from "../../modules/collection/schemas/collection.schemas"
 import {
     matchesQuerySchema,
     matchesResponseSchema,
     suggestionsResponseSchema,
-} from "../../modules/matching/matching.schemas"
+} from "../../modules/matching/schemas/matching.schemas"
 import {
     notificationQuerySchema,
     notificationResponseSchema,
@@ -48,7 +48,7 @@ import {
 import {
     stickerFilterQuerySchema,
     stickerResponseSchema,
-} from "../../modules/stickers/sticker.schemas"
+} from "../../modules/stickers/schemas/sticker.schemas"
 import {
     userQuerySchema,
     userResponseSchema,
