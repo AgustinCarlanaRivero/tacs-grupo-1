@@ -24,7 +24,7 @@ export default class StickerService {
 
         if (!query) return stickers
 
-        return stickers.filter(sticker => matchesAnyQuery(getStickerSearchValues(sticker as any), query))
+        return stickers.filter(sticker => matchesAnyQuery(getStickerSearchValues(sticker), query))
     }
 
     /**

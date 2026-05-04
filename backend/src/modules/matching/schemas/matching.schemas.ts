@@ -6,7 +6,7 @@ import {
     paginationQuerySchema,
     positiveInt,
     positiveIntString,
-} from "../../shared/validation/common"
+} from "../../../shared/validation/common"
 
 /** GET /matches?stickerId=&page=&limit= */
 export const matchesQuerySchema = paginationQuerySchema.extend({

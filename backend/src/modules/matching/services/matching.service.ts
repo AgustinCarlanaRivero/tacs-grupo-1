@@ -1,9 +1,10 @@
-import AuthRepository from "../../auth/repositories/auth.repository.ts"
-import { Sticker } from "../../stickers/entities/sticker.entity.ts"
-import { CollectionItem } from "../../collection/entities/collection-item.interface.ts"
-import MatchingRepository from "../repositories/matching.repository.ts"
-import { paginate } from "../../../shared/utils/query.ts"
-import { BadRequestError } from "../../../shared/errors/http-errors.ts"
+import AuthRepository from "../../auth/repositories/auth.repository"
+import { Sticker } from "../../stickers/entities/sticker.entity"
+import { CollectionItem } from "../../collection/entities/collection-item.interface"
+import type { User } from "../../users/entities/user.entity"
+import MatchingRepository from "../repositories/matching.repository"
+import { paginate } from "../../../shared/utils/query"
+import { BadRequestError } from "../../../shared/errors/http-errors"
 
 export default class MatchingService {
     /**
@@ -148,7 +149,7 @@ export default class MatchingService {
      * - Considerar eliminar este método o hacer un no-op
      * - Llamar desde CollectionService cuando se actualiza collection
      */
-    static updateUserIndex(user: any): void {
+    static updateUserIndex(user: User): void {
         MatchingRepository.updateUserIndex(user)
     }
 }

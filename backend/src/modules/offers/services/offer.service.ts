@@ -4,6 +4,7 @@ import {
     matchesAnyQuery,
     normalizeQuery,
     paginate,
+    type StickerSearchInput,
 } from "../../../shared/utils/query"
 
 export type OfferRole = "sent" | "received" | "all"
@@ -24,7 +25,7 @@ type OfferLike = {
     postOwnerId?: string
     postId?: string
     post?: { id?: string; owner?: { id?: string } | null; ownerId?: string } | null
-    offered?: Array<{ sticker?: unknown }>
+    offered?: Array<{ sticker?: StickerSearchInput }>
 }
 
 function getOffererId(offer: OfferLike): string | undefined {
@@ -51,7 +52,7 @@ function matchesOfferRole(offer: OfferLike, userId: string, role: OfferRole): bo
 function matchesOfferQuery(offer: OfferLike, query?: string): boolean {
     if (!query) return true
     const offeredItems = offer.offered ?? []
-    return offeredItems.some(item => matchesAnyQuery(getStickerSearchValues(item?.sticker as any), query))
+    return offeredItems.some(item => matchesAnyQuery(getStickerSearchValues(item?.sticker), query))
 }
 
 export default class OfferService {

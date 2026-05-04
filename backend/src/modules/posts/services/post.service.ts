@@ -4,6 +4,7 @@ import {
     matchesAnyQuery,
     normalizeQuery,
     paginate,
+    type StickerSearchInput,
 } from "../../../shared/utils/query"
 
 type PostListFilters = {
@@ -17,7 +18,7 @@ type PostListFilters = {
 type PostLike = {
     type?: PostType | string
     state?: string
-    sticker?: unknown
+    sticker?: StickerSearchInput
     owner?: { id?: string } | null
     ownerId?: string
 }
@@ -28,7 +29,7 @@ function getPostOwnerId(post: PostLike): string | undefined {
 
 function matchesPostQuery(post: PostLike, query?: string): boolean {
     if (!query) return true
-    return matchesAnyQuery(getStickerSearchValues(post.sticker as any), query)
+    return matchesAnyQuery(getStickerSearchValues(post.sticker), query)
 }
 
 export default class PostService {
