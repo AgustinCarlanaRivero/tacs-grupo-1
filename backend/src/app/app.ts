@@ -1,7 +1,7 @@
 import cors from "cors";
 import express from "express";
 import healthRoutes from "../infra/health/health.routes";
-import swaggerRoutes from "../infra/swagger/swaggerRoutes";
+import swaggerRoutes from "../infra/swagger/swagger.routes";
 import apiRoutes from "../routes/index";
 import { errorHandler } from "../shared/middleware/error.middleware";
 import { ForbiddenError } from "../shared/errors/http-errors";

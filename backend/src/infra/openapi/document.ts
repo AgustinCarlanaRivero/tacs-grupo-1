@@ -1,13 +1,14 @@
+/**
+ * Construye el documento OpenAPI V3 de la API.
+ * Importa "./paths" por side-effect para registrar rutas antes de generar el documento.
+ */
 import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi"
 import { registry } from "./registry"
-// El import side-effect dispara el `registerPath` de cada endpoint.
 import "./paths"
 
 /**
- * Genera el documento OpenAPI 3.0 a partir de los schemas Zod y los paths
- * registrados. Se construye una sola vez al cargar el módulo y se exporta
- * como objeto JS para que `swagger-ui-express` lo sirva sin necesidad de
- * leer un YAML del filesystem.
+ * Documento OpenAPI listo para Swagger UI y /openapi.json.
+ * Se genera una sola vez al cargar el modulo.
  */
 export const openApiDocument = new OpenApiGeneratorV3(registry.definitions).generateDocument({
     openapi: "3.0.3",

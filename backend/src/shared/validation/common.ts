@@ -32,7 +32,7 @@ export const queryString = z
  * `data`, `page`, `limit` y `total`, que es la forma que ya usan
  * MatchingService.getMatches/getSuggestionsByUser.
  */
-export function paginatedResponseSchema<TItem extends z.ZodTypeAny>(item: TItem) {
+export function paginatedResponseSchema<TItem extends z.ZodType>(item: TItem) {
     return z.object({
         data: z.array(item),
         page: positiveInt,

@@ -1,23 +1,21 @@
-// IMPORTANTE: importamos directamente el build ESM (`.mjs`) porque el
-// `package.json` de zod-to-openapi no expone `exports` y Node por defecto
-// resuelve el `main` CJS, lo que termina cargando dos copias de zod.
+/**
+ * Registro central de OpenAPI y definicion de seguridad bearer.
+ * Se importa el build ESM para evitar duplicar instancias de Zod en runtime.
+ */
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi/dist/index.mjs"
 
 /**
- * Registro central de definiciones OpenAPI. No registramos schemas con
- * `registry.register()` porque en Zod 4 las clases (`ZodObject`, `ZodString`,
- * etc.) ya no extienden `ZodType.prototype`, por lo que el parche que
- * `extendZodWithOpenApi` aplica al prototipo nunca llega a las instancias y
- * `.openapi()` queda sin definir. En su lugar, cada schema "público" usa
- * `.meta({ id: "Nombre" })` (API nativa de Zod 4) en los `<modulo>.schemas.ts`.
- * El generador respeta ese id como nombre del componente y emite `$ref` cuando
- * el schema se referencia en una respuesta o request.
+ * Registro central de definiciones OpenAPI.
+ * No usamos `registry.register()` porque en Zod 4 las clases no extienden
+ * `ZodType.prototype` y el parche `extendZodWithOpenApi` no aplica. En su lugar,
+ * los schemas publicos usan `.meta({ id: "Nombre" })` en los `<modulo>.schemas.ts`.
+ * El generador respeta ese id y emite `$ref` cuando corresponde.
  */
 export const registry = new OpenAPIRegistry()
 
 /**
- * Define el esquema de seguridad bearer (Auth0 JWT). Las rutas que requieren
- * token lo declaran en su definición de path con `security: [{ bearerAuth: [] }]`.
+ * Define el esquema de seguridad bearer (Auth0 JWT).
+ * Las rutas protegidas lo declaran con `security: [{ bearerAuth: [] }]`.
  */
 registry.registerComponent("securitySchemes", "bearerAuth", {
     type: "http",
