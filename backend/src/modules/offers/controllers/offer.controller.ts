@@ -9,7 +9,8 @@ import {
 } from "../../../shared/validation/common"
 import {
     offerCreateRequestSchema,
-    offerRoleQuerySchema,
+    offerPostQuerySchema,
+    offerUserQuerySchema,
     offerStateUpdateRequestSchema,
 } from "../schemas/offer.schemas"
 
@@ -17,7 +18,8 @@ type AuthenticatedRequest = Request & { user?: { id: string } }
 type UserParams = z.infer<typeof userIdParamSchema>
 type UserPostParams = z.infer<typeof userPostParamsSchema>
 type UserPostOfferParams = z.infer<typeof userPostOfferParamsSchema>
-type OfferRoleQuery = z.infer<typeof offerRoleQuerySchema>
+type OfferUserQuery = z.infer<typeof offerUserQuerySchema>
+type OfferPostQuery = z.infer<typeof offerPostQuerySchema>
 type CreateOfferBody = z.infer<typeof offerCreateRequestSchema>
 type UpdateStateBody = z.infer<typeof offerStateUpdateRequestSchema>
 
@@ -29,16 +31,17 @@ export default class OfferController {
     // GET /users/:userId/offers?role=sent|received|all
     getOffersByUser = async (req: Request, res: Response) => {
         const { userId } = req.params as UserParams
-        const { role } = req.query as unknown as OfferRoleQuery
+        const { role, query, page, limit } = req.query as unknown as OfferUserQuery
 
-        const offers = await OfferService.getOffersByUser(userId, role)
+        const offers = await OfferService.getOffersByUser(userId, { role, query, page, limit })
         return res.status(200).json(offers)
     }
 
     // GET /users/:userId/posts/:postId/offers
     getOffersByPost = async (req: Request, res: Response) => {
         const { userId: postOwnerId, postId } = req.params as UserPostParams
-        const offers = await OfferService.getOffersByPost(postOwnerId, postId)
+        const { query, page, limit } = req.query as unknown as OfferPostQuery
+        const offers = await OfferService.getOffersByPost(postOwnerId, postId, { query, page, limit })
         return res.status(200).json(offers)
     }
 

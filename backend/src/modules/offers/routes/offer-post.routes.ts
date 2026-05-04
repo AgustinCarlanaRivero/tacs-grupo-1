@@ -3,6 +3,7 @@ import { asyncHandler } from "../../../shared/middleware/async-handler"
 import {
     validateBody,
     validateParams,
+    validateQuery,
 } from "../../../shared/middleware/validation.middleware"
 import {
     userPostOfferParamsSchema,
@@ -10,6 +11,7 @@ import {
 } from "../../../shared/validation/common"
 import {
     offerCreateRequestSchema,
+    offerPostQuerySchema,
     offerStateUpdateRequestSchema,
 } from "../schemas/offer.schemas"
 import OfferController from "../controllers/offer.controller"
@@ -19,7 +21,11 @@ const offerController = new OfferController()
 
 router
     .route("/")
-    .get(validateParams(userPostParamsSchema), asyncHandler(offerController.getOffersByPost))
+    .get(
+        validateParams(userPostParamsSchema),
+        validateQuery(offerPostQuerySchema),
+        asyncHandler(offerController.getOffersByPost),
+    )
     .post(
         validateParams(userPostParamsSchema),
         validateBody(offerCreateRequestSchema),

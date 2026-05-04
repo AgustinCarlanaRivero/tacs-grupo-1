@@ -2,29 +2,36 @@ import { z } from "zod"
 import { PostType } from "../enums/post-type.enum"
 import { PostState } from "../enums/post-state.enum"
 import { stickerResponseSchema } from "../../stickers/sticker.schemas"
-import { collectionItemAddRequestSchema, collectionItemResponseSchema } from "../../collection/collection.schemas"
-import { isoDateTime, nonEmptyString, positiveInt } from "../../../shared/validation/common"
+import {
+    isoDateTime,
+    nonEmptyString,
+    paginatedResponseSchema,
+    paginationQuerySchema,
+    positiveInt,
+    queryString,
+} from "../../../shared/validation/common"
 
 export const postTypeEnum = z.enum([PostType.DIRECT_TRADE, PostType.AUCTION])
 export const postStateEnum = z.enum([PostState.ACTIVE, PostState.COMPLETED, PostState.CLOSED])
 
 /** GET /users/:userId/posts?type=&state= */
-export const postFilterQuerySchema = z.object({
+export const postFilterQuerySchema = paginationQuerySchema.extend({
     type: postTypeEnum.optional(),
     state: postStateEnum.optional(),
+    query: queryString,
 })
 
 /**
  * POST /users/:userId/posts.
  * Si el `type` es AUCTION, se requieren `endsAt` y opcionalmente
- * `minimumRequirements`. Para DIRECT_TRADE esos campos no aplican.
+ * `minimumRequirement`. Para DIRECT_TRADE esos campos no aplican.
  */
 export const postCreateRequestSchema = z
     .object({
         type: postTypeEnum,
         stickerId: positiveInt,
         endsAt: isoDateTime.optional(),
-        minimumRequirements: z.array(collectionItemAddRequestSchema).optional(),
+        minimumRequirement: positiveInt.optional(),
     })
     .superRefine((data, ctx) => {
         if (data.type === PostType.AUCTION && !data.endsAt) {
@@ -53,5 +60,7 @@ export const postResponseSchema = z.object({
     }),
     createdAt: isoDateTime.optional(),
     endsAt: isoDateTime.optional(),
-    minimumRequirements: z.array(collectionItemResponseSchema).optional(),
+    minimumRequirement: positiveInt.optional(),
 }).meta({ id: "Post" })
+
+export const postListResponseSchema = paginatedResponseSchema(postResponseSchema).meta({ id: "Posts" })

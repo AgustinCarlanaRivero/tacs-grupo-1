@@ -1,6 +1,12 @@
 import { z } from "zod"
 import { NotificationType } from "../enums/notification-type.enum"
-import { booleanQuery, isoDateTime, nonEmptyString, nonNegativeInt } from "../../../shared/validation/common"
+import {
+    booleanQuery,
+    isoDateTime,
+    nonEmptyString,
+    nonNegativeInt,
+    queryString,
+} from "../../../shared/validation/common"
 
 export const notificationTypeEnum = z.enum([
     NotificationType.STICKER_AVAILABLE,
@@ -14,6 +20,7 @@ export const notificationTypeEnum = z.enum([
 /** GET /users/:userId/notifications?unread=true */
 export const notificationQuerySchema = z.object({
     unread: booleanQuery,
+    query: queryString,
 })
 
 export const notificationResponseSchema = z.object({

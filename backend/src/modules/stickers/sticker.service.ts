@@ -1,15 +1,30 @@
 import stickerRepository from "./sticker.repository"
+import { NotFoundError } from "../../shared/errors/http-errors"
+import { getStickerSearchValues, matchesAnyQuery, normalizeQuery } from "../../shared/utils/query"
 
 export default class StickerService {
     /**
      * Obtiene todos los stickers con filtros opcionales
      * @param filters - { state?: string, type?: string, team?: string, club?: string }
      */
-    static async getStickers(filters?: { state?: string; type?: string; team?: string; club?: string }) {
-        if (filters && Object.keys(filters).length > 0) {
-            return await stickerRepository.findByFilters(filters)
+    static async getStickers(
+        filters?: { state?: string; type?: string; team?: string; club?: string; query?: string },
+    ) {
+        const query = normalizeQuery(filters?.query)
+        const baseFilters = {
+            state: filters?.state,
+            type: filters?.type,
+            team: filters?.team,
+            club: filters?.club,
         }
-        return await stickerRepository.findAll()
+        const hasBaseFilters = Object.values(baseFilters).some(value => value !== undefined)
+        const stickers = hasBaseFilters
+            ? await stickerRepository.findByFilters(baseFilters)
+            : await stickerRepository.findAll()
+
+        if (!query) return stickers
+
+        return stickers.filter(sticker => matchesAnyQuery(getStickerSearchValues(sticker as any), query))
     }
 
     /**
@@ -26,7 +41,7 @@ export default class StickerService {
     static async getStickerByIdOrFail(stickerId: string) {
         const sticker = await this.getStickerById(stickerId)
         if (!sticker) {
-            throw new Error(`Sticker #${stickerId} not found`)
+            throw new NotFoundError(`Sticker #${stickerId} not found`)
         }
         return sticker
     }

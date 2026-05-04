@@ -1,11 +1,14 @@
 import { Request, Response } from "express"
-import { AppError } from "../../../shared/errors/app-error"
 import UserService from "../services/user.service"
+import type { z } from "zod"
+import { userQuerySchema } from "../schemas/user.schemas"
 
+type UserQuery = z.infer<typeof userQuerySchema>
 
 export default class UserController {
     getUsers = async (req: Request, res: Response) => {
-        const users = await UserService.getUsers()
+        const { query, page, limit } = req.query as unknown as UserQuery
+        const users = await UserService.getUsers({ query, page, limit })
         return res.status(200).json(users)
     }
 

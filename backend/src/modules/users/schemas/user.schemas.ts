@@ -1,6 +1,11 @@
 import { z } from "zod"
 import { UserRole } from "../enums/user-role.enum"
-import { nonEmptyString } from "../../../shared/validation/common"
+import {
+    nonEmptyString,
+    paginatedResponseSchema,
+    paginationQuerySchema,
+    queryString,
+} from "../../../shared/validation/common"
 
 /**
  * El `.meta({ id })` que aparece al final de cada schema "público" es metadata
@@ -20,6 +25,11 @@ export const userUpdateRequestSchema = z
     .refine(obj => Object.keys(obj).length > 0, { message: "Debe enviar al menos un campo a actualizar" })
     .meta({ id: "UserUpdateRequest" })
 
+/** GET /users?query=&page=&limit= */
+export const userQuerySchema = paginationQuerySchema.extend({
+    query: queryString,
+})
+
 /**
  * Forma pública de un usuario expuesta por la API. Espeja `UserResponseDto`
  * (no incluye `auth0Sub` ni datos internos).
@@ -33,3 +43,5 @@ export const userResponseSchema = z.object({
     role: z.enum([UserRole.STANDARD, UserRole.ADMIN]),
     reputation: z.number(),
 }).meta({ id: "User" })
+
+export const usersResponseSchema = paginatedResponseSchema(userResponseSchema).meta({ id: "Users" })

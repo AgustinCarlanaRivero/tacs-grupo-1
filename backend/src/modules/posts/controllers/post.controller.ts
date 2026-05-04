@@ -25,8 +25,8 @@ function getAuthUserId(req: Request): string | undefined {
 
 export default class PostController {
     listPosts = async (req: Request, res: Response) => {
-        const { type, state } = req.query as unknown as PostFilterQuery
-        const posts = await PostService.listPosts({ type, state })
+        const { type, state, query, page, limit } = req.query as unknown as PostFilterQuery
+        const posts = await PostService.listPosts({ type, state, query, page, limit })
         return res.status(200).json(posts)
     }
 
@@ -62,7 +62,8 @@ export default class PostController {
 
     listPostsByOwner = async (req: Request, res: Response) => {
         const { userId } = req.params as UserParams
-        const posts = await PostService.listPostsByOwner(userId)
+        const { type, state, query, page, limit } = req.query as unknown as PostFilterQuery
+        const posts = await PostService.listPostsByOwner(userId, { type, state, query, page, limit })
         return res.status(200).json(posts)
     }
 }

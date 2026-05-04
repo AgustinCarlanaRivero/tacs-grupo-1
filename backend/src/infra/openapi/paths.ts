@@ -21,19 +21,24 @@ import {
 } from "../../modules/notifications/schemas/notification.schemas"
 import {
     offerCreateRequestSchema,
+    offerPostQuerySchema,
     offerResponseSchema,
-    offerRoleQuerySchema,
+    offerUserQuerySchema,
     offerStateUpdateRequestSchema,
+    offersResponseSchema,
 } from "../../modules/offers/schemas/offer.schemas"
 import {
     postCreateRequestSchema,
     postFilterQuerySchema,
+    postListResponseSchema,
     postResponseSchema,
     postStateUpdateRequestSchema,
 } from "../../modules/posts/schemas/post.schemas"
 import {
     ratingCreateRequestSchema,
+    ratingQuerySchema,
     ratingResponseSchema,
+    ratingsResponseSchema,
 } from "../../modules/ratings/schemas/rating.schemas"
 import {
     roleUpdateRequestSchema,
@@ -45,7 +50,9 @@ import {
     stickerResponseSchema,
 } from "../../modules/stickers/sticker.schemas"
 import {
+    userQuerySchema,
     userResponseSchema,
+    usersResponseSchema,
     userUpdateRequestSchema,
 } from "../../modules/users/schemas/user.schemas"
 
@@ -184,8 +191,11 @@ registry.registerPath({
     tags: ["Users"],
     summary: "Listar usuarios",
     security: bearer,
+    request: {
+        query: userQuerySchema,
+    },
     responses: {
-        200: jsonResponse("Lista de usuarios", z.array(userResponseSchema)),
+        200: jsonResponse("Usuarios paginados", usersResponseSchema),
         401: errorResponses[401],
     },
 })
@@ -346,7 +356,7 @@ registry.registerPath({
         query: postFilterQuerySchema,
     },
     responses: {
-        200: jsonResponse("Lista de publicaciones", z.array(postResponseSchema)),
+        200: jsonResponse("Publicaciones paginadas", postListResponseSchema),
         401: errorResponses[401],
     },
 })
@@ -411,10 +421,10 @@ registry.registerPath({
     security: bearer,
     request: {
         params: z.object({ userId: nonEmptyString }),
-        query: offerRoleQuerySchema,
+        query: offerUserQuerySchema,
     },
     responses: {
-        200: jsonResponse("Ofertas", z.array(offerResponseSchema)),
+        200: jsonResponse("Ofertas paginadas", offersResponseSchema),
         ...errorResponses,
     },
 })
@@ -481,9 +491,12 @@ registry.registerPath({
     tags: ["Ratings"],
     summary: "Listar ratings recibidos por el usuario",
     security: bearer,
-    request: { params: z.object({ userId: nonEmptyString }) },
+    request: {
+        params: z.object({ userId: nonEmptyString }),
+        query: ratingQuerySchema,
+    },
     responses: {
-        200: jsonResponse("Ratings", z.array(ratingResponseSchema)),
+        200: jsonResponse("Ratings paginados", ratingsResponseSchema),
         401: errorResponses[401],
     },
 })

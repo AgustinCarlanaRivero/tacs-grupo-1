@@ -1,7 +1,13 @@
 import { z } from "zod"
 import { OfferState } from "../enums/offer-state.enum"
 import { collectionItemAddRequestSchema, collectionItemResponseSchema } from "../../collection/collection.schemas"
-import { isoDateTime, nonEmptyString } from "../../../shared/validation/common"
+import {
+    isoDateTime,
+    nonEmptyString,
+    paginatedResponseSchema,
+    paginationQuerySchema,
+    queryString,
+} from "../../../shared/validation/common"
 
 export const offerStateEnum = z.enum([
     OfferState.PENDING,
@@ -10,9 +16,22 @@ export const offerStateEnum = z.enum([
     OfferState.CANCELLED,
 ])
 
+const offerRoleEnum = z.enum(["sent", "received", "all"])
+
 /** GET /users/:userId/offers?role=sent|received|all */
 export const offerRoleQuerySchema = z.object({
-    role: z.enum(["sent", "received", "all"]).default("all"),
+    role: offerRoleEnum.default("all"),
+})
+
+/** GET /users/:userId/offers?role=&query=&page=&limit= */
+export const offerUserQuerySchema = paginationQuerySchema.extend({
+    role: offerRoleEnum.default("all"),
+    query: queryString,
+})
+
+/** GET /users/:userId/posts/:postId/offers?query=&page=&limit= */
+export const offerPostQuerySchema = paginationQuerySchema.extend({
+    query: queryString,
 })
 
 /** POST /users/:userId/posts/:postId/offers */
@@ -39,3 +58,5 @@ export const offerResponseSchema = z.object({
     }),
     offered: z.array(collectionItemResponseSchema),
 }).meta({ id: "Offer" })
+
+export const offersResponseSchema = paginatedResponseSchema(offerResponseSchema).meta({ id: "Offers" })

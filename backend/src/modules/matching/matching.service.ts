@@ -2,6 +2,8 @@ import AuthRepository from "../auth/repositories/auth.repository.ts"
 import { Sticker } from "../stickers/sticker.entity.ts"
 import { CollectionItem } from "../collection/collection-item.interface.ts"
 import MatchingRepository from "./matching.repository.ts"
+import { paginate } from "../../shared/utils/query.ts"
+import { BadRequestError } from "../../shared/errors/http-errors.ts"
 
 export default class MatchingService {
     /**
@@ -69,11 +71,7 @@ export default class MatchingService {
         }
 
         // Aplicar paginación
-        const total = allSuggestions.length
-        const start = (page - 1) * limit
-        const end = start + limit
-        const data = allSuggestions.slice(start, end)
-
+        const { data, total } = paginate(allSuggestions, page, limit)
         return { data, page, limit, total }
     }
 
@@ -97,7 +95,7 @@ export default class MatchingService {
     ) {
         const stickerNum = parseInt(stickerId, 10)
         if (isNaN(stickerNum)) {
-            throw new Error("stickerId debe ser un número válido")
+            throw new BadRequestError("stickerId debe ser un número válido")
         }
 
         // TODO - MONGODB: Reemplazar con query directa filtrada
@@ -137,11 +135,7 @@ export default class MatchingService {
         // TODO - MONGODB: Paginación en BD es más eficiente
         // Antes: en memoria con .slice() después de cargar TODO
         // Después: db.users.find(...).skip(...).limit(...)
-        const total = allMatches.length
-        const start = (page - 1) * limit
-        const end = start + limit
-        const data = allMatches.slice(start, end)
-
+        const { data, total } = paginate(allMatches, page, limit)
         return { data, page, limit, total }
     }
 

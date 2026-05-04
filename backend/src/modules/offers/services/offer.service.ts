@@ -1,14 +1,77 @@
 import { notifications } from "../../notifications/services/notification.facade"
+import {
+    getStickerSearchValues,
+    matchesAnyQuery,
+    normalizeQuery,
+    paginate,
+} from "../../../shared/utils/query"
 
 export type OfferRole = "sent" | "received" | "all"
 
+type OfferListFilters = {
+    query?: string
+    page: number
+    limit: number
+}
+
+type OfferUserFilters = OfferListFilters & {
+    role: OfferRole
+}
+
+type OfferLike = {
+    offerer?: { id?: string } | null
+    offererId?: string
+    postOwnerId?: string
+    postId?: string
+    post?: { id?: string; owner?: { id?: string } | null; ownerId?: string } | null
+    offered?: Array<{ sticker?: unknown }>
+}
+
+function getOffererId(offer: OfferLike): string | undefined {
+    return offer.offererId ?? offer.offerer?.id
+}
+
+function getPostOwnerId(offer: OfferLike): string | undefined {
+    return offer.postOwnerId ?? offer.post?.owner?.id ?? offer.post?.ownerId
+}
+
+function getPostId(offer: OfferLike): string | undefined {
+    return offer.postId ?? offer.post?.id
+}
+
+function matchesOfferRole(offer: OfferLike, userId: string, role: OfferRole): boolean {
+    const isSent = getOffererId(offer) === userId
+    const isReceived = getPostOwnerId(offer) === userId
+
+    if (role === "sent") return isSent
+    if (role === "received") return isReceived
+    return isSent || isReceived
+}
+
+function matchesOfferQuery(offer: OfferLike, query?: string): boolean {
+    if (!query) return true
+    const offeredItems = offer.offered ?? []
+    return offeredItems.some(item => matchesAnyQuery(getStickerSearchValues(item?.sticker as any), query))
+}
+
 export default class OfferService {
-    static async getOffersByUser(_userId: string, _role: OfferRole) {
-        return []
+    static async getOffersByUser(userId: string, filters: OfferUserFilters) {
+        const offers: OfferLike[] = []
+        const normalizedQuery = normalizeQuery(filters.query)
+        const filtered = offers.filter(offer => matchesOfferRole(offer, userId, filters.role))
+            .filter(offer => matchesOfferQuery(offer, normalizedQuery))
+
+        return paginate(filtered, filters.page, filters.limit)
     }
 
-    static async getOffersByPost(_postOwnerId: string, _postId: string) {
-        return []
+    static async getOffersByPost(postOwnerId: string, postId: string, filters: OfferListFilters) {
+        const offers: OfferLike[] = []
+        const normalizedQuery = normalizeQuery(filters.query)
+        const filtered = offers
+            .filter(offer => getPostOwnerId(offer) === postOwnerId && getPostId(offer) === postId)
+            .filter(offer => matchesOfferQuery(offer, normalizedQuery))
+
+        return paginate(filtered, filters.page, filters.limit)
     }
 
     /**

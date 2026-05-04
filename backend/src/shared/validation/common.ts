@@ -20,6 +20,13 @@ export const booleanQuery = z
     .optional()
     .transform(v => v === "true")
 
+/** Optional text query; empty strings become undefined. */
+export const queryString = z
+    .string()
+    .trim()
+    .optional()
+    .transform(value => (value && value.length > 0 ? value : undefined))
+
 /**
  * Helper para construir respuestas paginadas tipadas. Devuelve un schema con
  * `data`, `page`, `limit` y `total`, que es la forma que ya usan

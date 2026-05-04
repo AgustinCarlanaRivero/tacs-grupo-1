@@ -3,9 +3,10 @@ import { asyncHandler } from "../../../shared/middleware/async-handler"
 import {
     validateBody,
     validateParams,
+    validateQuery,
 } from "../../../shared/middleware/validation.middleware"
 import { userIdParamSchema } from "../../../shared/validation/common"
-import { userUpdateRequestSchema } from "../schemas/user.schemas"
+import { userQuerySchema, userUpdateRequestSchema } from "../schemas/user.schemas"
 import UserController from "../controllers/user.controller"
 import collectionRouter from "../../collection/collection.routes"
 import postRouter from "../../posts/routes/post.routes"
@@ -18,7 +19,7 @@ const router = Router()
 const userController = new UserController()
 
 router.route("/")
-    .get(asyncHandler(userController.getUsers))
+    .get(validateQuery(userQuerySchema), asyncHandler(userController.getUsers))
 
 router.use("/:userId/collection", collectionRouter)
 router.use("/:userId/posts", postRouter)

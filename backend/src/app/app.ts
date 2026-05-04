@@ -4,6 +4,7 @@ import healthRoutes from "../infra/health/health.routes";
 import swaggerRoutes from "../infra/swagger/swaggerRoutes";
 import apiRoutes from "../routes/index";
 import { errorHandler } from "../shared/middleware/error.middleware";
+import { ForbiddenError } from "../shared/errors/http-errors";
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.use(
                 return callback(null, true);
             }
 
-            return callback(new Error("Not allowed by CORS"));
+            return callback(new ForbiddenError("Not allowed by CORS"));
         },
         methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allowedHeaders: ["Content-Type", "Authorization"],

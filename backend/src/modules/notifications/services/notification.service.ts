@@ -4,6 +4,7 @@ import { NotificationChannel } from "../channels/notification-channel"
 import { InAppChannel } from "../channels/in-app.channel"
 import { ForbiddenError, NotFoundError } from "../../../shared/errors/http-errors"
 import notificationRepository from "../repositories/notification.repository"
+import { matchesAnyQuery, normalizeQuery } from "../../../shared/utils/query"
 
 class NotificationService {
     private channels: NotificationChannel[] = [new InAppChannel()]
@@ -35,16 +36,28 @@ class NotificationService {
         return notification
     }
 
-    async getByUserId(userId: string, unreadOnly = false) {
-        if (unreadOnly) {
-            return notificationRepository.findUnreadByUserId(userId)
-        }
-        return notificationRepository.findByUserId(userId)
+    async getByUserId(userId: string, unreadOnly = false, query?: string) {
+        const normalizedQuery = normalizeQuery(query)
+        const notifications = unreadOnly
+            ? notificationRepository.findUnreadByUserId(userId)
+            : notificationRepository.findByUserId(userId)
+
+        if (!normalizedQuery) return notifications
+
+        return notifications.filter(notification => {
+            const payloadText = Object.keys(notification.payload ?? {}).length > 0
+                ? JSON.stringify(notification.payload)
+                : undefined
+            return matchesAnyQuery(
+                [notification.message, notification.type, payloadText],
+                normalizedQuery,
+            )
+        })
     }
 
     /**
-     * Marca como leída la notificación si pertenece al usuario indicado.
-     * @throws AppError 404 si no existe, 403 si el usuario no es el dueño.
+    * Marca como leída la notificación si pertenece al usuario indicado.
+    * @throws NotFoundError 404 si no existe, ForbiddenError 403 si el usuario no es el dueño.
      */
     async markAsRead(notificationId: string, requesterId: string) {
         const notification = notificationRepository.findById(notificationId)

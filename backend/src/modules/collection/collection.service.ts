@@ -2,6 +2,7 @@ import { Collection } from "../collection/collection.entity"
 import { CollectionItem } from "../collection/collection-item.interface"
 import StickerService from "../stickers/sticker.service"
 import collectionRepository from "./collection.repository"
+import { BadRequestError, NotFoundError } from "../../shared/errors/http-errors"
 
 export default class CollectionService {
     /**
@@ -30,7 +31,7 @@ export default class CollectionService {
 
         const collection = await collectionRepository.addCollectionItem(userId, newItem)
         if (!collection) {
-            throw new Error(`User ${userId} not found`)
+            throw new NotFoundError(`User ${userId} not found`)
         }
 
         return { stickerId, quantity }
@@ -42,7 +43,7 @@ export default class CollectionService {
      */
     static async updateCollectionItemQuantity(userId: string, stickerId: string, quantity: number) {
         if (quantity < 0) {
-            throw new Error("Quantity cannot be negative")
+            throw new BadRequestError("Quantity cannot be negative")
         }
 
         const id = parseInt(stickerId, 10)
@@ -51,7 +52,7 @@ export default class CollectionService {
 
         const collection = await collectionRepository.updateCollectionItemQuantity(userId, id, quantity)
         if (!collection) {
-            throw new Error(`User ${userId} not found or collection not initialized`)
+            throw new NotFoundError(`User ${userId} not found or collection not initialized`)
         }
 
         return { stickerId: id, quantity }
@@ -68,7 +69,7 @@ export default class CollectionService {
 
         const collection = await collectionRepository.removeCollectionItem(userId, id)
         if (!collection) {
-            throw new Error(`User ${userId} not found or collection not initialized`)
+            throw new NotFoundError(`User ${userId} not found or collection not initialized`)
         }
     }
 
@@ -83,7 +84,7 @@ export default class CollectionService {
 
         const collection = await collectionRepository.addMissingSticker(userId, sticker)
         if (!collection) {
-            throw new Error(`User ${userId} not found`)
+            throw new NotFoundError(`User ${userId} not found`)
         }
 
         return { stickerId: id, sticker }
@@ -100,7 +101,7 @@ export default class CollectionService {
 
         const collection = await collectionRepository.removeMissingSticker(userId, id)
         if (!collection) {
-            throw new Error(`User ${userId} not found or collection not initialized`)
+            throw new NotFoundError(`User ${userId} not found or collection not initialized`)
         }
     }
 }

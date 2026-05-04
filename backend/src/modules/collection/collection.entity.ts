@@ -1,5 +1,6 @@
 import { CollectionItem } from "./collection-item.interface"
 import { Sticker } from "../stickers/sticker.entity"
+import { BadRequestError, NotFoundError } from "../../shared/errors/http-errors"
 
 export class Collection {
   items: CollectionItem[]
@@ -48,11 +49,11 @@ export class Collection {
    */
   updateItemQuantity(stickerId: number, newQuantity: number): void {
     if (newQuantity < 0) {
-      throw new Error("Quantity cannot be negative")
+      throw new BadRequestError("Quantity cannot be negative")
     }
     const item = this.getItemByStickerId(stickerId)
     if (!item) {
-      throw new Error(`Sticker #${stickerId} not in collection`)
+      throw new NotFoundError(`Sticker #${stickerId} not in collection`)
     }
     item.quantity = newQuantity
   }
@@ -63,7 +64,7 @@ export class Collection {
   removeItem(stickerId: number): void {
     const index = this.items.findIndex(item => item.sticker.number === stickerId)
     if (index === -1) {
-      throw new Error(`Sticker #${stickerId} not in collection`)
+      throw new NotFoundError(`Sticker #${stickerId} not in collection`)
     }
     this.items.splice(index, 1)
   }
@@ -90,7 +91,7 @@ export class Collection {
   removeMissing(stickerId: number): void {
     const index = this.missingStickers.findIndex(s => s.number === stickerId)
     if (index === -1) {
-      throw new Error(`Sticker #${stickerId} not in missing list`)
+      throw new NotFoundError(`Sticker #${stickerId} not in missing list`)
     }
     this.missingStickers.splice(index, 1)
   }

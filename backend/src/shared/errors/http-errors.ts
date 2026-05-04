@@ -39,3 +39,15 @@ export class NotFoundError extends AppError {
         this.name = "NotFoundError"
     }
 }
+
+/**
+ * 409 — conflicto con el estado actual del recurso.
+ */
+export class ConflictError extends AppError {
+    constructor(message: string) {
+        super(message, 409)
+        this.name = "ConflictError"
+    }
+}
+
+export const isHttpError = (err: unknown): err is AppError => err instanceof AppError

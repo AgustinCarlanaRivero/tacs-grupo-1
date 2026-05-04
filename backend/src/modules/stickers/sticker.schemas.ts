@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { nonEmptyString, positiveInt } from "../../shared/validation/common"
+import { nonEmptyString, positiveInt, queryString } from "../../shared/validation/common"
 
 export const stickerStateEnum = z.enum(["NEW", "DAMAGED"])
 export const stickerTypeEnum = z.enum(["REGULAR", "SHINY"])
@@ -10,6 +10,7 @@ export const stickerFilterQuerySchema = z.object({
     type: stickerTypeEnum.optional(),
     team: nonEmptyString.optional(),
     club: nonEmptyString.optional(),
+    query: queryString,
 })
 
 /** Coincide con `Sticker.toJSON()`. */

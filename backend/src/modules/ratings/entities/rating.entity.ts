@@ -1,4 +1,5 @@
 import { User } from "../../users/entities/user.entity";
+import { BadRequestError } from "../../../shared/errors/http-errors";
 
 export class Rating {
   id?: string;
@@ -48,11 +49,11 @@ export class Rating {
 
   private ensureNotSelfRating(): void {
     if (this.reviewer.id && this.reviewee.id && this.reviewer.id === this.reviewee.id) {
-      throw new Error("A user cannot rate themselves");
+      throw new BadRequestError("A user cannot rate themselves");
     }
 
     if (this.reviewer === this.reviewee) {
-      throw new Error("A user cannot rate themselves");
+      throw new BadRequestError("A user cannot rate themselves");
     }
   }
 }

@@ -3,9 +3,10 @@ import { asyncHandler } from "../../../shared/middleware/async-handler"
 import {
     validateBody,
     validateParams,
+    validateQuery,
 } from "../../../shared/middleware/validation.middleware"
 import { userIdParamSchema } from "../../../shared/validation/common"
-import { ratingCreateRequestSchema } from "../schemas/rating.schemas"
+import { ratingCreateRequestSchema, ratingQuerySchema } from "../schemas/rating.schemas"
 import RatingController from "../controllers/rating.controller"
 
 const router = Router({ mergeParams: true })
@@ -15,6 +16,7 @@ router
     .route("/")
     .get(
         validateParams(userIdParamSchema),
+        validateQuery(ratingQuerySchema),
         asyncHandler(ratingController.getRatingsByUser),
     )
     .post(

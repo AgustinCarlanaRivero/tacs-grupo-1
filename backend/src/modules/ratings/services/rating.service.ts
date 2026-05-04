@@ -1,8 +1,31 @@
 import { notifications } from "../../notifications/services/notification.facade"
+import { matchesAnyQuery, normalizeQuery, paginate } from "../../../shared/utils/query"
+
+type RatingListFilters = {
+    query?: string
+    page: number
+    limit: number
+}
+
+type RatingLike = {
+    revieweeId?: string
+    reviewee?: { id?: string } | null
+    comment?: string | null
+}
+
+function getRevieweeId(rating: RatingLike): string | undefined {
+    return rating.revieweeId ?? rating.reviewee?.id
+}
 
 export default class RatingService {
-    static async getRatingsByUser(_revieweeId: string) {
-        return []
+    static async getRatingsByUser(revieweeId: string, filters: RatingListFilters) {
+        const ratings: RatingLike[] = []
+        const normalizedQuery = normalizeQuery(filters.query)
+        const filtered = ratings
+            .filter(rating => getRevieweeId(rating) === revieweeId)
+            .filter(rating => matchesAnyQuery([rating.comment ?? undefined], normalizedQuery))
+
+        return paginate(filtered, filters.page, filters.limit)
     }
 
     /**

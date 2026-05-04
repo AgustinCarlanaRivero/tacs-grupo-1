@@ -1,7 +1,6 @@
 import { Request, Response } from "express"
 import type { z } from "zod"
-import { AppError } from "../../../shared/errors/app-error"
-import { ForbiddenError, UnauthorizedError } from "../../../shared/errors/http-errors"
+import { ForbiddenError, UnauthorizedError, isHttpError } from "../../../shared/errors/http-errors"
 import {
     notificationIdParamSchema,
     userIdParamSchema,
@@ -40,8 +39,8 @@ export default class NotificationController {
         const { userId } = req.params as UserParams
         requireSelfOrAdmin(req, userId)
 
-        const { unread } = req.query as unknown as NotificationQuery
-        const notifications = await notificationService.getByUserId(userId, unread)
+        const { unread, query } = req.query as unknown as NotificationQuery
+        const notifications = await notificationService.getByUserId(userId, unread, query)
         return res.status(200).json(notifications.map(toNotificationResponseDto))
     }
 
@@ -88,7 +87,7 @@ export default class NotificationController {
         try {
             requireSelfOrAdmin(req, userId)
         } catch (err) {
-            if (err instanceof AppError) {
+            if (isHttpError(err)) {
                 res.status(err.statusCode).json({ error: err.message })
                 return
             }
