@@ -3,7 +3,7 @@ export function useAuth() {
     isAuthenticated: true,
     isLoading: false,
     user: {
-      id: "seed-user-ana",
+      id: "seed-user-bruno",
       name: "Lionel Messi",
       email: "messi@afa.com",
       picture:

@@ -9,6 +9,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: 8000
+      DISABLE_AUTH: "true"
+      MOCK_USER_ID: seed-user-bruno
+      MOCK_USER_ROLE: STANDARD
 
   # --- Frontend (Next.js) ---
   frontend:

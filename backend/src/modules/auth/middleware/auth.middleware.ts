@@ -1,16 +1,30 @@
 import { auth } from "express-oauth2-jwt-bearer";
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction, RequestHandler } from "express";
 import { UnauthorizedError } from "../../../shared/errors/http-errors";
 import AuthService from "../services/auth.service";
 
+let jwtVerifier: RequestHandler | null = null;
+
 /**
- * Middleware de Auth0 que valida la firma y claims del JWT contra el issuer y la audience
- * configurados por env. Rechaza con 401 si el token es inválido o falta.
+ * Middleware de Auth0 que valida la firma y claims del JWT contra el issuer y la audience.
+ * Se construye de forma perezosa para que el servidor pueda arrancar con DISABLE_AUTH=true
+ * sin tener AUTH0_* definidas (p. ej. Docker dev).
  */
-export const verifyJwt = auth({
-  issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
-  audience: process.env.AUTH0_AUDIENCE,
-});
+export const verifyJwt: RequestHandler = (req, res, next) => {
+  const issuerBaseURL = process.env.AUTH0_ISSUER_BASE_URL;
+  const audience = process.env.AUTH0_AUDIENCE;
+  if (!issuerBaseURL || !audience) {
+    return next(
+      new Error(
+        "Auth0 no configurado: definí AUTH0_ISSUER_BASE_URL y AUTH0_AUDIENCE o usá DISABLE_AUTH=true"
+      )
+    );
+  }
+  if (!jwtVerifier) {
+    jwtVerifier = auth({ issuerBaseURL, audience });
+  }
+  return jwtVerifier(req, res, next);
+};
 
 /**
  * Asocia el usuario interno (provisionado en demand) al request a partir del claim `sub`
