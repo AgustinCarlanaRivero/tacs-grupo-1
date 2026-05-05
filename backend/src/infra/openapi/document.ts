@@ -6,6 +6,8 @@ import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi"
 import { registry } from "./registry"
 import "./paths"
 
+const URL = process.env.URL ?? "http://localhost:3000"
+
 /**
  * Documento OpenAPI listo para Swagger UI y /openapi.json.
  * Se genera una sola vez al cargar el modulo.
@@ -18,7 +20,7 @@ export const openApiDocument = new OpenApiGeneratorV3(registry.definitions).gene
         description: "API del TP de TACS — Intercambio de figuritas del Mundial",
     },
     servers: [
-        { url: "http://localhost:3000", description: "Local" },
+        { url: URL, description: "Local" },
     ],
     tags: [
         { name: "Health" },
