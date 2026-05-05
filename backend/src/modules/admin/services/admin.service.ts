@@ -1,15 +1,21 @@
-import { BadRequestError, NotFoundError } from "../../../shared/errors/http-errors"
-import { UserRole } from "../../users/enums/user-role.enum"
-import authRepository from "../../auth/repositories/auth.repository"
-import notificationRepository from "../../notifications/repositories/notification.repository"
-import { NotificationType } from "../../notifications/enums/notification-type.enum"
-import { userResponseSchema, type UserResponseDto } from "../../users/schemas/user.schemas"
+import {
+    BadRequestError,
+    NotFoundError,
+} from "../../../shared/errors/http-errors";
+import { NotificationType } from "../../notifications/enums/notification-type.enum";
+import notificationRepository from "../../notifications/repositories/notification.repository";
+import { UserRole } from "../../users/enums/user-role.enum";
+import userRepository from "../../users/repositories/user.repository";
+import {
+    userResponseSchema,
+    type UserResponseDto,
+} from "../../users/schemas/user.schemas";
 import {
     roleUpdateResponseSchema,
     statsResponseSchema,
     type RoleUpdateResponseDto,
     type StatsResponseDto,
-} from "../schemas/admin.schemas"
+} from "../schemas/admin.schemas";
 
 export default class AdminService {
     /**
@@ -19,30 +25,37 @@ export default class AdminService {
      * persistencia real, sumar acá las métricas correspondientes.
      */
     static async getStats(): Promise<StatsResponseDto> {
-        const users = authRepository.findAll()
-        const notifications = notificationRepository.findAll()
+        const users = userRepository.findAll();
+        const notifications = notificationRepository.findAll();
 
-        const notificationsByType: Record<string, number> = {}
+        const notificationsByType: Record<string, number> = {};
         for (const type of Object.values(NotificationType)) {
-            notificationsByType[type] = 0
+            notificationsByType[type] = 0;
         }
-        let unread = 0
+        let unread = 0;
         for (const n of notifications) {
-            notificationsByType[n.type] = (notificationsByType[n.type] ?? 0) + 1
-            if (!n.read) unread++
+            notificationsByType[n.type] =
+                (notificationsByType[n.type] ?? 0) + 1;
+            if (!n.read) unread++;
         }
 
         return statsResponseSchema.parse({
             users: {
                 total: users.length,
                 byRole: {
-                    standard: users.filter(u => u.role === UserRole.STANDARD).length,
-                    admin: users.filter(u => u.role === UserRole.ADMIN).length,
+                    standard: users.filter((u) => u.role === UserRole.STANDARD)
+                        .length,
+                    admin: users.filter((u) => u.role === UserRole.ADMIN)
+                        .length,
                 },
                 topByReputation: [...users]
                     .sort((a, b) => b.reputation - a.reputation)
                     .slice(0, 5)
-                    .map(u => ({ id: u.id, username: u.username, reputation: u.reputation })),
+                    .map((u) => ({
+                        id: u.id,
+                        username: u.username,
+                        reputation: u.reputation,
+                    })),
             },
             notifications: {
                 total: notifications.length,
@@ -50,19 +63,19 @@ export default class AdminService {
                 read: notifications.length - unread,
                 byType: notificationsByType,
             },
-        })
+        });
     }
 
     static async getUsers(): Promise<UserResponseDto[]> {
-        return authRepository.findAll().map(u => userResponseSchema.parse(u))
+        return userRepository.findAll().map((u) => userResponseSchema.parse(u));
     }
 
     static async getUserById(userId: string): Promise<UserResponseDto> {
-        const user = authRepository.findById(userId)
+        const user = userRepository.findById(userId);
         if (!user) {
-            throw new NotFoundError("Usuario no encontrado")
+            throw new NotFoundError("Usuario no encontrado");
         }
-        return userResponseSchema.parse(user)
+        return userResponseSchema.parse(user);
     }
 
     /**
@@ -79,36 +92,45 @@ export default class AdminService {
         requesterId: string,
     ): Promise<RoleUpdateResponseDto> {
         if (newRole !== UserRole.STANDARD && newRole !== UserRole.ADMIN) {
-            throw new BadRequestError("Rol inválido. Debe ser STANDARD o ADMIN")
+            throw new BadRequestError(
+                "Rol inválido. Debe ser STANDARD o ADMIN",
+            );
         }
 
-        const user = authRepository.findById(userId)
+        const user = userRepository.findById(userId);
         if (!user) {
-            throw new NotFoundError("Usuario no encontrado")
+            throw new NotFoundError("Usuario no encontrado");
         }
 
-        const isDemotingFromAdmin = user.role === UserRole.ADMIN && newRole !== UserRole.ADMIN
+        const isDemotingFromAdmin =
+            user.role === UserRole.ADMIN && newRole !== UserRole.ADMIN;
 
         if (isDemotingFromAdmin && user.id === requesterId) {
-            throw new BadRequestError("Un admin no puede degradar su propio rol")
+            throw new BadRequestError(
+                "Un admin no puede degradar su propio rol",
+            );
         }
 
         if (isDemotingFromAdmin) {
-            const remainingAdmins = authRepository
+            const remainingAdmins = userRepository
                 .findAll()
-                .filter(u => u.role === UserRole.ADMIN && u.id !== user.id).length
+                .filter(
+                    (u) => u.role === UserRole.ADMIN && u.id !== user.id,
+                ).length;
             if (remainingAdmins === 0) {
-                throw new BadRequestError("No se puede degradar al último admin")
+                throw new BadRequestError(
+                    "No se puede degradar al último admin",
+                );
             }
         }
 
-        user.role = newRole
-        authRepository.save(user)
+        user.role = newRole;
+        userRepository.save(user);
 
         return roleUpdateResponseSchema.parse({
             id: user.id,
             username: user.username,
             role: user.role,
-        })
+        });
     }
 }

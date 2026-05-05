@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from "@jest/globals";
-import authRepository from "../../modules/auth/repositories/auth.repository";
 import AuthService from "../../modules/auth/services/auth.service";
 import collectionRepository from "../../modules/collection/repositories/collection.repository";
 import { NotificationType } from "../../modules/notifications/enums/notification-type.enum";
@@ -16,6 +15,7 @@ import { Club } from "../../modules/stickers/entities/club.entity";
 import { NationalTeam } from "../../modules/stickers/entities/national-team.entity";
 import { Player } from "../../modules/stickers/entities/player.entity";
 import { Sticker } from "../../modules/stickers/entities/sticker.entity";
+import userRepository from "../../modules/users/repositories/user.repository";
 
 function createTestSticker(number: number) {
     const team = new NationalTeam("Argentina");
@@ -77,7 +77,7 @@ describe("integración: stubs de otros módulos disparan el facade", () => {
     const offeredStickerId = 10;
 
     beforeEach(async () => {
-        authRepository.clear();
+        userRepository.clear();
         collectionRepository.clear();
         offerRepository.clear();
         postRepository.clear();

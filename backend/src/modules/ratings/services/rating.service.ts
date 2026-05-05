@@ -7,8 +7,8 @@ import {
     normalizeQuery,
     paginate,
 } from "../../../shared/utils/query";
-import authRepository from "../../auth/repositories/auth.repository";
 import { notifications } from "../../notifications/services/notification.facade";
+import userRepository from "../../users/repositories/user.repository";
 import { Rating } from "../entities/rating.entity";
 import ratingRepository from "../repositories/rating.repository";
 import { ratingResponseSchema } from "../schemas/rating.schemas";
@@ -64,12 +64,12 @@ export default class RatingService {
         reviewerId: string,
         body: RatingCreatePayload,
     ) {
-        const reviewee = authRepository.findById(revieweeId);
+        const reviewee = userRepository.findById(revieweeId);
         if (!reviewee) {
             throw new NotFoundError("Usuario a calificar no encontrado");
         }
 
-        const reviewer = authRepository.findById(reviewerId);
+        const reviewer = userRepository.findById(reviewerId);
         if (!reviewer) {
             throw new NotFoundError("Usuario revisor no encontrado");
         }
@@ -88,7 +88,7 @@ export default class RatingService {
 
         const ratingsForUser = ratingRepository.findByRevieweeId(revieweeId);
         reviewee.recalculateReputationFrom(ratingsForUser);
-        authRepository.save(reviewee);
+        userRepository.save(reviewee);
 
         if (revieweeId && revieweeId !== reviewerId) {
             await notifications.ratingReceived(revieweeId, {

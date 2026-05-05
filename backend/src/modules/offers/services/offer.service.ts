@@ -8,13 +8,13 @@ import {
     normalizeQuery,
     paginate,
 } from "../../../shared/utils/query";
-import authRepository from "../../auth/repositories/auth.repository";
 import { CollectionItem } from "../../collection/entities/collection-item.interface";
 import collectionRepository from "../../collection/repositories/collection.repository";
 import { notifications } from "../../notifications/services/notification.facade";
 import postRepository from "../../posts/repositories/post.repository";
 import { Sticker } from "../../stickers/entities/sticker.entity";
 import { stickerResponseSchema } from "../../stickers/schemas/sticker.schemas";
+import userRepository from "../../users/repositories/user.repository";
 import { Offer } from "../entities/offer.entity";
 import { OfferState } from "../enums/offer-state.enum";
 import offerRepository, {
@@ -74,8 +74,12 @@ function toStickerResponse(sticker: Sticker) {
         description: sticker.description ?? "",
         player: {
             name: sticker.player.name,
-            nationalTeam: sticker.player.nationalTeam?.name,
-            club: sticker.player.club?.name,
+            nationalTeam: sticker.player.nationalTeam
+                ? { name: sticker.player.nationalTeam.name }
+                : undefined,
+            club: sticker.player.club
+                ? { name: sticker.player.club.name }
+                : undefined,
             image: sticker.player.image,
         },
     });
@@ -150,7 +154,7 @@ export default class OfferService {
             throw new NotFoundError("Publicacion no encontrada");
         }
 
-        const offerer = authRepository.findById(offererId);
+        const offerer = userRepository.findById(offererId);
         if (!offerer) {
             throw new NotFoundError("Usuario oferente no encontrado");
         }
@@ -229,7 +233,7 @@ export default class OfferService {
             throw new NotFoundError("Publicacion no encontrada");
         }
 
-        const actor = authRepository.findById(actorId);
+        const actor = userRepository.findById(actorId);
         if (!actor) {
             throw new NotFoundError("Usuario actor no encontrado");
         }

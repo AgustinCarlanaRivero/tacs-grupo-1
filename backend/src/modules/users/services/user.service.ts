@@ -8,7 +8,6 @@ import {
     normalizeQuery,
     paginate,
 } from "../../../shared/utils/query";
-import authRepository from "../../auth/repositories/auth.repository";
 import userRepository from "../repositories/user.repository";
 import {
     userResponseSchema,
@@ -26,7 +25,7 @@ type UserUpdatePayload = z.infer<typeof userUpdateRequestSchema>;
 export default class UserService {
     static async getUsers(filters: UserListFilters) {
         const normalizedQuery = normalizeQuery(filters.query);
-        const users = authRepository.findAll();
+        const users = userRepository.findAll();
         const filtered = normalizedQuery
             ? users.filter((user) =>
                   matchesAnyQuery(

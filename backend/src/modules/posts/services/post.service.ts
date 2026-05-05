@@ -8,12 +8,12 @@ import {
     normalizeQuery,
     paginate,
 } from "../../../shared/utils/query";
-import authRepository from "../../auth/repositories/auth.repository";
 import collectionRepository from "../../collection/repositories/collection.repository";
 import { notifications } from "../../notifications/services/notification.facade";
 import { Sticker } from "../../stickers/entities/sticker.entity";
 import { stickerResponseSchema } from "../../stickers/schemas/sticker.schemas";
 import StickerService from "../../stickers/services/sticker.service";
+import userRepository from "../../users/repositories/user.repository";
 import { Auction } from "../entities/auction.entity";
 import { Post } from "../entities/post.entity";
 import { PostState } from "../enums/post-state.enum";
@@ -54,8 +54,12 @@ function toStickerResponse(sticker: Sticker) {
         description: sticker.description ?? "",
         player: {
             name: sticker.player.name,
-            nationalTeam: sticker.player.nationalTeam?.name,
-            club: sticker.player.club?.name,
+            nationalTeam: sticker.player.nationalTeam
+                ? { name: sticker.player.nationalTeam.name }
+                : undefined,
+            club: sticker.player.club
+                ? { name: sticker.player.club.name }
+                : undefined,
             image: sticker.player.image,
         },
     });
@@ -92,7 +96,7 @@ export default class PostService {
     }
 
     static async createPost(ownerId: string, body: PostCreatePayload) {
-        const owner = authRepository.findById(ownerId);
+        const owner = userRepository.findById(ownerId);
         if (!owner) {
             throw new NotFoundError("Usuario no encontrado");
         }
@@ -172,7 +176,7 @@ export default class PostService {
         postId: string,
         ownerId: string,
     ) {
-        const users = authRepository.findAll();
+        const users = userRepository.findAll();
 
         await Promise.all(
             users.map(async (user) => {
