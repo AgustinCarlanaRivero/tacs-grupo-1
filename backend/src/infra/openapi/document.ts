@@ -18,7 +18,7 @@ export const openApiDocument = new OpenApiGeneratorV3(registry.definitions).gene
         description: "API del TP de TACS — Intercambio de figuritas del Mundial",
     },
     servers: [
-        { url: "http://localhost:8000", description: "Local" },
+        { url: "http://localhost:3000", description: "Local" },
     ],
     tags: [
         { name: "Health" },
