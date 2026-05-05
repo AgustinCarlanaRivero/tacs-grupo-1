@@ -13,7 +13,7 @@ export const stickerFilterQuerySchema = z.object({
     query: queryString,
 })
 
-/** Coincide con `Sticker.toJSON()`. */
+
 export const stickerResponseSchema = z.object({
     id: positiveInt,
     title: z.string(),

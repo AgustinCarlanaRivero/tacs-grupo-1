@@ -81,20 +81,5 @@ export class Sticker {
     return `#${this.number} ${this.player.name}${shinyLabel}${damageLabel}`;
   }
 
-  // Se ejecuta automáticamente al hacer res.json() o JSON.stringify()
-  public toJSON() {
-    return {
-      id: this.number,
-      title: this.getDisplayName(),
-      state: this.category.state,
-      type: this.category.type,
-      description: this.description,
-      player: {
-        name: this.player.name,
-        nationalTeam: this.player.nationalTeam?.name,
-        club: this.player.club?.name,
-        image: this.player.image
-      }
-    };
-  }
+  
 }

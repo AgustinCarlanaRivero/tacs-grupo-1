@@ -93,7 +93,7 @@ class Sticker {
   +matchesClub(clubName: string | undefined): boolean
   +matchesFilters(filters: { state?: string; type?: string; team?: string; club?: string }): boolean
   +getDisplayName(): string
-  +toJSON(): object
+  
 }
 
 ' ============================================================

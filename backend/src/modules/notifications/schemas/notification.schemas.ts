@@ -30,7 +30,8 @@ export const notificationResponseSchema = z.object({
     message: z.string(),
     read: z.boolean(),
     payload: z.record(z.string(), z.unknown()),
-    createdAt: isoDateTime,
+    createdAt: z.union([z.date(), isoDateTime])
+        .transform(v => v instanceof Date ? v.toISOString() : v),
 }).meta({ id: "Notification" })
 
 export const unreadCountResponseSchema = z.object({
@@ -40,3 +41,7 @@ export const unreadCountResponseSchema = z.object({
 export const markAllReadResponseSchema = z.object({
     marked: nonNegativeInt,
 }).meta({ id: "MarkAllRead" })
+
+export type NotificationResponseDto = z.infer<typeof notificationResponseSchema>
+export type UnreadCountResponseDto  = z.infer<typeof unreadCountResponseSchema>
+export type MarkAllReadResponseDto  = z.infer<typeof markAllReadResponseSchema>

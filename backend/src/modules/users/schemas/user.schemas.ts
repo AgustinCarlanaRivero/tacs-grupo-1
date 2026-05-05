@@ -45,3 +45,6 @@ export const userResponseSchema = z.object({
 }).meta({ id: "User" })
 
 export const usersResponseSchema = paginatedResponseSchema(userResponseSchema).meta({ id: "Users" })
+
+export type UserResponseDto  = z.infer<typeof userResponseSchema>
+export type UsersResponseDto = z.infer<typeof usersResponseSchema>

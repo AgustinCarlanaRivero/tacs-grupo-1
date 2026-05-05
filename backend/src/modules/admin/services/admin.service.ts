@@ -3,9 +3,13 @@ import { UserRole } from "../../users/enums/user-role.enum"
 import authRepository from "../../auth/repositories/auth.repository"
 import notificationRepository from "../../notifications/repositories/notification.repository"
 import { NotificationType } from "../../notifications/enums/notification-type.enum"
-import { toUserResponseDto, type UserResponseDto } from "../../auth/dto/user-response.dto"
-import type { StatsResponseDto } from "../dto/stats-response.dto"
-import type { RoleUpdateResponseDto } from "../dto/role-update-response.dto"
+import { userResponseSchema, type UserResponseDto } from "../../users/schemas/user.schemas"
+import {
+    roleUpdateResponseSchema,
+    statsResponseSchema,
+    type RoleUpdateResponseDto,
+    type StatsResponseDto,
+} from "../schemas/admin.schemas"
 
 export default class AdminService {
     /**
@@ -28,7 +32,7 @@ export default class AdminService {
             if (!n.read) unread++
         }
 
-        return {
+        return statsResponseSchema.parse({
             users: {
                 total: users.length,
                 byRole: {
@@ -46,11 +50,11 @@ export default class AdminService {
                 read: notifications.length - unread,
                 byType: notificationsByType,
             },
-        }
+        })
     }
 
     static async getUsers(): Promise<UserResponseDto[]> {
-        return authRepository.findAll().map(toUserResponseDto)
+        return authRepository.findAll().map(u => userResponseSchema.parse(u))
     }
 
     static async getUserById(userId: string): Promise<UserResponseDto> {
@@ -58,7 +62,7 @@ export default class AdminService {
         if (!user) {
             throw new NotFoundError("Usuario no encontrado")
         }
-        return toUserResponseDto(user)
+        return userResponseSchema.parse(user)
     }
 
     /**
@@ -101,10 +105,10 @@ export default class AdminService {
         user.role = newRole
         authRepository.save(user)
 
-        return {
+        return roleUpdateResponseSchema.parse({
             id: user.id,
             username: user.username,
             role: user.role,
-        }
+        })
     }
 }

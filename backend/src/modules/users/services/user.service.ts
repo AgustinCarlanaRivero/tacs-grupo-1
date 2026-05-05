@@ -1,5 +1,5 @@
 import authRepository from "../../auth/repositories/auth.repository"
-import { toUserResponseDto } from "../../auth/dto/user-response.dto"
+import { userResponseSchema } from "../schemas/user.schemas"
 import { matchesAnyQuery, normalizeQuery, paginate } from "../../../shared/utils/query"
 
 type UserListFilters = {
@@ -19,7 +19,7 @@ export default class UserService {
             ))
             : users
 
-        const data = filtered.map(toUserResponseDto)
+        const data = filtered.map(u => userResponseSchema.parse(u))
         return paginate(data, filters.page, filters.limit)
     }
 

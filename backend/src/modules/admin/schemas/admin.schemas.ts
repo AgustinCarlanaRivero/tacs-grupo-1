@@ -35,3 +35,7 @@ export const statsResponseSchema = z.object({
         byType: z.record(z.string(), nonNegativeInt),
     }),
 }).meta({ id: "Stats" })
+
+export type RoleUpdateRequestDto  = z.infer<typeof roleUpdateRequestSchema>
+export type RoleUpdateResponseDto = z.infer<typeof roleUpdateResponseSchema>
+export type StatsResponseDto      = z.infer<typeof statsResponseSchema>
