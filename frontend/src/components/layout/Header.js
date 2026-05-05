@@ -3,8 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Gavel, ArrowLeftRight, User } from "lucide-react";
+import { LayoutGrid, Gavel, ArrowLeftRight, User, LogOut } from "lucide-react";
 import NotificationBell from "@/components/notification/NotificationBell";
 
 const NAV_LINKS = [
@@ -16,6 +17,7 @@ const NAV_LINKS = [
 
 export default function Header() {
   const pathname = usePathname();
+  const { isAuthenticated, isLoading, user, loginWithRedirect, logout } = useAuth();
 
   return (
     <>
@@ -40,13 +42,35 @@ export default function Header() {
                   </Link>
                 );
               })}
-              <Link href="/login" className="ml-3">
-                <Button size="sm" className="text-sm font-semibold bg-[#BF0A30] hover:bg-[#a00828] text-white border-none">
-                  Iniciar Sesión
-                </Button>
-              </Link>
+
+              {!isLoading && (
+                isAuthenticated ? (
+                  <div className="flex items-center gap-2 ml-3">
+                    {user?.picture && (
+                      <img src={user.picture} alt={user.name} className="w-7 h-7 rounded-full border border-white/30" />
+                    )}
+                    <span className="text-sm text-blue-100 font-medium hidden lg:block">{user?.name}</span>
+                    <Button
+                      size="sm"
+                      onClick={() => logout({ logoutParams: { returnTo: typeof window !== "undefined" ? window.location.origin : "" } })}
+                      className="text-sm font-semibold bg-white/10 hover:bg-white/20 text-white border-none"
+                    >
+                      <LogOut size={14} className="mr-1" />
+                      Salir
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => loginWithRedirect()}
+                    className="ml-3 text-sm font-semibold bg-[#BF0A30] hover:bg-[#a00828] text-white border-none"
+                  >
+                    Iniciar Sesión
+                  </Button>
+                )
+              )}
             </nav>
-            <NotificationBell />
+            {isAuthenticated && <NotificationBell />}
           </div>
         </div>
       </header>

@@ -1,13 +1,17 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Bell, Check, Circle } from "lucide-react";
 import { mockNotifications } from "@/data/mock-notifications";
 import { useClickOutside } from "@/hooks/useClickOutside";
 
-function NotificationRow({ notif, onMarkRead }) {
+function NotificationRow({ notif, onMarkRead, onNavigate }) {
   return (
-    <div className={`flex items-start gap-3 p-4 border-b border-slate-50 transition-colors last:border-none ${notif.read ? "bg-white" : "bg-blue-50/50"}`}>
+    <div
+      onClick={() => notif.link && onNavigate(notif)}
+      className={`flex items-start gap-3 p-4 border-b border-slate-50 transition-colors last:border-none ${notif.read ? "bg-white" : "bg-blue-50/50"} ${notif.link ? "cursor-pointer hover:bg-slate-50" : ""}`}
+    >
       <div className="mt-0.5">
         {notif.read
           ? <Check size={14} className="text-slate-300" />
@@ -24,7 +28,7 @@ function NotificationRow({ notif, onMarkRead }) {
       </div>
       {!notif.read && (
         <button
-          onClick={() => onMarkRead(notif.id)}
+          onClick={(e) => { e.stopPropagation(); onMarkRead(notif.id); }}
           className="p-1 hover:bg-white rounded-md transition-all text-slate-400 hover:text-slate-600"
           title="Marcar como leída"
         >
@@ -39,6 +43,7 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState(mockNotifications);
   const dropdownRef = useRef(null);
+  const router = useRouter();
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -51,6 +56,12 @@ export default function NotificationBell() {
 
   const markAllAsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const handleNavigate = (notif) => {
+    markAsRead(notif.id);
+    setIsOpen(false);
+    router.push(notif.link);
   };
 
   return (
@@ -85,7 +96,7 @@ export default function NotificationBell() {
             ) : (
               <div className="flex flex-col">
                 {notifications.map(notif => (
-                  <NotificationRow key={notif.id} notif={notif} onMarkRead={markAsRead} />
+                  <NotificationRow key={notif.id} notif={notif} onMarkRead={markAsRead} onNavigate={handleNavigate} />
                 ))}
               </div>
             )}

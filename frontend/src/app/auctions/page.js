@@ -7,7 +7,9 @@ import SearchBar from "@/components/common/SearchBar";
 import PageTabs from "@/components/common/PageTabs";
 import AuctionCard from "@/components/auction/AuctionCard";
 import OfferModal from "@/components/auction/OfferModal";
+import CreateAuctionModal from "@/components/auction/CreateAuctionModal";
 import { useSearch } from "@/hooks/useSearch";
+import { useAuth } from "@/hooks/useAuth";
 import { mockAuctions } from "@/data/mock-auctions";
 import { mockStickers } from "@/data/mock-stickers";
 import { currentUser } from "@/data/mock-user";
@@ -21,9 +23,11 @@ const getSearchFields = ({ sticker }) => [
 ];
 
 export default function AuctionsPage() {
+  const { isAuthenticated } = useAuth();
   const [tab, setTab] = useState("market");
   const [allAuctions, setAllAuctions] = useState(mockAuctions);
   const [selectedAuction, setSelectedAuction] = useState(null);
+  const [showCreateAuction, setShowCreateAuction] = useState(false);
 
   const { query, setQuery, filtered } = useSearch(allAuctions, useCallback(getSearchFields, []));
 
@@ -37,9 +41,17 @@ export default function AuctionsPage() {
     }
   }
 
+  function handleSelectAuction(auction) {
+    if (!isAuthenticated) {
+      alert("Iniciá sesión para hacer una oferta.");
+      return;
+    }
+    setSelectedAuction(auction);
+  }
+
   const tabs = [
     { key: "market", label: "Mercado" },
-    { key: "mine", label: "Mis subastas" },
+    ...(isAuthenticated ? [{ key: "mine", label: "Mis subastas" }] : []),
   ];
 
   return (
@@ -51,11 +63,23 @@ export default function AuctionsPage() {
 
       <PageTabs tabs={tabs} active={tab} onChange={setTab} />
 
-      <SearchBar
-        value={query}
-        onChange={setQuery}
-        placeholder="Buscar por jugador, selección o club..."
-      />
+      <div className="flex gap-3 items-center">
+        <div className="flex-1">
+          <SearchBar
+            value={query}
+            onChange={setQuery}
+            placeholder="Buscar por jugador, selección o club..."
+          />
+        </div>
+        {tab === "mine" && (
+          <button
+            onClick={() => setShowCreateAuction(true)}
+            className="shrink-0 px-4 py-2.5 bg-[#002B5E] hover:bg-[#003a7a] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors"
+          >
+            + Publicar
+          </button>
+        )}
+      </div>
 
       {activeList.length === 0 ? (
         <EmptyState
@@ -74,7 +98,7 @@ export default function AuctionsPage() {
               key={auction.id}
               auction={auction}
               isOwner={tab === "mine"}
-              onSelect={tab === "mine" ? handleCancel : setSelectedAuction}
+              onSelect={tab === "mine" ? handleCancel : handleSelectAuction}
             />
           ))}
         </div>
@@ -86,6 +110,25 @@ export default function AuctionsPage() {
           myCollection={myCollection}
           onClose={() => setSelectedAuction(null)}
           onSubmit={stickers => console.log("Puja enviada:", stickers)}
+        />
+      )}
+
+      {showCreateAuction && (
+        <CreateAuctionModal
+          myCollection={myCollection}
+          onClose={() => setShowCreateAuction(false)}
+          onSubmit={({ sticker, requirements, durationHours }) => {
+            const newAuction = {
+              id: Date.now(),
+              state: "ACTIVE",
+              sticker,
+              owner: currentUser,
+              createdAt: new Date(),
+              endsAt: new Date(Date.now() + durationHours * 60 * 60 * 1000),
+              minimumRequirements: requirements,
+            };
+            setAllAuctions(prev => [newAuction, ...prev]);
+          }}
         />
       )}
     </main>

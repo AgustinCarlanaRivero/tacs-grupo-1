@@ -1,5 +1,15 @@
 export const mockNotifications = [
   {
+    id: "0",
+    userId: "user-1",
+    type: "TRADE_SUGGESTION",
+    message: "Carlos Mendez quiere intercambiar su Mbappé por tu Messi. ¡Mirá la sugerencia!",
+    read: false,
+    link: "/trades?tab=suggestions",
+    payload: { suggestionId: 1 },
+    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+  },
+  {
     id: "1",
     userId: "user-1",
     type: "STICKER_AVAILABLE",
