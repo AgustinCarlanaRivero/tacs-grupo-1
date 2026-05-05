@@ -1,4 +1,4 @@
-import { User } from "../../users/entities/user.entity"
+import { User } from "../../users/entities/user.entity";
 
 /**
  * Repositorio in-memory de usuarios. Mantiene dos índices: por id interno y por
@@ -6,38 +6,50 @@ import { User } from "../../users/entities/user.entity"
  * en próximas entregas.
  */
 class AuthRepository {
-    private users: Map<string, User> = new Map()
-    private auth0Index: Map<string, string> = new Map()
+    private users: Map<string, User> = new Map();
+    private auth0Index: Map<string, string> = new Map();
 
     findByAuth0Sub(sub: string): User | undefined {
-        const id = this.auth0Index.get(sub)
-        if (!id) return undefined
-        return this.users.get(id)
+        const id = this.auth0Index.get(sub);
+        if (!id) return undefined;
+        return this.users.get(id);
     }
 
     findById(id: string): User | undefined {
-        return this.users.get(id)
+        return this.users.get(id);
     }
 
     findAll(): User[] {
-        return Array.from(this.users.values())
+        return Array.from(this.users.values());
     }
 
     save(user: User): User {
-        this.users.set(user.id, user)
+        this.users.set(user.id, user);
         if (user.auth0Sub) {
-            this.auth0Index.set(user.auth0Sub, user.id)
+            this.auth0Index.set(user.auth0Sub, user.id);
         }
-        return user
+        return user;
+    }
+
+    delete(id: string): boolean {
+        const user = this.users.get(id);
+        if (!user) return false;
+
+        this.users.delete(id);
+        if (user.auth0Sub) {
+            this.auth0Index.delete(user.auth0Sub);
+        }
+
+        return true;
     }
 
     /**
      * Vacía los índices. Sólo se usa en tests para aislar casos.
      */
     clear(): void {
-        this.users.clear()
-        this.auth0Index.clear()
+        this.users.clear();
+        this.auth0Index.clear();
     }
 }
 
-export default new AuthRepository()
+export default new AuthRepository();
