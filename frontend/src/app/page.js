@@ -1,15 +1,37 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import PageHeader from "@/components/common/PageHeader";
 import StickerGrid from "@/components/sticker/StickerGrid";
-import { mockStickers, mockMissingStickers } from "@/data/mock-stickers";
+import { mockMissingStickers } from "@/data/mock-stickers";
+import {
+  useAddCollectionItemMutation,
+  useGetCollectionQuery,
+} from "@/store/api/collectionApi";
 
 export default function Home() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
+  const [localMissingStickers, setLocalMissingStickers] =
+    useState(mockMissingStickers);
+  const [addCollectionItem] = useAddCollectionItemMutation();
+
+  const { data: collectionData } = useGetCollectionQuery(user?.id, {
+    skip: !user?.id,
+  });
+
+  async function handleAddToCollection(item) {
+    if (!user?.id) return;
+    console.log("item", item);
+    console.log("user", user);
+    await addCollectionItem({ userId: user.id, item });
+  }
+
+  function handleAddMissing(item) {
+    setLocalMissingStickers((prev) => [...prev, { ...item, quantity: 0 }]);
+  }
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -27,8 +49,23 @@ export default function Home() {
 
   return (
     <main className="container mx-auto px-4 pb-20">
-      <PageHeader title="¡Hola, Coleccionista!" subtitle="Acá están tus figuritas del Mundial 2026." />
-      <StickerGrid collection={mockStickers} missingStickers={mockMissingStickers} />
+      <PageHeader
+        title="¡Hola, Coleccionista!"
+        subtitle="Acá están tus figuritas del Mundial 2026."
+      />
+      <StickerGrid
+        collection={collectionData?.items ?? []}
+        missingStickers={
+          collectionData?.missingStickers?.length
+            ? collectionData.missingStickers.map((sticker) => ({
+                sticker,
+                quantity: 0,
+              }))
+            : localMissingStickers
+        }
+        onAddToCollection={handleAddToCollection}
+        onAddMissing={handleAddMissing}
+      />
     </main>
   );
 }

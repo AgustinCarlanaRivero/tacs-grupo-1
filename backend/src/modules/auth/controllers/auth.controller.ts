@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import { NotFoundError, UnauthorizedError } from "../../../shared/errors/http-errors"
 import AuthService from "../services/auth.service"
-import { toUserResponseDto } from "../dto/user-response.dto"
+import { userResponseSchema } from "../../users/schemas/user.schemas"
 
 type AuthenticatedRequest = Request & { user?: { id: string; role: string } }
 
@@ -23,6 +23,6 @@ export default class AuthController {
             throw new NotFoundError("Usuario no encontrado")
         }
 
-        return res.status(200).json(toUserResponseDto(user))
+        return res.status(200).json(userResponseSchema.parse(user))
     }
 }

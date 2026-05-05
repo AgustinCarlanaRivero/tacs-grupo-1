@@ -13,7 +13,14 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ["node_modules/**", "dist/**", "coverage/**", "eslint.config.mjs"],
+    ignores: [
+      "node_modules/**",
+      "dist/**",
+      "coverage/**",
+      "eslint.config.mjs",
+      "babel.config.cjs",
+      "jest.config.cjs",
+    ],
   },
   ...compat.config({
     root: true,
@@ -27,5 +34,15 @@ export default [
       "plugin:@typescript-eslint/recommended",
       "prettier",
     ],
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+    },
   }),
 ];

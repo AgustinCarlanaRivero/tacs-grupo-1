@@ -35,7 +35,7 @@ export default function AuctionCard({ auction, onSelect, isOwner = false }) {
             {sticker.player.nationalTeam?.name} · {sticker.player.club?.name}
           </p>
           <div className="mb-4">
-            <OwnerBadge name={owner.name} />
+            <OwnerBadge name={owner.username ?? owner.name} />
           </div>
           <div className="flex items-center gap-2">
             <Clock size={16} className={isEnded ? "text-red-500" : "text-slate-400"} />

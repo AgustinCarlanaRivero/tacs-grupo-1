@@ -1,22 +1,22 @@
-import { CollectionItem } from "../../collection/collection-item.interface";
 import { Offer } from "../../offers/entities/offer.entity";
 import { Post } from "./post.entity";
 import { PostState } from "../enums/post-state.enum";
 import { PostType } from "../enums/post-type.enum";
-import { Sticker } from "../../stickers/sticker.entity";
+import { Sticker } from "../../stickers/entities/sticker.entity";
 import { User } from "../../users/entities/user.entity";
+import { BadRequestError } from "../../../shared/errors/http-errors";
 
 export class Auction extends Post {
   createdAt: Date;
   endsAt: Date;
-  minimumRequirements: CollectionItem[];
+  minimumRequirement: number;
 
   constructor(
     owner: User,
     sticker: Sticker,
     createdAt: Date = new Date(),
     endsAt: Date,
-    minimumRequirements: CollectionItem[] = [],
+    minimumRequirement: number = 1,
     state: PostState = PostState.ACTIVE,
     offers: Offer[] = [],
     id?: string,
@@ -24,7 +24,7 @@ export class Auction extends Post {
     super(owner, sticker, state, offers, id);
     this.createdAt = createdAt;
     this.endsAt = endsAt;
-    this.minimumRequirements = minimumRequirements;
+    this.minimumRequirement = minimumRequirement;
   }
 
   getType(): PostType {
@@ -49,6 +49,21 @@ export class Auction extends Post {
     }
 
     return this.offers[this.offers.length - 1];
+  }
+
+  addOffer(offer: Offer) {
+    const last = this.lastOffer();
+    const minimum = last ? last.getOfferedQuantity() : this.minimumRequirement;
+
+    if (offer.getOfferedQuantity() < minimum) {
+      throw new BadRequestError(
+        last
+          ? `The offer must exceed the previous offer's quantity`
+          : `The offer must meet the minimum requirement of ${this.minimumRequirement} stickers`
+      );
+    }
+
+    return super.addOffer(offer);
   }
 }
 

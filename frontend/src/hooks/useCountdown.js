@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
 
+function getEndsAtMs(endsAt) {
+  if (endsAt instanceof Date) return endsAt.getTime();
+  if (typeof endsAt === "string" || typeof endsAt === "number") {
+    const parsed = new Date(endsAt).getTime();
+    return Number.isNaN(parsed) ? Date.now() : parsed;
+  }
+  return Date.now();
+}
+
 export function useCountdown(endsAt) {
-  const [timeLeft, setTimeLeft] = useState(endsAt.getTime() - Date.now());
+  const [timeLeft, setTimeLeft] = useState(getEndsAtMs(endsAt) - Date.now());
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(endsAt.getTime() - Date.now());
+      setTimeLeft(getEndsAtMs(endsAt) - Date.now());
     }, 1000);
     return () => clearInterval(timer);
   }, [endsAt]);

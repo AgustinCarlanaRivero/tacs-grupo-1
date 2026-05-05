@@ -4,6 +4,7 @@
     "noImplicitAny": true,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
-    "alwaysStrict": true
+    "alwaysStrict": true,
+    "esModuleInterop": true
   }
 }

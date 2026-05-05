@@ -1,13 +1,14 @@
 import { Request, Response } from "express"
-import { AppError } from "../../../shared/errors/app-error"
+import type { z } from "zod"
+import { UnauthorizedError } from "../../../shared/errors/http-errors"
+import { userIdParamSchema } from "../../../shared/validation/common"
+import { ratingCreateRequestSchema, ratingQuerySchema } from "../schemas/rating.schemas"
 import RatingService from "../services/rating.service"
 
 type AuthenticatedRequest = Request & { user?: { id: string } }
-
-function paramAsString(value: string | string[] | undefined): string {
-    if (value === undefined) return ""
-    return Array.isArray(value) ? (value[0] ?? "") : value
-}
+type UserParams = z.infer<typeof userIdParamSchema>
+type CreateRatingBody = z.infer<typeof ratingCreateRequestSchema>
+type RatingQuery = z.infer<typeof ratingQuerySchema>
 
 function getAuthUserId(req: Request): string | undefined {
     return (req as AuthenticatedRequest).user?.id
@@ -16,21 +17,23 @@ function getAuthUserId(req: Request): string | undefined {
 export default class RatingController {
     // GET /users/:userId/ratings
     getRatingsByUser = async (req: Request, res: Response) => {
-        const userId = paramAsString(req.params.userId)
-        const ratings = await RatingService.getRatingsByUser(userId)
+        const { userId } = req.params as UserParams
+        const { query, page, limit } = req.query as unknown as RatingQuery
+        const ratings = await RatingService.getRatingsByUser(userId, { query, page, limit })
         return res.status(200).json(ratings)
     }
 
     // POST /users/:userId/ratings
     createRating = async (req: Request, res: Response) => {
-        const revieweeId = paramAsString(req.params.userId)
+        const { userId: revieweeId } = req.params as UserParams
         const reviewerId = getAuthUserId(req)
 
         if (!reviewerId) {
-            throw new AppError("No autenticado", 401)
+            throw new UnauthorizedError()
         }
 
-        const newRating = await RatingService.createRating(revieweeId, reviewerId, req.body)
+        const body = req.body as CreateRatingBody
+        const newRating = await RatingService.createRating(revieweeId, reviewerId, body)
         return res.status(201).json(newRating)
     }
 }

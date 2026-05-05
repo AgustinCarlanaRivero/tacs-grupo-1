@@ -48,11 +48,11 @@ Cualquier `notify` posterior va a despachar por todos los canales en paralelo.
 
 | Método | Path                                          | Quién puede                |
 |--------|-----------------------------------------------|----------------------------|
-| GET    | `/api/v1/users/:userId/notifications`         | El propio usuario o admin  |
-| GET    | `/api/v1/users/:userId/notifications/stream`  | El propio usuario o admin  |
-| GET    | `/api/v1/notifications/unread-count`          | El usuario autenticado     |
-| PATCH  | `/api/v1/notifications/:id/read`              | El dueño de la notificación |
-| PATCH  | `/api/v1/notifications/read-all`              | El usuario autenticado     |
+| GET    | `/users/:userId/notifications`         | El propio usuario o admin  |
+| GET    | `/users/:userId/notifications/stream`  | El propio usuario o admin  |
+| GET    | `/notifications/unread-count`          | El usuario autenticado     |
+| PATCH  | `/notifications/:id/read`              | El dueño de la notificación |
+| PATCH  | `/notifications/read-all`              | El usuario autenticado     |
 
 `/stream` es un Server-Sent Events: el cliente recibe cada notificación en tiempo real (más un comentario `: ping` cada 25s para mantener viva la conexión).
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
 import SearchBar from "@/components/common/SearchBar";
@@ -10,11 +10,11 @@ import OfferModal from "@/components/auction/OfferModal";
 import CreateAuctionModal from "@/components/auction/CreateAuctionModal";
 import { useSearch } from "@/hooks/useSearch";
 import { useAuth } from "@/hooks/useAuth";
-import { mockAuctions } from "@/data/mock-auctions";
 import { mockStickers } from "@/data/mock-stickers";
-import { currentUser } from "@/data/mock-user";
 
-const myCollection = mockStickers.filter(item => item.quantity > 0);
+import { useGetUserAuctionsQuery } from "@/store/api/postApi";
+
+const myCollection = mockStickers.filter((item) => item.quantity > 0);
 
 const getSearchFields = ({ sticker }) => [
   sticker.player.name,
@@ -23,21 +23,35 @@ const getSearchFields = ({ sticker }) => [
 ];
 
 export default function AuctionsPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [tab, setTab] = useState("market");
-  const [allAuctions, setAllAuctions] = useState(mockAuctions);
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [showCreateAuction, setShowCreateAuction] = useState(false);
+  const [allAuctions, setAllAuctions] = useState([]);
+  const { data: auctions = [] } = useGetUserAuctionsQuery(user?.id, {
+    skip: !user?.id,
+  });
 
-  const { query, setQuery, filtered } = useSearch(allAuctions, useCallback(getSearchFields, []));
+  useEffect(() => {
+    if (auctions.length > 0 && allAuctions.length === 0) {
+      setAllAuctions(auctions);
+    }
+  }, [auctions, allAuctions.length]);
 
-  const marketAuctions = filtered.filter(a => a.owner.id !== currentUser.id);
-  const myAuctions = filtered.filter(a => a.owner.id === currentUser.id);
+  const { query, setQuery, filtered } = useSearch(
+    allAuctions,
+    useCallback(getSearchFields, [])
+  );
+
+  const marketAuctions = filtered.filter((a) => a.owner.id !== user?.id);
+  const myAuctions = filtered.filter((a) => a.owner.id === user?.id);
   const activeList = tab === "market" ? marketAuctions : myAuctions;
 
   function handleCancel(auction) {
-    if (window.confirm(`¿Cancelar la subasta de ${auction.sticker.player.name}?`)) {
-      setAllAuctions(prev => prev.filter(a => a.id !== auction.id));
+    if (
+      window.confirm(`¿Cancelar la subasta de ${auction.sticker.player.name}?`)
+    ) {
+      setAllAuctions((prev) => prev.filter((a) => a.id !== auction.id));
     }
   }
 
@@ -87,13 +101,13 @@ export default function AuctionsPage() {
             query
               ? `No se encontraron subastas para "${query}".`
               : tab === "mine"
-                ? "No publicaste ninguna subasta todavía."
-                : "No hay subastas activas."
+              ? "No publicaste ninguna subasta todavía."
+              : "No hay subastas activas."
           }
         />
       ) : (
         <div className="flex flex-col gap-3 md:gap-4">
-          {activeList.map(auction => (
+          {activeList.map((auction) => (
             <AuctionCard
               key={auction.id}
               auction={auction}
@@ -109,7 +123,7 @@ export default function AuctionsPage() {
           post={selectedAuction}
           myCollection={myCollection}
           onClose={() => setSelectedAuction(null)}
-          onSubmit={stickers => console.log("Puja enviada:", stickers)}
+          onSubmit={(stickers) => console.log("Puja enviada:", stickers)}
         />
       )}
 
@@ -118,16 +132,12 @@ export default function AuctionsPage() {
           myCollection={myCollection}
           onClose={() => setShowCreateAuction(false)}
           onSubmit={({ sticker, requirements, durationHours }) => {
-            const newAuction = {
-              id: Date.now(),
-              state: "ACTIVE",
+            console.log("Crear subasta pendiente de endpoint", {
               sticker,
-              owner: currentUser,
-              createdAt: new Date(),
-              endsAt: new Date(Date.now() + durationHours * 60 * 60 * 1000),
-              minimumRequirements: requirements,
-            };
-            setAllAuctions(prev => [newAuction, ...prev]);
+              requirements,
+              durationHours,
+            });
+            setShowCreateAuction(false);
           }}
         />
       )}

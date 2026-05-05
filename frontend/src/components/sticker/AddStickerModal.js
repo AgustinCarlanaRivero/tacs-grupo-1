@@ -39,11 +39,14 @@ export default function AddStickerModal({ title, onClose, onSubmit }) {
     >
       <div
         className="relative bg-white w-full max-w-md mx-4 rounded-xl shadow-2xl overflow-hidden"
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <h3 className="font-bold text-slate-800 text-lg">{title}</h3>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+          >
             <X size={18} className="text-slate-500" />
           </button>
         </div>
@@ -54,7 +57,7 @@ export default function AddStickerModal({ title, onClose, onSubmit }) {
               type="number"
               min="1"
               value={number}
-              onChange={e => setNumber(e.target.value)}
+              onChange={(e) => setNumber(e.target.value)}
               placeholder="Ej: 10"
               required
               className="form-input"
@@ -65,7 +68,7 @@ export default function AddStickerModal({ title, onClose, onSubmit }) {
             <input
               type="text"
               value={playerName}
-              onChange={e => setPlayerName(e.target.value)}
+              onChange={(e) => setPlayerName(e.target.value)}
               placeholder="Ej: Lionel Messi"
               required
               className="form-input"
@@ -77,7 +80,7 @@ export default function AddStickerModal({ title, onClose, onSubmit }) {
               <input
                 type="text"
                 value={nationalTeam}
-                onChange={e => setNationalTeam(e.target.value)}
+                onChange={(e) => setNationalTeam(e.target.value)}
                 placeholder="Ej: Argentina"
                 className="form-input"
               />
@@ -86,7 +89,7 @@ export default function AddStickerModal({ title, onClose, onSubmit }) {
               <input
                 type="text"
                 value={club}
-                onChange={e => setClub(e.target.value)}
+                onChange={(e) => setClub(e.target.value)}
                 placeholder="Ej: Inter Miami"
                 className="form-input"
               />
@@ -97,7 +100,7 @@ export default function AddStickerModal({ title, onClose, onSubmit }) {
             <input
               type="url"
               value={imageUrl}
-              onChange={e => setImageUrl(e.target.value)}
+              onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://..."
               className="form-input"
             />
@@ -107,7 +110,7 @@ export default function AddStickerModal({ title, onClose, onSubmit }) {
             <FormField label="Categoría">
               <select
                 value={category}
-                onChange={e => setCategory(e.target.value)}
+                onChange={(e) => setCategory(e.target.value)}
                 className="form-input"
               >
                 <option value="REGULAR">Regular</option>
@@ -119,7 +122,7 @@ export default function AddStickerModal({ title, onClose, onSubmit }) {
                 type="number"
                 min="1"
                 value={quantity}
-                onChange={e => setQuantity(parseInt(e.target.value, 10) || 1)}
+                onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
                 className="form-input"
               />
             </FormField>

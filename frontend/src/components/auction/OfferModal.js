@@ -49,7 +49,7 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }) {
   return (
     <ModalShell
       title={isAuction ? "Participar en subasta" : "Proponer intercambio"}
-      subtitle={`con ${owner.name}`}
+      subtitle={`con ${owner.username ?? owner.name}`}
       onClose={onClose}
       wide
     >

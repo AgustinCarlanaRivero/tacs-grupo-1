@@ -1,14 +1,10 @@
 import { Request, Response } from "express"
-import { z } from "zod"
+import type { z } from "zod"
 import { UnauthorizedError } from "../../../shared/errors/http-errors"
-import { UserRole } from "../../users/enums/user-role.enum"
+import { roleUpdateRequestSchema } from "../schemas/admin.schemas"
 import AdminService from "../services/admin.service"
 
 type AuthenticatedRequest = Request & { user?: { id: string; role: string } }
-
-export const updateRoleSchema = z.object({
-    role: z.enum([UserRole.STANDARD, UserRole.ADMIN]),
-})
 
 export default class AdminController {
     /**
@@ -26,19 +22,19 @@ export default class AdminController {
     }
 
     getUserById = async (req: Request, res: Response) => {
-        const userId = String(req.params.userId)
+        const { userId } = req.params as { userId: string }
         const user = await AdminService.getUserById(userId)
         return res.status(200).json(user)
     }
 
     /**
      * PATCH /admin/users/:userId/role
-     * El body se valida con `updateRoleSchema` (ver `validation.middleware`).
+     * El body se valida con `roleUpdateRequestSchema` (ver `validation.middleware`).
      * El service aplica los guards de auto-degradación y último admin.
      */
     updateUserRole = async (req: Request, res: Response) => {
-        const userId = String(req.params.userId)
-        const { role } = req.body as z.infer<typeof updateRoleSchema>
+        const { userId } = req.params as { userId: string }
+        const { role } = req.body as z.infer<typeof roleUpdateRequestSchema>
 
         const requesterId = (req as AuthenticatedRequest).user?.id
         if (!requesterId) {

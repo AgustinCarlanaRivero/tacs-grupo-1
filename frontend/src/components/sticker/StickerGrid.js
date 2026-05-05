@@ -6,7 +6,8 @@ import EmptyState from "@/components/common/EmptyState";
 import AddStickerModal from "@/components/sticker/AddStickerModal";
 import { Plus } from "lucide-react";
 
-const GRID_CLASSES = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5";
+const GRID_CLASSES =
+  "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5";
 
 function SectionHeader({ title, onAdd }) {
   return (
@@ -23,25 +24,23 @@ function SectionHeader({ title, onAdd }) {
   );
 }
 
-export default function StickerGrid({ collection, missingStickers = [] }) {
+export default function StickerGrid({
+  collection = [],
+  missingStickers = [],
+  onAddToCollection = () => {},
+  onAddMissing = () => {},
+}) {
   const [showAddToCollection, setShowAddToCollection] = useState(false);
   const [showAddMissing, setShowAddMissing] = useState(false);
-  const [localCollection, setLocalCollection] = useState(collection);
-  const [localMissing, setLocalMissing] = useState(missingStickers);
-
-  function handleAddToCollection(newItem) {
-    setLocalCollection(prev => [...prev, newItem]);
-  }
-
-  function handleAddMissing(newItem) {
-    setLocalMissing(prev => [...prev, { ...newItem, quantity: 0 }]);
-  }
 
   return (
     <div className="flex flex-col gap-12">
       <section>
-        <SectionHeader title="Mi Colección" onAdd={() => setShowAddToCollection(true)} />
-        {localCollection.length === 0 ? (
+        <SectionHeader
+          title="Mi Colección"
+          onAdd={() => setShowAddToCollection(true)}
+        />
+        {collection.length === 0 ? (
           <EmptyState
             message="Aún no tenés figuritas en tu colección."
             actionLabel="Añadir figuritas"
@@ -49,7 +48,7 @@ export default function StickerGrid({ collection, missingStickers = [] }) {
           />
         ) : (
           <div className={GRID_CLASSES}>
-            {localCollection.map(item => (
+            {collection.map((item) => (
               <StickerCard key={item.sticker.number} item={item} />
             ))}
           </div>
@@ -57,8 +56,11 @@ export default function StickerGrid({ collection, missingStickers = [] }) {
       </section>
 
       <section>
-        <SectionHeader title="Figuritas Faltantes" onAdd={() => setShowAddMissing(true)} />
-        {localMissing.length === 0 ? (
+        <SectionHeader
+          title="Figuritas Faltantes"
+          onAdd={() => setShowAddMissing(true)}
+        />
+        {missingStickers.length === 0 ? (
           <EmptyState
             message="No tenés figuritas faltantes registradas."
             actionLabel="Agregar faltante"
@@ -66,7 +68,7 @@ export default function StickerGrid({ collection, missingStickers = [] }) {
           />
         ) : (
           <div className={GRID_CLASSES}>
-            {localMissing.map(item => (
+            {missingStickers.map((item) => (
               <StickerCard key={item.sticker.number} item={item} missing />
             ))}
           </div>
@@ -77,14 +79,14 @@ export default function StickerGrid({ collection, missingStickers = [] }) {
         <AddStickerModal
           title="Agregar figurita a mi colección"
           onClose={() => setShowAddToCollection(false)}
-          onSubmit={handleAddToCollection}
+          onSubmit={onAddToCollection}
         />
       )}
       {showAddMissing && (
         <AddStickerModal
           title="Agregar figurita faltante"
           onClose={() => setShowAddMissing(false)}
-          onSubmit={handleAddMissing}
+          onSubmit={onAddMissing}
         />
       )}
     </div>

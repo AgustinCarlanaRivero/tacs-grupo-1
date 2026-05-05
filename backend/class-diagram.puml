@@ -1,6 +1,15 @@
 @startuml class-diagram
 
-enum Category {
+' ============================================================
+' Enums and types
+' ============================================================
+
+enum StickerState {
+  NEW
+  DAMAGED
+}
+
+enum StickerType {
   REGULAR
   SHINY
 }
@@ -15,101 +24,151 @@ enum OfferState {
   APPROVED
   REJECTED
   CANCELLED
-}
-
-note right of OfferState
   +canTransitionOfferState(from: OfferState, to: OfferState): boolean
   +isTerminalOfferState(state: OfferState): boolean
-end note
+}
 
 enum PostState {
   ACTIVE
   COMPLETED
   CLOSED
-}
-
-note right of PostState
   +canTransitionPostState(from: PostState, to: PostState): boolean
   +isTerminalPostState(state: PostState): boolean
-end note
+}
 
 enum PostType {
   DIRECT_TRADE
   AUCTION
+  +isPostType(value: unknown): boolean
 }
 
-note right of PostType
-  +isPostType(value: unknown): boolean
-end note
+enum NotificationType {
+  STICKER_AVAILABLE
+  AUCTION_ENDING
+  OFFER_RECEIVED
+  OFFER_ACCEPTED
+  OFFER_REJECTED
+  RATING_RECEIVED
+}
+
+' ============================================================
+' Catalog
+' ============================================================
 
 class NationalTeam {
-  -name: string
+  +name: string
 }
 
 class Club {
-  -name: string
+  +name: string
 }
 
 class Player {
-  -name: string
-  -nationalTeam: NationalTeam
-  -club: Club
+  +name: string
+  +nationalTeam: NationalTeam
+  +club: Club
+  +image: string
+}
+
+class Category {
+  +state: StickerState
+  +type: StickerType
 }
 
 class Sticker {
-  -number: number
-  -player: Player
-  -category: Category
-  -description: string
+  +number: number
+  +player: Player
+  +category: Category
+  +description: string
+  +isShiny(): boolean
+  +isRegular(): boolean
+  +isNew(): boolean
+  +isDamaged(): boolean
+  +playsForNationalTeam(teamName: string): boolean
+  +playsForClub(clubName: string): boolean
+  +belongsToPlayer(playerName: string): boolean
+  +matchesState(state: string | undefined): boolean
+  +matchesType(type: string | undefined): boolean
+  +matchesTeam(teamName: string | undefined): boolean
+  +matchesClub(clubName: string | undefined): boolean
+  +matchesFilters(filters: { state?: string; type?: string; team?: string; club?: string }): boolean
+  +getDisplayName(): string
+  
 }
 
+' ============================================================
+' User and collection
+' ============================================================
+
 class User {
-  -id: string
-  -auth0Sub: string
-  -firstName: string
-  -lastName: string
-  -username: string
-  -email: string
-  -role: UserRole
-  -reputation: number
-  -collection: Collection | null
+  +id: string
+  +auth0Sub: string
+  +firstName: string
+  +lastName: string
+  +username: string
+  +email: string
+  +role: UserRole
+  +reputation: number
+  +collection: Collection | null
   +setId(id: string): void
   +isAdmin(): boolean
   +hasCollection(): boolean
   +getFullName(): string
   +canBeRatedBy(reviewer: User): boolean
-  +recalculateReputationFrom(ratings: Rating[]): number
+  +recalculateReputationFrom(ratings: readonly Rating[]): number
+}
+
+interface CollectionItem {
+  +sticker: Sticker
+  +quantity: number
 }
 
 class Collection {
-  -items: CollectionItem[]
-  -missingStickers: Sticker[]
+  +items: CollectionItem[]
+  +missingStickers: Sticker[]
+  +getItemByStickerId(stickerId: number): CollectionItem | undefined
+  +hasSticker(stickerId: number): boolean
+  +getQuantity(stickerId: number): number
+  +addItem(collectionItem: CollectionItem): void
+  +updateItemQuantity(stickerId: number, newQuantity: number): void
+  +removeItem(stickerId: number): void
+  +isMissing(stickerId: number): boolean
+  +addMissing(sticker: Sticker): void
+  +removeMissing(stickerId: number): void
+  +getTotalUnique(): number
+  +getTotalQuantity(): number
+  +getTotalMissing(): number
+  +getProgress(totalStickers: number): number
+  +isComplete(totalStickers: number): boolean
 }
 
+' ============================================================
+' Reputation
+' ============================================================
+
 class Rating {
-  -id: string?
-  -reviewer: User
-  -reviewee: User
-  -score: number
-  -comment: string
-  -createdAt: Date
+  +id: string?
+  +reviewer: User
+  +reviewee: User
+  +score: number
+  +comment: string
+  +createdAt: Date
   +setId(id: string): void
   +isBy(user: User): boolean
   +isFor(user: User): boolean
   -ensureNotSelfRating(): void
 }
 
-interface CollectionItem { 
-  -sticker: Sticker
-  -quantity: number
-}
+' ============================================================
+' Offers
+' ============================================================
 
 class Offer {
-  -id: string?
-  -offerer: User
-  -state: OfferState
-  -createdAt: Date
-  -offered: CollectionItem[]
+  +id: string?
+  +offerer: User
+  +state: OfferState
+  +createdAt: Date
+  +offered: CollectionItem[]
   +setId(id: string): void
   +isPending(): boolean
   +isByUser(user: User): boolean
@@ -117,14 +176,19 @@ class Offer {
   +reject(): void
   +cancelBy(user: User): void
   +transitionTo(nextState: OfferState): void
+  +getOfferedQuantity(): number
 }
 
+' ============================================================
+' Posts (DirectTrade vs Auction)
+' ============================================================
+
 abstract class Post {
-  -id: string?
-  -owner: User
-  -sticker: Sticker
-  -state: PostState
-  -offers: Offer[]
+  +id: string?
+  +owner: User
+  +sticker: Sticker
+  +state: PostState
+  +offers: Offer[]
   {abstract} +getType(): PostType
   +setId(id: string): void
   +isOwnedBy(user: User): boolean
@@ -147,34 +211,70 @@ class DirectTrade {
 }
 
 class Auction {
-  -createdAt: Date
-  -endsAt: Date
-  -minimumRequirements: CollectionItem[]
+  +createdAt: Date
+  +endsAt: Date
+  +minimumRequirement: number
   +getType(): PostType
   +hasEnded(at: Date): boolean
   +canReceiveOffers(at: Date): boolean
   +duration(): number
   +lastOffer(): Offer | null
+  +addOffer(offer: Offer): void
 }
 
+' ============================================================
+' Notifications
+' ============================================================
+
+class Notification {
+  +id: string
+  +userId: string
+  +type: NotificationType
+  +message: string
+  +read: boolean
+  +payload: Record<string, unknown>
+  +createdAt: Date
+}
+
+interface NotificationChannel {
+  +send(notification: Notification): Promise<void>
+}
+
+class InAppChannel {
+  +send(notification: Notification): Promise<void>
+}
+
+' ============================================================
+' Relaciones
+' ============================================================
+
+' Catálogo
 NationalTeam <-- Player
 Club <-- Player
 
 Player <-- Sticker
 Category <-- Sticker
+StickerState <-- Category
+StickerType <-- Category
 
+' Colección
 Sticker <-- Collection
 CollectionItem <-- Collection
+Sticker <-- CollectionItem
 
-User <-- Rating
-
+' Usuario
 UserRole <-- User
 Collection <-- User
 
+' Reputación
+User <-- Rating
+
+' Ofertas
 User <-- Offer
 CollectionItem <-- Offer
 OfferState <-- Offer
 
+' Publicaciones
 User <-- Post
 Sticker <-- Post
 Offer <-- Post
@@ -184,6 +284,9 @@ PostType <-- Post
 Post <|-- DirectTrade
 Post <|-- Auction
 
-CollectionItem <-- Auction
+' Notificaciones
+NotificationType <-- Notification
+NotificationChannel <|.. InAppChannel
+Notification <-- InAppChannel
 
 @enduml

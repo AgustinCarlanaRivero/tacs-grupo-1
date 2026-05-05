@@ -1,8 +1,9 @@
 import { Offer } from "../../offers/entities/offer.entity";
 import { canTransitionPostState, PostState } from "../enums/post-state.enum";
 import { PostType } from "../enums/post-type.enum";
-import { Sticker } from "../../stickers/sticker.entity";
+import { Sticker } from "../../stickers/entities/sticker.entity";
 import { User } from "../../users/entities/user.entity";
+import { ConflictError, ForbiddenError, NotFoundError } from "../../../shared/errors/http-errors";
 
 export abstract class Post {
   id?: string;
@@ -49,15 +50,15 @@ export abstract class Post {
 
   addOffer(offer: Offer, at: Date = new Date()): void {
     if (!this.canReceiveOffers(at)) {
-      throw new Error("This post cannot receive offers in its current state");
+      throw new ConflictError("This post cannot receive offers in its current state");
     }
 
     if (this.isOwnedBy(offer.offerer)) {
-      throw new Error("Post owner cannot create offers on own post");
+      throw new ForbiddenError("Post owner cannot create offers on own post");
     }
 
     if (!offer.isPending()) {
-      throw new Error("Only pending offers can be attached to a post");
+      throw new ConflictError("Only pending offers can be attached to a post");
     }
 
     this.offers.push(offer);
@@ -99,7 +100,7 @@ export abstract class Post {
 
   changeState(nextState: PostState): void {
     if (!canTransitionPostState(this.state, nextState)) {
-      throw new Error(`Invalid post state transition from ${this.state} to ${nextState}`);
+      throw new ConflictError(`Invalid post state transition from ${this.state} to ${nextState}`);
     }
 
     this.state = nextState;
@@ -115,11 +116,11 @@ export abstract class Post {
 
   private ensureOwnerActor(actor: User): void {
     if (!this.isOwnedBy(actor)) {
-      throw new Error("Only the post owner can perform this operation");
+      throw new ForbiddenError("Only the post owner can perform this operation");
     }
 
     if (!this.isActive()) {
-      throw new Error("Post is not active");
+      throw new ConflictError("Post is not active");
     }
   }
 
@@ -127,7 +128,7 @@ export abstract class Post {
     const offer = this.getOfferById(offerId);
 
     if (!offer) {
-      throw new Error("Offer not found in post");
+      throw new NotFoundError("Offer not found in post");
     }
 
     return offer;

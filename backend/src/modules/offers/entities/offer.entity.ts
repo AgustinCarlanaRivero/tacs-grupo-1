@@ -1,6 +1,7 @@
-import { CollectionItem } from "../../collection/collection-item.interface";
+import { CollectionItem } from "../../collection/entities/collection-item.interface";
 import { canTransitionOfferState, OfferState } from "../enums/offer-state.enum";
 import { User } from "../../users/entities/user.entity";
+import { ConflictError, ForbiddenError } from "../../../shared/errors/http-errors";
 
 export class Offer {
   id?: string;
@@ -49,7 +50,7 @@ export class Offer {
 
   cancelBy(user: User): void {
     if (!this.isByUser(user)) {
-      throw new Error("Only the offer owner can cancel the offer");
+      throw new ForbiddenError("Only the offer owner can cancel the offer");
     }
 
     this.transitionTo(OfferState.CANCELLED);
@@ -57,9 +58,13 @@ export class Offer {
 
   transitionTo(nextState: OfferState): void {
     if (!canTransitionOfferState(this.state, nextState)) {
-      throw new Error(`Invalid offer state transition from ${this.state} to ${nextState}`);
+      throw new ConflictError(`Invalid offer state transition from ${this.state} to ${nextState}`);
     }
 
     this.state = nextState;
+  }
+
+  getOfferedQuantity(): number{
+    return this.offered.reduce((sum, item) => sum + item.quantity, 0);
   }
 }
