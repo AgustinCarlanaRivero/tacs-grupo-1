@@ -1,6 +1,6 @@
 export function useAuth() {
   return {
-    isAuthenticated: false,
+    isAuthenticated: true,
     isLoading: false,
     user: {
       name: "Lionel Messi",
