@@ -61,31 +61,5 @@ Si bien se espera algo sencillo, la aplicación debe tener un frontend amigable.
 Utilizar algun framework CSS (Bootstrap, etc)
 Condiciones para promoción
 
-Entregas en fecha
+
 Realizar frontend e integración con telegram.
-Entregas
-
-Las entregas deberán realizarse el día pactado antes de las 19 Hs. con un tag en el repositorio llamado Entrega_XX correspondiente al número de entrega.
-Las entregas se realizarán indicando el link al repositorio y el tag para la entrega.
-Todo retraso en una entrega que no haya sido correctamente comunicado y justificado tendrá como penalización el agregado de nuevos requisitos para la aprobación final del TP.
-Entrega 1 - Esqueleto aplicación
-
-Esqueleto de la aplicación WEB.
-Se debe definir un primer approach hacia los recursos y URLs REST que se utilizarán para cumplir con las historias propuestas. Para esta entrega no es necesario implementar la persistencia, es suficiente con que el estado quede reflejado en memoria.
-Para esta entrega sí es necesario que la app corra dentro de Docker.
-Entrega 2 - UI
-
-Se debe poder interactuar con la app mediante la interfaz elegida.
-Entrega 3 - Persistencia con DB
-
-Persistencia utilizando una base de datos. Se debe modificar la aplicación para que en vez de almacenar los datos en memoria, la misma lo haga utilizando alguna base a definir por el equipo.
-Nota: A fines pedagógicos se solicita que la base de datos sea NoSQL.
-Entrega 4 - Cloud
-
-Para esta entrega la aplicación debe estar deployada en la nube, el deploy en la nube debe ser utilizando Docker containers.
-Entrega Final
-
-Entrega final con detalles pulidos de funcionalidades faltantes y correcciones finales
-Bonus
-
-Integrar la aplicación con una fuente externa de información sobre figuritas del Mundial para autocompletar datos de jugadores, selecciones o categorías.

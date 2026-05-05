@@ -1,66 +1,71 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import PageHeader from "@/components/common/PageHeader";
+import StickerGrid from "@/components/sticker/StickerGrid";
+import { mockMissingStickers } from "@/data/mock-stickers";
+import {
+  useAddCollectionItemMutation,
+  useGetCollectionQuery,
+} from "@/store/api/collectionApi";
 
 export default function Home() {
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const router = useRouter();
+  const [localMissingStickers, setLocalMissingStickers] =
+    useState(mockMissingStickers);
+  const [addCollectionItem] = useAddCollectionItemMutation();
+
+  const { data: collectionData } = useGetCollectionQuery(user?.id, {
+    skip: !user?.id,
+  });
+
+  async function handleAddToCollection(item) {
+    if (!user?.id) return;
+    console.log("item", item);
+    console.log("user", user);
+    await addCollectionItem({ userId: user.id, item });
+  }
+
+  function handleAddMissing(item) {
+    setLocalMissingStickers((prev) => [...prev, { ...item, quantity: 0 }]);
+  }
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading || !isAuthenticated) {
+    return (
+      <div className="min-h-[calc(100vh-56px)] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#002B5E] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="container mx-auto px-4 pb-20">
+      <PageHeader
+        title="¡Hola, Coleccionista!"
+        subtitle="Acá están tus figuritas del Mundial 2026."
+      />
+      <StickerGrid
+        collection={collectionData?.items ?? []}
+        missingStickers={
+          collectionData?.missingStickers?.length
+            ? collectionData.missingStickers.map((sticker) => ({
+                sticker,
+                quantity: 0,
+              }))
+            : localMissingStickers
+        }
+        onAddToCollection={handleAddToCollection}
+        onAddMissing={handleAddMissing}
+      />
+    </main>
   );
 }
