@@ -1,7 +1,35 @@
+import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 import { User } from "../../modules/users/entities/user.entity";
 import userRepository from "../../modules/users/repositories/user.repository";
 import UserService from "../../modules/users/services/user.service";
 import { ConflictError, NotFoundError } from "../../shared/errors/http-errors";
+
+const mockUsersById = new Map<string, User>();
+
+jest.mock("../../modules/users/repositories/user.repository", () => ({
+    __esModule: true,
+    default: {
+        findByAuth0Sub: (_sub: string) => undefined,
+        findById: (id: string) => mockUsersById.get(id),
+        findAll: () => Array.from(mockUsersById.values()),
+        findByEmail: (email: string) =>
+            Array.from(mockUsersById.values()).find(
+                (user) => user.email === email,
+            ),
+        findByUsername: (username: string) =>
+            Array.from(mockUsersById.values()).find(
+                (user) => user.username === username,
+            ),
+        save: (user: User) => {
+            mockUsersById.set(user.id, user);
+            return user;
+        },
+        delete: (id: string) => mockUsersById.delete(id),
+        clear: () => {
+            mockUsersById.clear();
+        },
+    },
+}));
 
 describe("UserService", () => {
     beforeEach(() => {
@@ -38,7 +66,7 @@ describe("UserService", () => {
         userRepository.save(b);
 
         await expect(
-            UserService.updateUser("b", { username: "same" } as any),
+            UserService.updateUser("b", { username: "same" }),
         ).rejects.toThrow(ConflictError);
     });
 });

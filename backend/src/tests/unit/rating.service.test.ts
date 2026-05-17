@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, jest, test } from "@jest/globals";
+import { Rating } from "../../modules/ratings/entities/rating.entity";
 import ratingRepository from "../../modules/ratings/repositories/rating.repository";
 import RatingService from "../../modules/ratings/services/rating.service";
 import { User } from "../../modules/users/entities/user.entity";
@@ -6,6 +8,67 @@ import {
     BadRequestError,
     NotFoundError,
 } from "../../shared/errors/http-errors";
+
+const mockRatings: Rating[] = [];
+const mockUsersById = new Map<string, User>();
+
+jest.mock("../../modules/ratings/repositories/rating.repository", () => ({
+    __esModule: true,
+    default: {
+        save: (rating: Rating) => {
+            if (!rating.id) {
+                rating.setId(`rating-${mockRatings.length + 1}`);
+            }
+            mockRatings.push(rating);
+            return rating;
+        },
+        findById: (id: string) =>
+            mockRatings.find((rating) => rating.id === id),
+        findByRevieweeId: (revieweeId: string) =>
+            mockRatings.filter((rating) => rating.reviewee.id === revieweeId),
+        findByReviewerId: (reviewerId: string) =>
+            mockRatings.filter((rating) => rating.reviewer.id === reviewerId),
+        findAll: () => [...mockRatings],
+        clear: () => {
+            mockRatings.length = 0;
+        },
+    },
+}));
+
+jest.mock("../../modules/users/repositories/user.repository", () => ({
+    __esModule: true,
+    default: {
+        findByAuth0Sub: (_sub: string) => undefined,
+        findById: (id: string) => mockUsersById.get(id),
+        findAll: () => Array.from(mockUsersById.values()),
+        findByEmail: (email: string) =>
+            Array.from(mockUsersById.values()).find(
+                (user) => user.email === email,
+            ),
+        findByUsername: (username: string) =>
+            Array.from(mockUsersById.values()).find(
+                (user) => user.username === username,
+            ),
+        save: (user: User) => {
+            mockUsersById.set(user.id, user);
+            return user;
+        },
+        delete: (id: string) => mockUsersById.delete(id),
+        clear: () => {
+            mockUsersById.clear();
+        },
+    },
+}));
+
+jest.mock("../../modules/notifications/services/notification.facade", () => ({
+    __esModule: true,
+    notifications: {
+        ratingReceived: async (
+            _toUserId: string,
+            _ctx: { ratingId: string; fromUserId: string; score: number },
+        ) => undefined,
+    },
+}));
 
 describe("RatingService", () => {
     beforeEach(() => {
@@ -51,8 +114,8 @@ describe("RatingService", () => {
         userRepository.save(reviewer);
         userRepository.save(reviewee);
 
-        // @ts-expect-error intentionally missing score
         await expect(
+            // @ts-expect-error intentionally missing score
             RatingService.createRating("ee", "rev", {}),
         ).rejects.toThrow(BadRequestError);
     });
