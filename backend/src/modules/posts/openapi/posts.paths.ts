@@ -1,19 +1,35 @@
-import { z } from "zod"
-import { registry } from "../../../infra/openapi/registry"
+import { z } from "zod";
 import {
     bearer,
     errorResponses,
     jsonBody,
     jsonResponse,
-} from "../../../infra/openapi/path-helpers"
-import { nonEmptyString } from "../../../shared/validation/common"
+    noContent,
+} from "../../../infra/openapi/path-helpers";
+import { registry } from "../../../infra/openapi/registry";
+import { nonEmptyString } from "../../../shared/validation/common";
 import {
     postCreateRequestSchema,
     postFilterQuerySchema,
     postListResponseSchema,
     postResponseSchema,
     postStateUpdateRequestSchema,
-} from "../schemas/post.schemas"
+} from "../schemas/post.schemas";
+
+registry.registerPath({
+    method: "get",
+    path: "/posts",
+    tags: ["Posts"],
+    summary: "Listar todas las publicaciones",
+    security: bearer,
+    request: {
+        query: postFilterQuerySchema,
+    },
+    responses: {
+        200: jsonResponse("Publicaciones paginadas", postListResponseSchema),
+        401: errorResponses[401],
+    },
+});
 
 registry.registerPath({
     method: "get",
@@ -29,7 +45,7 @@ registry.registerPath({
         200: jsonResponse("Publicaciones paginadas", postListResponseSchema),
         401: errorResponses[401],
     },
-})
+});
 
 registry.registerPath({
     method: "post",
@@ -45,7 +61,7 @@ registry.registerPath({
         201: jsonResponse("Publicación creada", postResponseSchema),
         ...errorResponses,
     },
-})
+});
 
 registry.registerPath({
     method: "get",
@@ -61,7 +77,22 @@ registry.registerPath({
         401: errorResponses[401],
         404: errorResponses[404],
     },
-})
+});
+
+registry.registerPath({
+    method: "delete",
+    path: "/users/{userId}/posts/{postId}",
+    tags: ["Posts"],
+    summary: "Eliminar publicación",
+    security: bearer,
+    request: {
+        params: z.object({ userId: nonEmptyString, postId: nonEmptyString }),
+    },
+    responses: {
+        204: noContent("Publicación eliminada"),
+        ...errorResponses,
+    },
+});
 
 registry.registerPath({
     method: "patch",
@@ -77,4 +108,4 @@ registry.registerPath({
         200: jsonResponse("Publicación actualizada", postResponseSchema),
         ...errorResponses,
     },
-})
+});

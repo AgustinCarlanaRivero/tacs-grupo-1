@@ -10,6 +10,7 @@ import {
 } from "../../../shared/utils/query";
 import collectionRepository from "../../collection/repositories/collection.repository";
 import { notifications } from "../../notifications/services/notification.facade";
+import offerRepository from "../../offers/repositories/offer.repository";
 import { Sticker } from "../../stickers/entities/sticker.entity";
 import { stickerResponseSchema } from "../../stickers/schemas/sticker.schemas";
 import StickerService from "../../stickers/services/sticker.service";
@@ -164,6 +165,16 @@ export default class PostService {
         post.changeState(state);
         postRepository.save(post);
         return toPostResponse(post);
+    }
+
+    static async deletePost(ownerId: string, postId: string) {
+        const post = postRepository.findById(postId);
+        if (!post || post.owner.id !== ownerId) {
+            throw new NotFoundError("Publicacion no encontrada");
+        }
+
+        postRepository.delete(postId);
+        offerRepository.deleteByPostId(postId);
     }
 
     static async listPostsByOwner(userId: string, filters: PostListFilters) {

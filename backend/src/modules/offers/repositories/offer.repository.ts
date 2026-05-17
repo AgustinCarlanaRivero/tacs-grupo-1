@@ -43,6 +43,19 @@ class OfferRepository {
         return this.offers.delete(id);
     }
 
+    deleteByPostId(postId: string): number {
+        const idsToDelete: string[] = [];
+
+        for (const [id, record] of this.offers.entries()) {
+            if (record.postId === postId) {
+                idsToDelete.push(id);
+            }
+        }
+
+        idsToDelete.forEach((id) => this.offers.delete(id));
+        return idsToDelete.length;
+    }
+
     clear(): void {
         this.offers.clear();
     }
