@@ -17,9 +17,11 @@
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "express-oauth2-jwt-bearer": "^1.8.0",
+    "mongoose": "^8.24.0",
     "swagger-ui-express": "^5.0.1",
     "tsx": "^4.21.0",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "zod-to-mongoose": "^1.4.2"
   },
   "author": "",
   "license": "ISC",
