@@ -9,6 +9,7 @@ export interface AuthUser {
   email: string;
   picture?: string;
   sub: string;
+  role: "STANDARD" | "ADMIN";
 }
 
 export interface UseAuthResult {
@@ -46,6 +47,7 @@ export function useAuth(): UseAuthResult {
           email: internalUser?.email ?? auth0User.email ?? "",
           picture: auth0User.picture,
           sub: auth0User.sub,
+          role: internalUser?.role ?? "STANDARD",
         }
       : null;
 

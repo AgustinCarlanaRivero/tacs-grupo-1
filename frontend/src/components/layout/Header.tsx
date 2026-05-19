@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Gavel, ArrowLeftRight, User, LogOut, type LucideIcon } from "lucide-react";
+import { LayoutGrid, Gavel, ArrowLeftRight, User, LogOut, Shield, type LucideIcon } from "lucide-react";
 import NotificationBell from "@/components/notification/NotificationBell";
 
 interface NavLink {
@@ -21,9 +21,13 @@ const NAV_LINKS: NavLink[] = [
   { href: "/profile", label: "Perfil", icon: User },
 ];
 
+const ADMIN_LINK: NavLink = { href: "/admin", label: "Admin", icon: Shield };
+
 export default function Header() {
   const pathname = usePathname();
   const { isAuthenticated, isLoading, user, loginWithRedirect, logout } = useAuth();
+  const isAdmin = isAuthenticated && user?.role === "ADMIN";
+  const navLinks = isAdmin ? [...NAV_LINKS, ADMIN_LINK] : NAV_LINKS;
 
   return (
     <>
@@ -36,7 +40,7 @@ export default function Header() {
 
           <div className="flex items-center gap-2 md:gap-4">
             <nav className="hidden md:flex items-center gap-0.5">
-              {NAV_LINKS.map(({ href, label }) => {
+              {navLinks.map(({ href, label }) => {
                 const isActive = pathname === href;
                 return (
                   <Link
@@ -97,7 +101,7 @@ export default function Header() {
 
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200">
         <div className="flex items-center justify-around h-14">
-          {NAV_LINKS.map(({ href, label, icon: Icon }) => {
+          {navLinks.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href;
             return (
               <Link
