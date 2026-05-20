@@ -45,6 +45,7 @@ Examples:
 - Meets requirement and matches current behavior.
 - Edge cases and validation handled.
 - API contracts and OpenAPI updated when endpoints change.
+- If backend domain entities change, update backend/class-diagram.puml.
 - Tests updated or added when logic changes.
 - Performance acceptable for expected data size.
 - No secrets or credentials in code.
