@@ -18,18 +18,23 @@
 - Generar schemas Mongoose con zod-to-mongoose.
 - Configurar `_id: String` y `versionKey: false`.
 - Agregar `toJSON/toObject` para exponer `id` y eliminar `_id` y `__v`.
+- Usar `loadClass` + `toJSON` para mapear persistence -> response (ocultar `auth0Sub`, mapear refs y embebidos; fechas quedan como ISO en JSON).
 - Agregar validaciones en schema (requeridos, enums, rangos) y, si aplica, validator `$jsonSchema` en colecciones.
 
 3. Ajustes en entidades de dominio
 
 - Asegurar `id: string` en todas las entidades persistidas (por ejemplo Sticker y Post/Offer/Rating/Notification si faltara).
 - Mantener `number` en Sticker como dato de negocio, no como id.
+- Actualizá el diagrama de clases con estos cambios
 
 4. Repositorios persistentes
 
 - Reemplazar Maps por modelos Mongoose y metodos async.
 - Crear un repositorio base abstracto (BaseRepository) con CRUD comun, paginacion, mapeo doc -> entidad y configuracion de populate default.
 - Los repositorios deben devolver entidades de dominio ya hidratadas (mapear docs a clases de dominio). Encapsular `populate` en el base repo con un helper `hydrate()`.
+- Definir populate default para Post/Offer (owner/offerer con `username`) para que el `toJSON` exponga `{ id, username }`.
+- En Post/Offer usar `populate({ path: "owner|offerer", select: "_id username" })`.
+- En auth (lookup por `auth0Sub`), usar `.select("+auth0Sub")` cuando el campo sea necesario.
 - OfferRepository: eliminar `OfferRecord`; persistir `postId`, `postOwnerId`, `offererId`, `offered` (y los otros datos de Offer).
 - PostRepository: persistir solo datos del post (sin `offers` embebidos); consultar ofertas por repositorio separado.
 - CollectionRepository: operar sobre `User.collection` embebido (update con `$set/$push/$pull`).
@@ -52,13 +57,15 @@
 - Notifications: `userId`, `read`, `createdAt`.
 - Validar que los indices respondan a queries reales y evitar indices innecesarios.
 
-7. Seeds y tests
+7. Seeds
 
 - Migrar seeds a un script para Mongo, que lo ejecutará el usuario luego, de manera independiente. Luego, borrar del código todo lo relacionado a las seeds.
+
+8. Tests
+
 - TODOS los tests deben ahora mockear los repositorios, y deben respetar la nueva interfaz de los mismos.
 
-8. Verificacion
+9. Verificacion
 
-- Ajustar respuestas API para no exponer `_id`/`__v`.
 - Re-ejecutar tests y verificar endpoints de posts/offers/ratings/notifications/matching.
 - Revisar tamano de documentos (especialmente `users` por `collection`) para no acercarse al limite de 16MB.
