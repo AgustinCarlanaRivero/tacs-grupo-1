@@ -1,8 +1,8 @@
 # TACS AI entry point (Claude)
 
-This repo uses a shared AI playbook. Follow it as the canonical source:
-
-- .agents/skills/tacs-ai-playbook/SKILL.md
+- This repo uses the skills located in .agents\skills.
+- At the start of the session, use the Claude Code slash command /add-dir with the path .agents\skills
+- Also, this repo uses a shared AI playbook. Follow it as the canonical source: .agents/skills/tacs-ai-playbook/SKILL.md
 
 Summary:
 
