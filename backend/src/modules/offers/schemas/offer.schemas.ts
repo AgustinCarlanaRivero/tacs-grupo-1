@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-    isoDateTime,
     nonEmptyString,
     paginatedResponseSchema,
     paginationQuerySchema,
@@ -60,12 +59,14 @@ export const offerResponseSchema = z
     .object({
         id: nonEmptyString,
         state: offerStateEnum,
-        createdAt: isoDateTime,
+        createdAt: z.date(),
         offerer: z.object({
             id: nonEmptyString,
             username: z.string(),
         }),
         offered: z.array(collectionItemResponseSchema),
+        postId: nonEmptyString,
+        postOwnerId: nonEmptyString,
     })
     .meta({ id: "Offer" });
 

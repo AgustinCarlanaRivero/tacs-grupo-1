@@ -58,8 +58,8 @@ export const postResponseSchema = z.object({
         id: nonEmptyString,
         username: z.string(),
     }),
-    createdAt: isoDateTime.optional(),
-    endsAt: isoDateTime.optional(),
+    createdAt: z.date().optional(),
+    endsAt: z.date().optional(),
     minimumRequirement: positiveInt.optional(),
 }).meta({ id: "Post" })
 

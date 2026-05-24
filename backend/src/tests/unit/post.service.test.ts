@@ -155,7 +155,7 @@ describe("PostService", () => {
 
         expect(res).toHaveProperty("id");
         expect(res.owner.id).toBe("owner");
-        expect(res.sticker.id).toBe(10);
+        expect(res.sticker.number).toBe(10);
     });
 
     test("getPostById throws when owner mismatch", async () => {
