@@ -1,0 +1,21 @@
+{
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "always",
+      "source.organizeImports": "always"
+    },
+    "js/ts.tsserver.experimental.enableProjectDiagnostics": true,
+    "eslint.lintTask.enable": true,
+    "js/ts.updateImportsOnFileMove.enabled": "always",
+    "js/ts.suggest.autoImports": true,
+    "js/ts.preferences.includePackageJsonAutoImports": "auto",
+    "js/ts.suggest.completeFunctionCalls": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "js/ts.validate.enabled": true,
+    "js/ts.tsserver.automaticTypeAcquisition.enabled": true,
+    "js/ts.preferences.importModuleSpecifier": "shortest", 
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "prettier.tabWidth": 4
+}

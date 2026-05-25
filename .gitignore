@@ -1,6 +1,3 @@
-.github
-.vscode
-
 # Variables de entorno — nunca se commitean. Para compartir qué claves
 # se necesitan, usar `.env.example` con los nombres y valores vacíos.
 .env

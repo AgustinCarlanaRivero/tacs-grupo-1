@@ -35,8 +35,7 @@ export const playerResponseSchema = z
 
 export const stickerResponseSchema = z
     .object({
-        id: positiveInt,
-        title: z.string(),
+        number: positiveInt,
         state: stickerStateEnum,
         type: stickerTypeEnum,
         description: z.string(),

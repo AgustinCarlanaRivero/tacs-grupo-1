@@ -1,16 +1,118 @@
-import { beforeEach, describe, expect, test } from "@jest/globals";
+import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 import { CollectionItem } from "../../modules/collection/entities/collection-item.interface";
 import { Offer } from "../../modules/offers/entities/offer.entity";
 import offerRepository from "../../modules/offers/repositories/offer.repository";
 import OfferService from "../../modules/offers/services/offer.service";
 import { DirectTrade } from "../../modules/posts/entities/direct-trade.entity";
+import type { Post } from "../../modules/posts/entities/post.entity";
 import postRepository from "../../modules/posts/repositories/post.repository";
 import { Category } from "../../modules/stickers/entities/category.entity";
+import { Club } from "../../modules/stickers/entities/club.entity";
+import { NationalTeam } from "../../modules/stickers/entities/national-team.entity";
 import { Player } from "../../modules/stickers/entities/player.entity";
 import { Sticker } from "../../modules/stickers/entities/sticker.entity";
 import { User } from "../../modules/users/entities/user.entity";
 import userRepository from "../../modules/users/repositories/user.repository";
 import { NotFoundError } from "../../shared/errors/http-errors";
+
+type OfferRecord = {
+    offer: Offer;
+    postId: string;
+    postOwnerId: string;
+};
+
+const mockOfferRecords: OfferRecord[] = [];
+const mockPostsById = new Map<string, Post>();
+const mockUsersById = new Map<string, User>();
+
+jest.mock("../../modules/offers/repositories/offer.repository", () => ({
+    __esModule: true,
+    default: {
+        save: (record: OfferRecord) => {
+            mockOfferRecords.push(record);
+            return record;
+        },
+        findById: (id: string) =>
+            mockOfferRecords.find((record) => record.offer.id === id),
+        findByPostId: (postId: string) =>
+            mockOfferRecords.filter((record) => record.postId === postId),
+        findByUserId: (userId: string) =>
+            mockOfferRecords.filter((record) => {
+                const offererId = record.offer.offerer.id;
+                return offererId === userId || record.postOwnerId === userId;
+            }),
+        findAll: () => [...mockOfferRecords],
+        delete: (id: string) => {
+            const index = mockOfferRecords.findIndex(
+                (record) => record.offer.id === id,
+            );
+            if (index < 0) return false;
+            mockOfferRecords.splice(index, 1);
+            return true;
+        },
+        clear: () => {
+            mockOfferRecords.length = 0;
+        },
+    },
+}));
+
+jest.mock("../../modules/posts/repositories/post.repository", () => ({
+    __esModule: true,
+    default: {
+        save: (post: Post) => {
+            if (!post.id) {
+                post.setId(`post-${mockPostsById.size + 1}`);
+            }
+            mockPostsById.set(post.id ?? "", post);
+            return post;
+        },
+        findById: (id: string) => mockPostsById.get(id),
+        findAll: () => Array.from(mockPostsById.values()),
+        findByOwnerId: (ownerId: string) =>
+            Array.from(mockPostsById.values()).filter(
+                (post) => post.owner.id === ownerId,
+            ),
+        delete: (id: string) => mockPostsById.delete(id),
+        clear: () => {
+            mockPostsById.clear();
+        },
+    },
+}));
+
+jest.mock("../../modules/users/repositories/user.repository", () => ({
+    __esModule: true,
+    default: {
+        findByAuth0Sub: (_sub: string) => undefined,
+        findById: (id: string) => mockUsersById.get(id),
+        findAll: () => Array.from(mockUsersById.values()),
+        findByEmail: (email: string) =>
+            Array.from(mockUsersById.values()).find(
+                (user) => user.email === email,
+            ),
+        findByUsername: (username: string) =>
+            Array.from(mockUsersById.values()).find(
+                (user) => user.username === username,
+            ),
+        save: (user: User) => {
+            mockUsersById.set(user.id, user);
+            return user;
+        },
+        delete: (id: string) => mockUsersById.delete(id),
+        clear: () => {
+            mockUsersById.clear();
+        },
+    },
+}));
+
+jest.mock(
+    "../../modules/collection/repositories/collection.repository",
+    () => ({
+        __esModule: true,
+        default: {
+            getCollection: async (_userId: string) => null,
+        },
+    }),
+);
 
 describe("OfferService", () => {
     beforeEach(() => {
@@ -27,11 +129,7 @@ describe("OfferService", () => {
         userRepository.save(owner);
         userRepository.save(offerer);
 
-        const player = new Player(
-            "P",
-            { name: "NT" } as any,
-            { name: "C" } as any,
-        );
+        const player = new Player("P", new NationalTeam("NT"), new Club("C"));
         const sticker = new Sticker(21, player, new Category("NEW", "REGULAR"));
 
         const post = new DirectTrade(owner, sticker);
@@ -52,14 +150,14 @@ describe("OfferService", () => {
         const sent = await OfferService.getOffersByUser("from", {
             page: 1,
             limit: 10,
-            role: "sent" as any,
+            role: "sent",
         });
         expect(sent.total).toBe(1);
 
         const received = await OfferService.getOffersByUser("owner", {
             page: 1,
             limit: 10,
-            role: "received" as any,
+            role: "received",
         });
         expect(received.total).toBe(1);
     });
