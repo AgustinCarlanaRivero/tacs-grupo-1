@@ -20,7 +20,7 @@ export default class AuthService {
         auth0Sub: string,
         profile: Auth0Profile,
     ): Promise<User> {
-        const existing = userRepository.findByAuth0Sub(auth0Sub);
+        const existing = await userRepository.findByAuth0Sub(auth0Sub);
         if (existing) return existing;
 
         const name = profile.name?.split(" ") ?? [];
@@ -42,7 +42,7 @@ export default class AuthService {
     /**
      * Devuelve el usuario actual autenticado por su id interno.
      */
-    static async getCurrentUser(userId: string): Promise<User | undefined> {
+    static async getCurrentUser(userId: string): Promise<User | null> {
         return userRepository.findById(userId);
     }
 }

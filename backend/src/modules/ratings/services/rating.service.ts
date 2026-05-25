@@ -40,8 +40,42 @@ export default class RatingService {
         revieweeId: string,
         filters: RatingListFilters,
     ) {
-        const ratings = ratingRepository.findByRevieweeId(revieweeId);
         const normalizedQuery = normalizeQuery(filters.query);
+        const repo = ratingRepository as typeof ratingRepository & {
+            paginate?: (
+                filter: Record<string, unknown>,
+                options: { page: number; limit: number },
+            ) => Promise<{
+                data: Rating[];
+                total: number;
+                page: number;
+                limit: number;
+            }>;
+        };
+
+        if (repo.paginate) {
+            const baseFilter: Record<string, unknown> = { revieweeId };
+            const queryFilter = normalizedQuery
+                ? { comment: new RegExp(normalizedQuery, "i") }
+                : null;
+            const filter = queryFilter
+                ? { $and: [baseFilter, queryFilter] }
+                : baseFilter;
+
+            const result = await repo.paginate(filter, {
+                page: filters.page,
+                limit: filters.limit,
+            });
+
+            return {
+                data: result.data.map(toRatingResponse),
+                total: result.total,
+                page: result.page,
+                limit: result.limit,
+            };
+        }
+
+        const ratings = await ratingRepository.findByRevieweeId(revieweeId);
         const filtered = ratings.filter((rating) =>
             matchesAnyQuery([rating.comment ?? undefined], normalizedQuery),
         );
@@ -64,12 +98,12 @@ export default class RatingService {
         reviewerId: string,
         body: RatingCreatePayload,
     ) {
-        const reviewee = userRepository.findById(revieweeId);
+        const reviewee = await userRepository.findById(revieweeId);
         if (!reviewee) {
             throw new NotFoundError("Usuario a calificar no encontrado");
         }
 
-        const reviewer = userRepository.findById(reviewerId);
+        const reviewer = await userRepository.findById(reviewerId);
         if (!reviewer) {
             throw new NotFoundError("Usuario revisor no encontrado");
         }
@@ -84,11 +118,12 @@ export default class RatingService {
             body.score,
             body.comment ?? "",
         );
-        ratingRepository.save(rating);
+        await ratingRepository.save(rating);
 
-        const ratingsForUser = ratingRepository.findByRevieweeId(revieweeId);
+        const ratingsForUser =
+            await ratingRepository.findByRevieweeId(revieweeId);
         reviewee.recalculateReputationFrom(ratingsForUser);
-        userRepository.save(reviewee);
+        await userRepository.save(reviewee);
 
         if (revieweeId && revieweeId !== reviewerId) {
             await notifications.ratingReceived(revieweeId, {

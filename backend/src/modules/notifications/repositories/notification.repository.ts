@@ -1,62 +1,96 @@
+import type { FilterQuery, HydratedDocument } from "mongoose";
+import { BaseRepository } from "../../../infra/database/base.repository";
 import { Notification } from "../entities/notification.entity";
+import { NotificationType } from "../enums/notification-type.enum";
+import { NotificationModel } from "../schemas/notification.model";
 
-class NotificationRepository {
-    private notifications: Map<string, Notification> = new Map();
-    private userIndex: Map<string, string[]> = new Map();
-    private nextId = 1;
+type NotificationPersistence = {
+    _id: string;
+    userId: string;
+    type: NotificationType;
+    message: string;
+    read: boolean;
+    payload: Record<string, unknown>;
+    createdAt: Date;
+};
 
-    save(notification: Notification): Notification {
+class NotificationRepository extends BaseRepository<
+    NotificationPersistence,
+    Notification
+> {
+    constructor() {
+        super(NotificationModel);
+    }
+
+    protected toEntity(
+        doc: HydratedDocument<NotificationPersistence>,
+    ): Notification {
+        return doc as unknown as Notification;
+    }
+
+    protected toPersistence(
+        notification: Notification,
+    ): Partial<NotificationPersistence> & { _id?: string } {
+        const id = notification.id || crypto.randomUUID();
         if (!notification.id) {
-            notification.id = `notification-${this.nextId++}`;
-        }
-        const isNew = !this.notifications.has(notification.id);
-        this.notifications.set(notification.id, notification);
-
-        if (isNew) {
-            const userNotifications =
-                this.userIndex.get(notification.userId) ?? [];
-            userNotifications.push(notification.id);
-            this.userIndex.set(notification.userId, userNotifications);
+            notification.setId(id);
         }
 
-        return notification;
+        return {
+            _id: id,
+            userId: notification.userId,
+            type: notification.type,
+            message: notification.message,
+            read: notification.read,
+            payload: notification.payload ?? {},
+            createdAt: notification.createdAt,
+        };
     }
 
-    findById(id: string): Notification | undefined {
-        return this.notifications.get(id);
+    async save(notification: Notification): Promise<Notification> {
+        return super.save(notification);
     }
 
-    findByUserId(userId: string): Notification[] {
-        const ids = this.userIndex.get(userId) ?? [];
-        return ids
-            .map((id) => this.notifications.get(id))
-            .filter((n): n is Notification => n !== undefined)
-            .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    async findById(id: string): Promise<Notification | null> {
+        return super.findById(id);
     }
 
-    findUnreadByUserId(userId: string): Notification[] {
-        return this.findByUserId(userId).filter((n) => !n.read);
+    async findByUserId(userId: string): Promise<Notification[]> {
+        return this.findMany(
+            { userId } as FilterQuery<NotificationPersistence>,
+            { sort: { createdAt: -1 } },
+        );
     }
 
-    countUnreadByUserId(userId: string): number {
-        return this.findUnreadByUserId(userId).length;
+    async findUnreadByUserId(userId: string): Promise<Notification[]> {
+        return this.findMany(
+            { userId, read: false } as FilterQuery<NotificationPersistence>,
+            { sort: { createdAt: -1 } },
+        );
     }
 
-    countAll(): number {
-        return this.notifications.size;
+    async countUnreadByUserId(userId: string): Promise<number> {
+        return NotificationModel.countDocuments({
+            userId,
+            read: false,
+        } as FilterQuery<NotificationPersistence>).exec();
     }
 
-    findAll(): Notification[] {
-        return Array.from(this.notifications.values());
+    async countAll(): Promise<number> {
+        return NotificationModel.countDocuments(
+            {} as FilterQuery<NotificationPersistence>,
+        ).exec();
+    }
+
+    async findAll(): Promise<Notification[]> {
+        return this.findMany();
     }
 
     /**
      * Vacía los índices. Sólo se usa en tests para aislar casos.
      */
-    clear(): void {
-        this.notifications.clear();
-        this.userIndex.clear();
-        this.nextId = 1;
+    async clear(): Promise<void> {
+        await this.deleteMany({} as FilterQuery<NotificationPersistence>);
     }
 }
 

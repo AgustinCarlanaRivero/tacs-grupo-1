@@ -14,6 +14,7 @@ import offerRepository from "../../offers/repositories/offer.repository";
 import { Sticker } from "../../stickers/entities/sticker.entity";
 import { stickerResponseSchema } from "../../stickers/schemas/sticker.schemas";
 import StickerService from "../../stickers/services/sticker.service";
+import type { User } from "../../users/entities/user.entity";
 import userRepository from "../../users/repositories/user.repository";
 import { Auction } from "../entities/auction.entity";
 import { Post } from "../entities/post.entity";
@@ -42,6 +43,31 @@ type PostCreatePayload = {
 function matchesPostQuery(post: Post, query?: string): boolean {
     if (!query) return true;
     return matchesAnyQuery(getStickerSearchValues(post.sticker), query);
+}
+
+function buildPostQueryFilter(filters: PostListFilters) {
+    const normalizedQuery = normalizeQuery(filters.query);
+    const filter: Record<string, unknown> = {};
+
+    if (filters.type) filter.type = filters.type;
+    if (filters.state) filter.state = filters.state;
+
+    if (normalizedQuery) {
+        const regex = new RegExp(normalizedQuery, "i");
+        const orFilters: Record<string, unknown>[] = [
+            { "sticker.description": regex },
+            { "sticker.player.name": regex },
+            { "sticker.player.nationalTeam.name": regex },
+            { "sticker.player.club.name": regex },
+        ];
+        const numericQuery = Number(normalizedQuery);
+        if (!Number.isNaN(numericQuery)) {
+            orFilters.push({ "sticker.number": numericQuery });
+        }
+        filter.$or = orFilters;
+    }
+
+    return filter;
 }
 
 function toStickerResponse(sticker: Sticker) {
@@ -92,12 +118,38 @@ function toPostResponse(post: Post) {
 
 export default class PostService {
     static async listPosts(filters: PostListFilters) {
-        const posts = postRepository.findAll();
+        const repo = postRepository as typeof postRepository & {
+            paginate?: (
+                filter: Record<string, unknown>,
+                options: { page: number; limit: number },
+            ) => Promise<{
+                data: Post[];
+                total: number;
+                page: number;
+                limit: number;
+            }>;
+        };
+
+        if (repo.paginate) {
+            const filter = buildPostQueryFilter(filters);
+            const result = await repo.paginate(filter, {
+                page: filters.page,
+                limit: filters.limit,
+            });
+            return {
+                data: result.data.map(toPostResponse),
+                total: result.total,
+                page: result.page,
+                limit: result.limit,
+            };
+        }
+
+        const posts = await postRepository.findAll();
         return this.applyFilters(posts, filters);
     }
 
     static async createPost(ownerId: string, body: PostCreatePayload) {
-        const owner = userRepository.findById(ownerId);
+        const owner = await userRepository.findById(ownerId);
         if (!owner) {
             throw new NotFoundError("Usuario no encontrado");
         }
@@ -138,14 +190,14 @@ export default class PostService {
             post = TradeService.createTrade(owner, sticker);
         }
 
-        postRepository.save(post);
+        await postRepository.save(post);
         await this.notifyMissingUsers(sticker, post.id ?? "", ownerId);
 
         return toPostResponse(post);
     }
 
     static async getPostById(ownerId: string, postId: string) {
-        const post = postRepository.findById(postId);
+        const post = await postRepository.findById(postId);
         if (!post || post.owner.id !== ownerId) {
             throw new NotFoundError("Publicacion no encontrada");
         }
@@ -157,28 +209,55 @@ export default class PostService {
         postId: string,
         state: PostState,
     ) {
-        const post = postRepository.findById(postId);
+        const post = await postRepository.findById(postId);
         if (!post || post.owner.id !== ownerId) {
             throw new NotFoundError("Publicacion no encontrada");
         }
 
         post.changeState(state);
-        postRepository.save(post);
+        await postRepository.save(post);
         return toPostResponse(post);
     }
 
     static async deletePost(ownerId: string, postId: string) {
-        const post = postRepository.findById(postId);
+        const post = await postRepository.findById(postId);
         if (!post || post.owner.id !== ownerId) {
             throw new NotFoundError("Publicacion no encontrada");
         }
 
-        postRepository.delete(postId);
-        offerRepository.deleteByPostId(postId);
+        await postRepository.delete(postId);
+        await offerRepository.deleteByPostId(postId);
     }
 
     static async listPostsByOwner(userId: string, filters: PostListFilters) {
-        const posts = postRepository.findByOwnerId(userId);
+        const repo = postRepository as typeof postRepository & {
+            paginate?: (
+                filter: Record<string, unknown>,
+                options: { page: number; limit: number },
+            ) => Promise<{
+                data: Post[];
+                total: number;
+                page: number;
+                limit: number;
+            }>;
+        };
+
+        if (repo.paginate) {
+            const filter = buildPostQueryFilter(filters);
+            filter.ownerId = userId;
+            const result = await repo.paginate(filter, {
+                page: filters.page,
+                limit: filters.limit,
+            });
+            return {
+                data: result.data.map(toPostResponse),
+                total: result.total,
+                page: result.page,
+                limit: result.limit,
+            };
+        }
+
+        const posts = await postRepository.findByOwnerId(userId);
         return this.applyFilters(posts, filters);
     }
 
@@ -187,7 +266,16 @@ export default class PostService {
         postId: string,
         ownerId: string,
     ) {
-        const users = userRepository.findAll();
+        const repo = userRepository as typeof userRepository & {
+            findMany?: (filter: Record<string, unknown>) => Promise<User[]>;
+        };
+
+        const users = repo.findMany
+            ? await repo.findMany({
+                  _id: { $ne: ownerId },
+                  "collection.missingStickers.number": sticker.number,
+              })
+            : await userRepository.findAll();
 
         await Promise.all(
             users.map(async (user) => {

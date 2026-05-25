@@ -16,5 +16,8 @@ const ratingModelSchema = createMongooseSchema(ratingPersistenceSchema);
 
 ratingModelSchema.loadClass(Rating);
 
+ratingModelSchema.index({ revieweeId: 1 });
+ratingModelSchema.index({ reviewerId: 1 });
+
 export const RatingModel =
     mongoose.models.Rating ?? mongoose.model("Rating", ratingModelSchema);

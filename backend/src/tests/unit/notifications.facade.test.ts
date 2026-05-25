@@ -25,8 +25,8 @@ function createTestSticker(number: number) {
 }
 
 describe("notifications facade", () => {
-    beforeEach(() => {
-        notificationRepository.clear();
+    beforeEach(async () => {
+        await notificationRepository.clear();
     });
 
     it("offerReceived persiste una notificación con el tipo y payload correctos", async () => {
@@ -36,7 +36,7 @@ describe("notifications facade", () => {
             fromUserId: "buyer-1",
         });
 
-        const stored = notificationRepository.findByUserId("owner-1");
+        const stored = await notificationRepository.findByUserId("owner-1");
         expect(stored).toHaveLength(1);
         expect(stored[0].type).toBe(NotificationType.OFFER_RECEIVED);
         expect(stored[0].payload).toEqual({
@@ -50,7 +50,7 @@ describe("notifications facade", () => {
         const endsAt = new Date("2026-12-31T23:59:59Z");
         await notifications.auctionEnding("u", { postId: "p", endsAt });
 
-        const stored = notificationRepository.findByUserId("u");
+        const stored = await notificationRepository.findByUserId("u");
         expect(stored[0].payload.endsAt).toBe(endsAt.toISOString());
     });
 
@@ -60,7 +60,7 @@ describe("notifications facade", () => {
             fromUserId: "rev",
             score: 4,
         });
-        const [n] = notificationRepository.findByUserId("u");
+        const [n] = await notificationRepository.findByUserId("u");
         expect(n.type).toBe(NotificationType.RATING_RECEIVED);
         expect(n.payload).toEqual({
             ratingId: "r",
@@ -77,12 +77,12 @@ describe("integración: stubs de otros módulos disparan el facade", () => {
     const offeredStickerId = 10;
 
     beforeEach(async () => {
-        userRepository.clear();
-        collectionRepository.clear();
-        offerRepository.clear();
-        postRepository.clear();
-        ratingRepository.clear();
-        notificationRepository.clear();
+        await userRepository.clear();
+        await collectionRepository.clear();
+        await offerRepository.clear();
+        await postRepository.clear();
+        await ratingRepository.clear();
+        await notificationRepository.clear();
 
         const owner = await AuthService.getOrCreateUser("auth0|owner", {
             email: "owner@x.com",
@@ -99,7 +99,7 @@ describe("integración: stubs de otros módulos disparan el facade", () => {
         const postSticker = createTestSticker(1);
         const post = new DirectTrade(owner, postSticker);
         post.setId("post-1");
-        postRepository.save(post);
+        await postRepository.save(post);
         postId = post.id ?? "post-1";
 
         const offeredSticker = createTestSticker(offeredStickerId);
@@ -113,7 +113,7 @@ describe("integración: stubs de otros módulos disparan el facade", () => {
         await OfferService.createOffer(ownerId, postId, offererId, {
             offered: [{ stickerId: offeredStickerId, quantity: 1 }],
         });
-        const stored = notificationRepository.findByUserId(ownerId);
+        const stored = await notificationRepository.findByUserId(ownerId);
         expect(stored).toHaveLength(1);
         expect(stored[0].type).toBe(NotificationType.OFFER_RECEIVED);
     });
@@ -129,12 +129,13 @@ describe("integración: stubs de otros módulos disparan el facade", () => {
                 offered: [{ stickerId: ownerSticker.number, quantity: 1 }],
             }),
         ).rejects.toMatchObject({ statusCode: 403 });
-        expect(notificationRepository.findByUserId(ownerId)).toHaveLength(0);
+        const stored = await notificationRepository.findByUserId(ownerId);
+        expect(stored).toHaveLength(0);
     });
 
     it("RatingService.createRating notifica al reviewee", async () => {
         await RatingService.createRating(ownerId, offererId, { score: 5 });
-        const stored = notificationRepository.findByUserId(ownerId);
+        const stored = await notificationRepository.findByUserId(ownerId);
         expect(stored).toHaveLength(1);
         expect(stored[0].type).toBe(NotificationType.RATING_RECEIVED);
     });

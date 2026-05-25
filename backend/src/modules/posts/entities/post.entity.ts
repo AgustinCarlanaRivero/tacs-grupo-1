@@ -36,6 +36,10 @@ export abstract class Post {
         this.id = id;
     }
 
+    hydrateOffers(offers: Offer[]): void {
+        this.offers = offers;
+    }
+
     isOwnedBy(user: User): boolean {
         if (this.owner.id && user.id) {
             return this.owner.id === user.id;
@@ -53,6 +57,8 @@ export abstract class Post {
     }
 
     addOffer(offer: Offer, at: Date = new Date()): void {
+        const offers = this.requireHydratedOffers();
+
         if (!this.canReceiveOffers(at)) {
             throw new ConflictError(
                 "This post cannot receive offers in its current state",
@@ -71,20 +77,22 @@ export abstract class Post {
             );
         }
 
-        this.offers.push(offer);
+        offers.push(offer);
     }
 
     getOfferById(offerId: string): Offer | undefined {
-        return this.offers.find((offer) => offer.id === offerId);
+        const offers = this.requireHydratedOffers();
+        return offers.find((offer) => offer.id === offerId);
     }
 
     approveOffer(offerId: string, actor: User): Offer {
+        const offers = this.requireHydratedOffers();
         this.ensureOwnerActor(actor);
 
         const targetOffer = this.requireOfferById(offerId);
         targetOffer.approve();
 
-        for (const offer of this.offers) {
+        for (const offer of offers) {
             if (offer !== targetOffer && offer.isPending()) {
                 offer.reject();
             }
@@ -146,5 +154,15 @@ export abstract class Post {
         }
 
         return offer;
+    }
+
+    protected requireHydratedOffers(): Offer[] {
+        if (!Array.isArray(this.offers)) {
+            throw new ConflictError(
+                "Post offers are not hydrated. Load offers before applying offer-domain rules."
+            );
+        }
+
+        return this.offers;
     }
 }

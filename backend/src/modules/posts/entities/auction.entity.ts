@@ -44,11 +44,13 @@ export class Auction extends Post {
   }
 
   lastOffer(): Offer | null {
-    if (this.offers.length === 0) {
+    const offers = this.requireHydratedOffers();
+
+    if (offers.length === 0) {
       return null;
     }
 
-    return this.offers[this.offers.length - 1];
+    return offers[offers.length - 1];
   }
 
   addOffer(offer: Offer) {

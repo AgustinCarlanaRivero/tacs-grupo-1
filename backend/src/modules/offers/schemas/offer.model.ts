@@ -38,5 +38,11 @@ offerModelSchema.virtual("offerer", {
 offerModelSchema.loadClass(Offer);
 overrideSchemaPath(offerModelSchema, "offered", [collectionItemModelSchema]);
 
+offerModelSchema.index({ postId: 1 });
+offerModelSchema.index({ postOwnerId: 1 });
+offerModelSchema.index({ offererId: 1 });
+offerModelSchema.index({ state: 1 });
+offerModelSchema.index({ createdAt: -1 });
+
 export const OfferModel =
     mongoose.models.Offer ?? mongoose.model("Offer", offerModelSchema);

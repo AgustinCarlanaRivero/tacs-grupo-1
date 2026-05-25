@@ -1,62 +1,90 @@
+import type { FilterQuery, HydratedDocument } from "mongoose";
+import { BaseRepository } from "../../../infra/database/base.repository";
+import type { Collection } from "../../collection/entities/collection.entity";
 import { User } from "../entities/user.entity";
+import { UserRole } from "../enums/user-role.enum";
+import { UserModel } from "../schemas/user.model";
 
-/**
- * Repositorio in-memory de usuarios. Mantiene dos índices: por id interno y por
- * Auth0 sub. Pensado para reemplazar por una implementación persistente (Mongo)
- * en próximas entregas.
- */
-class UserRepository {
-    private users: Map<string, User> = new Map();
-    private auth0Index: Map<string, string> = new Map();
+type UserPersistence = {
+    _id: string;
+    auth0Sub?: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    role: UserRole;
+    reputation: number;
+    collection: Collection | null;
+};
 
-    findByAuth0Sub(sub: string): User | undefined {
-        const id = this.auth0Index.get(sub);
-        if (!id) return undefined;
-        return this.users.get(id);
+class UserRepository extends BaseRepository<UserPersistence, User> {
+    constructor() {
+        super(UserModel);
     }
 
-    findById(id: string): User | undefined {
-        return this.users.get(id);
+    protected toEntity(doc: HydratedDocument<UserPersistence>): User {
+        return doc as unknown as User;
     }
 
-    findAll(): User[] {
-        return Array.from(this.users.values());
-    }
-
-    findByEmail(email: string): User | undefined {
-        return this.findAll().find((user) => user.email === email);
-    }
-
-    findByUsername(username: string): User | undefined {
-        return this.findAll().find((user) => user.username === username);
-    }
-
-    save(user: User): User {
-        this.users.set(user.id, user);
-        if (user.auth0Sub) {
-            this.auth0Index.set(user.auth0Sub, user.id);
-        }
-        return user;
-    }
-
-    delete(id: string): boolean {
-        const user = this.users.get(id);
-        if (!user) return false;
-
-        this.users.delete(id);
-        if (user.auth0Sub) {
-            this.auth0Index.delete(user.auth0Sub);
+    protected toPersistence(
+        user: User,
+    ): Partial<UserPersistence> & { _id?: string } {
+        const id = user.id || crypto.randomUUID();
+        if (!user.id) {
+            user.setId(id);
         }
 
-        return true;
+        return {
+            _id: id,
+            auth0Sub: user.auth0Sub || undefined,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            reputation: user.reputation,
+            collection: user.collection ?? null,
+        };
+    }
+
+    async findByAuth0Sub(sub: string): Promise<User | null> {
+        const doc = await UserModel.findOne({
+            auth0Sub: sub,
+        } as FilterQuery<UserPersistence>)
+            .select("+auth0Sub")
+            .exec();
+        return doc ? this.toEntity(doc) : null;
+    }
+
+    async findById(id: string): Promise<User | null> {
+        return super.findById(id);
+    }
+
+    async findAll(): Promise<User[]> {
+        return this.findMany();
+    }
+
+    async findByEmail(email: string): Promise<User | null> {
+        return this.findOne({ email } as FilterQuery<UserPersistence>);
+    }
+
+    async findByUsername(username: string): Promise<User | null> {
+        return this.findOne({ username } as FilterQuery<UserPersistence>);
+    }
+
+    async save(user: User): Promise<User> {
+        return super.save(user);
+    }
+
+    async delete(id: string): Promise<boolean> {
+        return this.deleteById(id);
     }
 
     /**
      * Vacia los indices. Solo se usa en tests para aislar casos.
      */
-    clear(): void {
-        this.users.clear();
-        this.auth0Index.clear();
+    async clear(): Promise<void> {
+        await this.deleteMany({} as FilterQuery<UserPersistence>);
     }
 }
 

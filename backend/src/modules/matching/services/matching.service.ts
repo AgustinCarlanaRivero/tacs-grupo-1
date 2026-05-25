@@ -25,7 +25,7 @@ export default class MatchingService {
         limit: number = 20,
     ) {
         // Obtener el usuario actual
-        const currentUser = userRepository.findById(userId);
+        const currentUser = await userRepository.findById(userId);
         if (!currentUser || !currentUser.collection) {
             return { data: [], page, limit, total: 0 };
         }
@@ -40,12 +40,63 @@ export default class MatchingService {
             missingStickers.map((s: Sticker) => [s.number, s]),
         );
 
-        // TODO - MONGODB: Reemplazar findAll() con query filtrada
-        // Antes: const allUsers = userRepository.findAll()  // Carga TODO en RAM
-        // Después: const allUsers = await db.users.find({collection: {$exists: true}}).toArray()
-        const allUsers = userRepository.findAll();
+        const repo = userRepository as typeof userRepository & {
+            paginate?: (
+                filter: Record<string, unknown>,
+                options: { page: number; limit: number },
+            ) => Promise<{
+                data: User[];
+                total: number;
+                page: number;
+                limit: number;
+            }>;
+        };
 
-        // Construir sugerencias (sin paginación aún)
+        if (repo.paginate) {
+            const result = await repo.paginate(
+                {
+                    _id: { $ne: userId },
+                    "collection.items.sticker.number": {
+                        $in: missingStickers.map((s) => s.number),
+                    },
+                },
+                { page, limit },
+            );
+
+            const suggestions = result.data
+                .filter((user) => user.collection)
+                .map((user) => {
+                    const offerableStickers = user
+                        .collection!.items.filter((item: CollectionItem) =>
+                            missingStickersMap.has(item.sticker.number),
+                        )
+                        .map((item: CollectionItem) => ({
+                            number: item.sticker.number,
+                            title:
+                                item.sticker.getDisplayName?.() ||
+                                `Sticker #${item.sticker.number}`,
+                        }));
+
+                    return {
+                        userId: user.id,
+                        username: user.username,
+                        offerableStickers,
+                    };
+                })
+                .filter(
+                    (suggestion) => suggestion.offerableStickers.length > 0,
+                );
+
+            return {
+                data: suggestions,
+                page: result.page,
+                limit: result.limit,
+                total: result.total,
+            };
+        }
+
+        const allUsers = await userRepository.findAll();
+
         const allSuggestions: Array<{
             userId: string;
             username: string;
@@ -75,7 +126,6 @@ export default class MatchingService {
             }
         }
 
-        // Aplicar paginación
         const { data, total } = paginate(allSuggestions, page, limit);
         return { data, page, limit, total };
     }
@@ -103,12 +153,53 @@ export default class MatchingService {
             throw new BadRequestError("stickerId debe ser un número válido");
         }
 
-        // TODO - MONGODB: Reemplazar con query directa filtrada
-        // Antes: const allUsers = userRepository.findAll()  // Carga TODO en RAM
-        // Después: const allUsers = await db.users.find({"collection.items.sticker.number": stickerNum}).toArray()
-        const allUsers = userRepository.findAll();
+        const repo = userRepository as typeof userRepository & {
+            paginate?: (
+                filter: Record<string, unknown>,
+                options: {
+                    page: number;
+                    limit: number;
+                    sort?: Record<string, 1 | -1>;
+                },
+            ) => Promise<{
+                data: User[];
+                total: number;
+                page: number;
+                limit: number;
+            }>;
+        };
 
-        // Filtrar usuarios que tengan este sticker
+        if (repo.paginate) {
+            const result = await repo.paginate(
+                { "collection.items.sticker.number": stickerNum },
+                { page, limit, sort: { reputation: -1 } },
+            );
+
+            const data = result.data.flatMap((user) => {
+                if (!user.collection) return [];
+                const item = user.collection.getItemByStickerId(stickerNum);
+                if (!item || item.quantity <= 0) return [];
+                return [
+                    {
+                        userId: user.id,
+                        username: user.username,
+                        email: user.email,
+                        quantity: item.quantity,
+                        reputation: user.reputation,
+                    },
+                ];
+            });
+
+            return {
+                data,
+                page: result.page,
+                limit: result.limit,
+                total: result.total,
+            };
+        }
+
+        const allUsers = await userRepository.findAll();
+
         const allMatches: Array<{
             userId: string;
             username: string;
@@ -132,14 +223,8 @@ export default class MatchingService {
             }
         }
 
-        // TODO - MONGODB: Sort en BD es más eficiente
-        // Antes: en código con .sort()
-        // Después: db.users.find(...).sort({reputation: -1})
         allMatches.sort((a, b) => b.reputation - a.reputation);
 
-        // TODO - MONGODB: Paginación en BD es más eficiente
-        // Antes: en memoria con .slice() después de cargar TODO
-        // Después: db.users.find(...).skip(...).limit(...)
         const { data, total } = paginate(allMatches, page, limit);
         return { data, page, limit, total };
     }

@@ -1,67 +1,80 @@
+import type { FilterQuery, HydratedDocument } from "mongoose";
+import { BaseRepository } from "../../../infra/database/base.repository";
+import { User } from "../../users/entities/user.entity";
+import { UserRole } from "../../users/enums/user-role.enum";
 import { Rating } from "../entities/rating.entity";
+import { RatingModel } from "../schemas/rating.model";
 
-class RatingRepository {
-    private ratings: Map<string, Rating> = new Map();
-    private revieweeIndex: Map<string, string[]> = new Map();
-    private reviewerIndex: Map<string, string[]> = new Map();
+type RatingPersistence = {
+    _id: string;
+    reviewerId: string;
+    revieweeId: string;
+    score: number;
+    comment: string;
+    createdAt: Date;
+};
 
-    save(rating: Rating): Rating {
-        const id = rating.id ?? crypto.randomUUID();
+const buildUserRef = (id: string) =>
+    new User("", "", "", "", UserRole.STANDARD, 0, null, id);
+
+class RatingRepository extends BaseRepository<RatingPersistence, Rating> {
+    constructor() {
+        super(RatingModel);
+    }
+
+    protected toEntity(doc: HydratedDocument<RatingPersistence>): Rating {
+        const reviewer = buildUserRef(doc.reviewerId);
+        const reviewee = buildUserRef(doc.revieweeId);
+        return new Rating(
+            reviewer,
+            reviewee,
+            doc.score,
+            doc.comment ?? "",
+            doc.createdAt,
+            doc._id,
+        );
+    }
+
+    protected toPersistence(
+        rating: Rating,
+    ): Partial<RatingPersistence> & { _id?: string } {
+        const id = rating.id || crypto.randomUUID();
         if (!rating.id) {
             rating.setId(id);
         }
-        const isNew = !this.ratings.has(id);
 
-        this.ratings.set(id, rating);
-
-        if (isNew) {
-            const revieweeId = rating.reviewee.id;
-            const reviewerId = rating.reviewer.id;
-
-            if (revieweeId) {
-                const revieweeRatings =
-                    this.revieweeIndex.get(revieweeId) ?? [];
-                revieweeRatings.push(id);
-                this.revieweeIndex.set(revieweeId, revieweeRatings);
-            }
-
-            if (reviewerId) {
-                const reviewerRatings =
-                    this.reviewerIndex.get(reviewerId) ?? [];
-                reviewerRatings.push(id);
-                this.reviewerIndex.set(reviewerId, reviewerRatings);
-            }
-        }
-
-        return rating;
+        return {
+            _id: id,
+            reviewerId: rating.reviewer.id,
+            revieweeId: rating.reviewee.id,
+            score: rating.score,
+            comment: rating.comment ?? "",
+            createdAt: rating.createdAt,
+        };
     }
 
-    findById(id: string): Rating | undefined {
-        return this.ratings.get(id);
+    async save(rating: Rating): Promise<Rating> {
+        return super.save(rating);
     }
 
-    findByRevieweeId(revieweeId: string): Rating[] {
-        const ids = this.revieweeIndex.get(revieweeId) ?? [];
-        return ids
-            .map((id) => this.ratings.get(id))
-            .filter((rating): rating is Rating => rating !== undefined);
+    async findById(id: string): Promise<Rating | null> {
+        return super.findById(id);
     }
 
-    findByReviewerId(reviewerId: string): Rating[] {
-        const ids = this.reviewerIndex.get(reviewerId) ?? [];
-        return ids
-            .map((id) => this.ratings.get(id))
-            .filter((rating): rating is Rating => rating !== undefined);
+    async findByRevieweeId(revieweeId: string): Promise<Rating[]> {
+        return this.findMany({ revieweeId } as FilterQuery<RatingPersistence>);
     }
 
-    findAll(): Rating[] {
-        return Array.from(this.ratings.values());
+    async findByReviewerId(reviewerId: string): Promise<Rating[]> {
+        return this.findMany({ reviewerId } as FilterQuery<RatingPersistence>);
     }
 
-    clear(): void {
-        this.ratings.clear();
-        this.revieweeIndex.clear();
-        this.reviewerIndex.clear();
+    async findAll(): Promise<Rating[]> {
+        return this.findMany();
+    }
+
+    async clear(): Promise<void> {
+        await this.deleteMany({} as FilterQuery<RatingPersistence>);
     }
 }
 

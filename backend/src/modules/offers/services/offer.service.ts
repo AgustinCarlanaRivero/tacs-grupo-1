@@ -11,6 +11,7 @@ import {
 import { CollectionItem } from "../../collection/entities/collection-item.interface";
 import collectionRepository from "../../collection/repositories/collection.repository";
 import { notifications } from "../../notifications/services/notification.facade";
+import type { Post } from "../../posts/entities/post.entity";
 import postRepository from "../../posts/repositories/post.repository";
 import { Sticker } from "../../stickers/entities/sticker.entity";
 import { stickerResponseSchema } from "../../stickers/schemas/sticker.schemas";
@@ -18,7 +19,7 @@ import userRepository from "../../users/repositories/user.repository";
 import { Offer } from "../entities/offer.entity";
 import { OfferState } from "../enums/offer-state.enum";
 import offerRepository, {
-    type OfferRecord,
+    type OfferReadModel,
 } from "../repositories/offer.repository";
 import { offerResponseSchema } from "../schemas/offer.schemas";
 
@@ -43,12 +44,12 @@ function getOffererId(offer: Offer): string | undefined {
 }
 
 function matchesOfferRole(
-    record: OfferRecord,
+    offer: OfferReadModel,
     userId: string,
     role: OfferRole,
 ): boolean {
-    const isSent = getOffererId(record.offer) === userId;
-    const isReceived = record.postOwnerId === userId;
+    const isSent = getOffererId(offer) === userId;
+    const isReceived = offer.postOwnerId === userId;
 
     if (role === "sent") return isSent;
     if (role === "received") return isReceived;
@@ -61,6 +62,32 @@ function matchesOfferQuery(offer: Offer, query?: string): boolean {
     return offeredItems.some((item) =>
         matchesAnyQuery(getStickerSearchValues(item?.sticker), query),
     );
+}
+
+function buildOfferQueryFilter(query?: string) {
+    if (!query) return null;
+    const regex = new RegExp(query, "i");
+    const orFilters: Record<string, unknown>[] = [
+        { "offered.sticker.description": regex },
+        { "offered.sticker.player.name": regex },
+        { "offered.sticker.player.nationalTeam.name": regex },
+        { "offered.sticker.player.club.name": regex },
+    ];
+    const numericQuery = Number(query);
+    if (!Number.isNaN(numericQuery)) {
+        orFilters.push({ "offered.sticker.number": numericQuery });
+    }
+    return { $or: orFilters } as Record<string, unknown>;
+}
+
+async function loadPostForOffers(postId: string): Promise<Post | null> {
+    const repo = postRepository as typeof postRepository & {
+        findByIdWithOffers?: (id: string) => Promise<Post | null>;
+    };
+    if (repo.findByIdWithOffers) {
+        return repo.findByIdWithOffers(postId);
+    }
+    return postRepository.findById(postId);
 }
 
 function toStickerResponse(sticker: Sticker) {
@@ -85,7 +112,7 @@ function toStickerResponse(sticker: Sticker) {
     });
 }
 
-function toOfferResponse(offer: Offer) {
+function toOfferResponse(offer: OfferReadModel) {
     return offerResponseSchema.parse({
         id: offer.id ?? "",
         state: offer.state,
@@ -98,18 +125,63 @@ function toOfferResponse(offer: Offer) {
             sticker: toStickerResponse(item.sticker),
             quantity: item.quantity,
         })),
+        postId: offer.postId,
+        postOwnerId: offer.postOwnerId,
     });
 }
 
 export default class OfferService {
     static async getOffersByUser(userId: string, filters: OfferUserFilters) {
-        const offers = offerRepository.findByUserId(userId);
         const normalizedQuery = normalizeQuery(filters.query);
+        const repo = offerRepository as typeof offerRepository & {
+            paginate?: (
+                filter: Record<string, unknown>,
+                options: { page: number; limit: number },
+            ) => Promise<{
+                data: OfferReadModel[];
+                total: number;
+                page: number;
+                limit: number;
+            }>;
+        };
+
+        if (repo.paginate) {
+            const roleFilter: Record<string, unknown> =
+                filters.role === "sent"
+                    ? { offererId: userId }
+                    : filters.role === "received"
+                      ? { postOwnerId: userId }
+                      : {
+                            $or: [
+                                { offererId: userId },
+                                { postOwnerId: userId },
+                            ],
+                        };
+            const queryFilter = buildOfferQueryFilter(
+                normalizedQuery ?? undefined,
+            );
+            const filter = queryFilter
+                ? { $and: [roleFilter, queryFilter] }
+                : roleFilter;
+
+            const result = await repo.paginate(filter, {
+                page: filters.page,
+                limit: filters.limit,
+            });
+            return {
+                data: result.data.map(toOfferResponse),
+                total: result.total,
+                page: result.page,
+                limit: result.limit,
+            };
+        }
+
+        const offers = await offerRepository.findByUserId(userId);
         const filtered = offers
             .filter((offer) => matchesOfferRole(offer, userId, filters.role))
-            .filter((offer) => matchesOfferQuery(offer.offer, normalizedQuery));
+            .filter((offer) => matchesOfferQuery(offer, normalizedQuery));
 
-        const data = filtered.map((record) => toOfferResponse(record.offer));
+        const data = filtered.map((offer) => toOfferResponse(offer));
         return paginate(data, filters.page, filters.limit);
     }
 
@@ -118,18 +190,54 @@ export default class OfferService {
         postId: string,
         filters: OfferListFilters,
     ) {
-        const post = postRepository.findById(postId);
+        const post = await postRepository.findById(postId);
         if (!post || post.owner.id !== postOwnerId) {
             throw new NotFoundError("Publicacion no encontrada");
         }
 
-        const offers = offerRepository.findByPostId(postId);
         const normalizedQuery = normalizeQuery(filters.query);
+        const repo = offerRepository as typeof offerRepository & {
+            paginate?: (
+                filter: Record<string, unknown>,
+                options: { page: number; limit: number },
+            ) => Promise<{
+                data: OfferReadModel[];
+                total: number;
+                page: number;
+                limit: number;
+            }>;
+        };
+
+        if (repo.paginate) {
+            const baseFilter: Record<string, unknown> = {
+                postId,
+                postOwnerId,
+            };
+            const queryFilter = buildOfferQueryFilter(
+                normalizedQuery ?? undefined,
+            );
+            const filter = queryFilter
+                ? { $and: [baseFilter, queryFilter] }
+                : baseFilter;
+
+            const result = await repo.paginate(filter, {
+                page: filters.page,
+                limit: filters.limit,
+            });
+            return {
+                data: result.data.map(toOfferResponse),
+                total: result.total,
+                page: result.page,
+                limit: result.limit,
+            };
+        }
+
+        const offers = await offerRepository.findByPostId(postId);
         const filtered = offers
             .filter((offer) => offer.postOwnerId === postOwnerId)
-            .filter((offer) => matchesOfferQuery(offer.offer, normalizedQuery));
+            .filter((offer) => matchesOfferQuery(offer, normalizedQuery));
 
-        const data = filtered.map((record) => toOfferResponse(record.offer));
+        const data = filtered.map((offer) => toOfferResponse(offer));
         return paginate(data, filters.page, filters.limit);
     }
 
@@ -149,12 +257,12 @@ export default class OfferService {
         offererId: string,
         body: OfferCreatePayload,
     ) {
-        const post = postRepository.findById(postId);
+        const post = await loadPostForOffers(postId);
         if (!post || post.owner.id !== postOwnerId) {
             throw new NotFoundError("Publicacion no encontrada");
         }
 
-        const offerer = userRepository.findById(offererId);
+        const offerer = await userRepository.findById(offererId);
         if (!offerer) {
             throw new NotFoundError("Usuario oferente no encontrado");
         }
@@ -197,8 +305,12 @@ export default class OfferService {
         offer.setId(crypto.randomUUID());
 
         post.addOffer(offer);
-        postRepository.save(post);
-        offerRepository.save({ offer, postId, postOwnerId: post.owner.id });
+        await postRepository.save(post);
+        const stored = Object.assign(offer, {
+            postId,
+            postOwnerId: post.owner.id,
+        });
+        await offerRepository.save(stored);
 
         if (postOwnerId && postOwnerId !== offererId) {
             await notifications.offerReceived(postOwnerId, {
@@ -208,7 +320,7 @@ export default class OfferService {
             });
         }
 
-        return toOfferResponse(offer);
+        return toOfferResponse(stored);
     }
 
     /**
@@ -228,12 +340,12 @@ export default class OfferService {
         state: OfferState,
         actorId: string,
     ) {
-        const post = postRepository.findById(postId);
+        const post = await loadPostForOffers(postId);
         if (!post || post.owner.id !== postOwnerId) {
             throw new NotFoundError("Publicacion no encontrada");
         }
 
-        const actor = userRepository.findById(actorId);
+        const actor = await userRepository.findById(actorId);
         if (!actor) {
             throw new NotFoundError("Usuario actor no encontrado");
         }
@@ -249,12 +361,12 @@ export default class OfferService {
             throw new BadRequestError("Estado de oferta invalido");
         }
 
-        postRepository.save(post);
-        offerRepository.save({
-            offer: updated,
+        await postRepository.save(post);
+        const stored = Object.assign(updated, {
             postId,
             postOwnerId: post.owner.id,
         });
+        await offerRepository.save(stored);
 
         if (state === OfferState.APPROVED) {
             await notifications.offerAccepted(updated.offerer.id, {
@@ -270,6 +382,6 @@ export default class OfferService {
             });
         }
 
-        return toOfferResponse(updated);
+        return toOfferResponse(stored);
     }
 }

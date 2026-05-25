@@ -34,8 +34,20 @@ postModelSchema.virtual("owner", {
     justOne: true,
 });
 
+postModelSchema.virtual("offers", {
+    ref: "Offer",
+    localField: "_id",
+    foreignField: "postId",
+    justOne: false,
+});
+
 postModelSchema.loadClass(Post);
 overrideSchemaPath(postModelSchema, "sticker", stickerModelSchema);
+
+postModelSchema.index({ ownerId: 1 });
+postModelSchema.index({ state: 1 });
+postModelSchema.index({ type: 1 });
+postModelSchema.index({ createdAt: -1 });
 
 export const PostModel =
     mongoose.models.Post ?? mongoose.model("Post", postModelSchema);
