@@ -30,8 +30,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Variables de entorno — nunca se commitean. Para compartir qué claves
+# se necesitan, usar `.env.example` con los nombres y valores vacíos.
+.env
+.env.*
+!.env.example
 
 # vercel
 .vercel
