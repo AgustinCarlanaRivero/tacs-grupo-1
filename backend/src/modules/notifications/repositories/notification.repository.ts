@@ -20,6 +20,20 @@ type NotificationPersistence = {
     createdAt: Date;
 };
 
+const normalizePayload = (payload: unknown): Record<string, unknown> => {
+    if (!payload) return {};
+
+    if (payload instanceof Map) {
+        return Object.fromEntries(payload.entries());
+    }
+
+    if (typeof payload === "object" && !Array.isArray(payload)) {
+        return payload as Record<string, unknown>;
+    }
+
+    return {};
+};
+
 class NotificationRepository extends BaseRepository<
     NotificationPersistence,
     Notification
@@ -35,7 +49,7 @@ class NotificationRepository extends BaseRepository<
             toIdString(doc.userId),
             doc.type,
             doc.message,
-            doc.payload ?? {},
+            normalizePayload(doc.payload),
             doc.createdAt,
             toIdString(doc._id),
         );

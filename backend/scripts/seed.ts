@@ -13,7 +13,6 @@ import { Auction } from "../src/modules/posts/entities/auction.entity";
 import { DirectTrade } from "../src/modules/posts/entities/direct-trade.entity";
 import { PostModel } from "../src/modules/posts/schemas/post.model";
 import { RatingModel } from "../src/modules/ratings/schemas/rating.model";
-import { Category } from "../src/modules/stickers/entities/category.entity";
 import { Sticker } from "../src/modules/stickers/entities/sticker.entity";
 import { User } from "../src/modules/users/entities/user.entity";
 import { UserRole } from "../src/modules/users/enums/user-role.enum";
@@ -476,7 +475,8 @@ function seedStickers(): Sticker[] {
         return new Sticker(
             item.number,
             player as Sticker["player"],
-            new Category(item.state, item.type),
+            item.state,
+            item.type,
             item.description ?? "",
         );
     });
@@ -487,8 +487,8 @@ function seedStickers(): Sticker[] {
 function toStickerPersistence(sticker: Sticker) {
     return {
         number: sticker.number,
-        state: sticker.category.state,
-        type: sticker.category.type,
+        state: sticker.state,
+        type: sticker.type,
         description: sticker.description ?? "",
         player: {
             name: sticker.player.name,

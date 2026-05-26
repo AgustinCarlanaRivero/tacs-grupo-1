@@ -10,7 +10,6 @@ import { DirectTrade } from "../../modules/posts/entities/direct-trade.entity";
 import postRepository from "../../modules/posts/repositories/post.repository";
 import ratingRepository from "../../modules/ratings/repositories/rating.repository";
 import RatingService from "../../modules/ratings/services/rating.service";
-import { Category } from "../../modules/stickers/entities/category.entity";
 import { Club } from "../../modules/stickers/entities/club.entity";
 import { NationalTeam } from "../../modules/stickers/entities/national-team.entity";
 import { Player } from "../../modules/stickers/entities/player.entity";
@@ -21,7 +20,7 @@ function createTestSticker(number: number) {
     const team = new NationalTeam("Argentina");
     const club = new Club("Club");
     const player = new Player(`Player ${number}`, team, club);
-    return new Sticker(number, player, new Category("NEW", "REGULAR"));
+    return new Sticker(number, player, "NEW", "REGULAR");
 }
 
 describe("notifications facade", () => {

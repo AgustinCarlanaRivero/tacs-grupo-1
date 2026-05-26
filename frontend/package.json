@@ -11,6 +11,7 @@
   "dependencies": {
     "@auth0/auth0-react": "^2.16.2",
     "@base-ui/react": "^1.4.1",
+    "@hookform/resolvers": "^5.4.0",
     "@reduxjs/toolkit": "^2.11.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -19,6 +20,7 @@
     "next": "16.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-hook-form": "^7.76.1",
     "react-redux": "^9.2.0",
     "shadcn": "^4.5.0",
     "tailwind-merge": "^3.5.0",

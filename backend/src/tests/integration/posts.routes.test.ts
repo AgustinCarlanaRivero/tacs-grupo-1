@@ -14,11 +14,11 @@ import { getTestApp, setMockUser } from "../helpers/build-app";
 import { buildDirectTrade, buildSticker, buildUser } from "../helpers/builders";
 import {
     buildCollectionRepoMock,
+    buildNotificationsFacadeMock,
     buildOfferRepoMock,
     buildPostRepoMock,
     buildStickerRepoMock,
     buildUserRepoMock,
-    buildNotificationsFacadeMock,
 } from "../helpers/repo-mocks";
 
 const mockPostRepo = buildPostRepoMock();
@@ -44,10 +44,13 @@ jest.mock("../../modules/stickers/repositories/sticker.repository", () => ({
     __esModule: true,
     default: mockStickerRepo,
 }));
-jest.mock("../../modules/collection/repositories/collection.repository", () => ({
-    __esModule: true,
-    default: mockCollectionRepo,
-}));
+jest.mock(
+    "../../modules/collection/repositories/collection.repository",
+    () => ({
+        __esModule: true,
+        default: mockCollectionRepo,
+    })
+);
 jest.mock("../../modules/notifications/services/notification.facade", () => ({
     __esModule: true,
     notifications: mockNotificationsFacade,
@@ -71,10 +74,10 @@ beforeEach(async () => {
 describe("Posts routes (integration)", () => {
     test("GET /posts returns paginated posts", async () => {
         await mockPostRepo.save(
-            buildDirectTrade("post-1", buildUser("owner-1"), 10),
+            buildDirectTrade("post-1", buildUser("owner-1"), 10)
         );
         await mockPostRepo.save(
-            buildDirectTrade("post-2", buildUser("owner-2"), 11),
+            buildDirectTrade("post-2", buildUser("owner-2"), 11)
         );
 
         const res = await request(app).get("/posts").expect(200);
@@ -85,10 +88,10 @@ describe("Posts routes (integration)", () => {
 
     test("GET /users/:userId/posts filters by owner", async () => {
         await mockPostRepo.save(
-            buildDirectTrade("post-1", buildUser("owner-1"), 10),
+            buildDirectTrade("post-1", buildUser("owner-1"), 10)
         );
         await mockPostRepo.save(
-            buildDirectTrade("post-2", buildUser("owner-2"), 11),
+            buildDirectTrade("post-2", buildUser("owner-2"), 11)
         );
 
         const res = await request(app).get("/users/owner-1/posts").expect(200);
@@ -99,7 +102,7 @@ describe("Posts routes (integration)", () => {
 
     test("GET /users/:userId/posts/:postId returns 404 on owner mismatch", async () => {
         await mockPostRepo.save(
-            buildDirectTrade("post-1", buildUser("owner-1"), 10),
+            buildDirectTrade("post-1", buildUser("owner-1"), 10)
         );
 
         const res = await request(app)
@@ -122,13 +125,13 @@ describe("Posts routes (integration)", () => {
         expect(res.body.id).toBeDefined();
         expect(res.body.type).toBe(PostType.DIRECT_TRADE);
         expect(res.body.sticker.number).toBe(42);
-        expect(mockPostRepo.store.size).toBe(1);
+        expect(postRepoMock.store.size).toBe(1);
     });
 
     test("PATCH /users/:userId/posts/:postId/state transitions to COMPLETED", async () => {
         setMockUser("owner-1", "STANDARD");
         await mockPostRepo.save(
-            buildDirectTrade("post-1", buildUser("owner-1"), 10),
+            buildDirectTrade("post-1", buildUser("owner-1"), 10)
         );
 
         const res = await request(app)
@@ -142,7 +145,7 @@ describe("Posts routes (integration)", () => {
     test("DELETE /users/:userId/posts/:postId removes post + cascades offers", async () => {
         setMockUser("owner-1", "STANDARD");
         await mockPostRepo.save(
-            buildDirectTrade("post-1", buildUser("owner-1"), 10),
+            buildDirectTrade("post-1", buildUser("owner-1"), 10)
         );
 
         await request(app).delete("/users/owner-1/posts/post-1").expect(204);

@@ -32,12 +32,12 @@ overrideSchemaPath(userModelSchema, "collection", collectionModelSchema);
 
 userModelSchema.index({ "collection.items.sticker.number": 1 });
 userModelSchema.index({ "collection.missingStickers.number": 1 });
-userModelSchema.index({ "collection.items.sticker.category.state": 1 });
-userModelSchema.index({ "collection.items.sticker.category.type": 1 });
+userModelSchema.index({ "collection.items.sticker.state": 1 });
+userModelSchema.index({ "collection.items.sticker.type": 1 });
 userModelSchema.index({ "collection.items.sticker.player.nationalTeam.name": 1 });
 userModelSchema.index({ "collection.items.sticker.player.club.name": 1 });
-userModelSchema.index({ "collection.missingStickers.category.state": 1 });
-userModelSchema.index({ "collection.missingStickers.category.type": 1 });
+userModelSchema.index({ "collection.missingStickers.state": 1 });
+userModelSchema.index({ "collection.missingStickers.type": 1 });
 userModelSchema.index({ "collection.missingStickers.player.nationalTeam.name": 1 });
 userModelSchema.index({ "collection.missingStickers.player.club.name": 1 });
 userModelSchema.index({ reputation: 1 });

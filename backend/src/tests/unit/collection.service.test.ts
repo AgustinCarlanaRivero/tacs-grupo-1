@@ -1,12 +1,68 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import type { CollectionItem } from "../../modules/collection/entities/collection-item.interface";
+import { Collection } from "../../modules/collection/entities/collection.entity";
 import collectionRepository from "../../modules/collection/repositories/collection.repository";
 import CollectionService from "../../modules/collection/services/collection.service";
-import { Category } from "../../modules/stickers/entities/category.entity";
 import { Club } from "../../modules/stickers/entities/club.entity";
 import { NationalTeam } from "../../modules/stickers/entities/national-team.entity";
 import { Player } from "../../modules/stickers/entities/player.entity";
 import { Sticker } from "../../modules/stickers/entities/sticker.entity";
 import StickerService from "../../modules/stickers/services/sticker.service";
+
+const mockCollectionsByUser = new Map<string, Collection>();
+
+const mockCreateCollection = (): Collection => new Collection();
+
+// Mock CollectionRepository
+jest.mock("../../modules/collection/repositories/collection.repository", () => ({
+    __esModule: true,
+    default: {
+        clear: jest.fn(async () => mockCollectionsByUser.clear()),
+        getCollection: jest.fn(
+            async (userId: string) => mockCollectionsByUser.get(userId) ?? null,
+        ),
+        addCollectionItem: jest.fn(
+            async (userId: string, item: CollectionItem) => {
+                const collection =
+                    mockCollectionsByUser.get(userId) ?? mockCreateCollection();
+                mockCollectionsByUser.set(userId, collection);
+                collection.addItem(item);
+                return collection;
+            },
+        ),
+        updateCollectionItemQuantity: jest.fn(
+            async (userId: string, stickerId: number, quantity: number) => {
+                const collection = mockCollectionsByUser.get(userId);
+                if (!collection) return null;
+                collection.updateItemQuantity(stickerId, quantity);
+                return collection;
+            },
+        ),
+        removeCollectionItem: jest.fn(
+            async (userId: string, stickerId: number) => {
+                const collection = mockCollectionsByUser.get(userId);
+                if (!collection) return null;
+                collection.removeItem(stickerId);
+                return collection;
+            },
+        ),
+        addMissingSticker: jest.fn(async (userId: string, sticker: Sticker) => {
+            const collection =
+                mockCollectionsByUser.get(userId) ?? mockCreateCollection();
+            mockCollectionsByUser.set(userId, collection);
+            collection.addMissing(sticker);
+            return collection;
+        }),
+        removeMissingSticker: jest.fn(
+            async (userId: string, stickerId: number) => {
+                const collection = mockCollectionsByUser.get(userId);
+                if (!collection) return null;
+                collection.removeMissing(stickerId);
+                return collection;
+            },
+        ),
+    },
+}));
 
 // Mock StickerService
 jest.mock("../../modules/stickers/services/sticker.service");
@@ -25,9 +81,26 @@ describe("CollectionService", () => {
         const nationalTeam = new NationalTeam("Argentina");
         const club = new Club("Boca Juniors");
         const player = new Player(playerName, nationalTeam, club);
-        const category = new Category("NEW", "REGULAR");
-        return new Sticker(id, player, category);
+        return new Sticker(id, player, "NEW", "REGULAR");
     };
+
+    const createAddItemPayload = (sticker: Sticker, quantity: number = 1) => ({
+        sticker: {
+            number: sticker.number,
+            player: {
+                name: sticker.player.name,
+                nationalTeam: sticker.player.nationalTeam
+                    ? { name: sticker.player.nationalTeam.name }
+                    : null,
+                club: sticker.player.club
+                    ? { name: sticker.player.club.name }
+                    : null,
+                image: sticker.player.image || null,
+            },
+            type: sticker.type,
+        },
+        quantity,
+    });
 
     describe("getCollection", () => {
         it("returns empty collection for user without collection", async () => {
@@ -53,20 +126,17 @@ describe("CollectionService", () => {
     describe("addCollectionItem", () => {
         it("adds item to new collection", async () => {
             const sticker = createTestSticker(1);
-            jest.mocked(
-                StickerService.getStickerByNumberOrFail,
-            ).mockResolvedValue(sticker);
 
-            const result = await CollectionService.addCollectionItem("user1", {
-                stickerId: 1,
-                quantity: 3,
-            });
+            const result = await CollectionService.addCollectionItem(
+                "user1",
+                createAddItemPayload(sticker, 3),
+            );
 
-            expect(result.stickerId).toBe(1);
+            expect(result.sticker.number).toBe(1);
             expect(result.quantity).toBe(3);
             expect(
                 StickerService.getStickerByNumberOrFail,
-            ).toHaveBeenCalledWith("1");
+            ).not.toHaveBeenCalled();
 
             const collection =
                 await collectionRepository.getCollection("user1");
@@ -80,30 +150,33 @@ describe("CollectionService", () => {
                 sticker: sticker1,
                 quantity: 1,
             });
-            jest.mocked(
-                StickerService.getStickerByNumberOrFail,
-            ).mockResolvedValue(sticker2);
 
-            await CollectionService.addCollectionItem("user1", {
-                stickerId: 2,
-                quantity: 2,
-            });
+            await CollectionService.addCollectionItem(
+                "user1",
+                createAddItemPayload(sticker2, 2),
+            );
 
             const collection =
                 await collectionRepository.getCollection("user1");
             expect(collection?.items).toHaveLength(2);
         });
 
-        it("throws error when sticker not found", async () => {
-            jest.mocked(
-                StickerService.getStickerByNumberOrFail,
-            ).mockRejectedValue(new Error("Sticker not found"));
+        it("persists received sticker data", async () => {
+            const sticker = createTestSticker(999, "Request Player");
+            sticker.type = "SHINY";
 
-            await expect(
-                CollectionService.addCollectionItem("user1", {
-                    stickerId: 999,
-                }),
-            ).rejects.toThrow("Sticker not found");
+            await CollectionService.addCollectionItem(
+                "user1",
+                createAddItemPayload(sticker),
+            );
+
+            const collection =
+                await collectionRepository.getCollection("user1");
+            expect(collection?.items[0].sticker.number).toBe(999);
+            expect(collection?.items[0].sticker.player.name).toBe(
+                "Request Player",
+            );
+            expect(collection?.items[0].sticker.type).toBe("SHINY");
         });
     });
 
@@ -190,30 +263,37 @@ describe("CollectionService", () => {
     describe("addMissingSticker", () => {
         it("adds sticker to missing list", async () => {
             const sticker = createTestSticker(1);
-            jest.mocked(
-                StickerService.getStickerByNumberOrFail,
-            ).mockResolvedValue(sticker);
 
             const result = await CollectionService.addMissingSticker(
                 "user1",
-                "1",
+                createAddItemPayload(sticker),
             );
 
-            expect(result.stickerId).toBe(1);
-            expect(result.sticker).toBe(sticker);
+            expect(result.number).toBe(1);
+            expect(
+                StickerService.getStickerByNumberOrFail,
+            ).not.toHaveBeenCalled();
             const collection =
                 await collectionRepository.getCollection("user1");
             expect(collection?.missingStickers).toHaveLength(1);
         });
 
-        it("throws error when sticker not found", async () => {
-            jest.mocked(
-                StickerService.getStickerByNumberOrFail,
-            ).mockRejectedValue(new Error("Sticker not found"));
+        it("persists received missing sticker data", async () => {
+            const sticker = createTestSticker(999, "Missing Player");
+            sticker.type = "SHINY";
 
-            await expect(
-                CollectionService.addMissingSticker("user1", "999"),
-            ).rejects.toThrow("Sticker not found");
+            await CollectionService.addMissingSticker(
+                "user1",
+                createAddItemPayload(sticker),
+            );
+
+            const collection =
+                await collectionRepository.getCollection("user1");
+            expect(collection?.missingStickers[0].number).toBe(999);
+            expect(collection?.missingStickers[0].player.name).toBe(
+                "Missing Player",
+            );
+            expect(collection?.missingStickers[0].type).toBe("SHINY");
         });
     });
 

@@ -3,7 +3,6 @@ import type { Post } from "../../modules/posts/entities/post.entity";
 import { PostType } from "../../modules/posts/enums/post-type.enum";
 import postRepository from "../../modules/posts/repositories/post.repository";
 import PostService from "../../modules/posts/services/post.service";
-import { Category } from "../../modules/stickers/entities/category.entity";
 import { Club } from "../../modules/stickers/entities/club.entity";
 import { NationalTeam } from "../../modules/stickers/entities/national-team.entity";
 import { Player } from "../../modules/stickers/entities/player.entity";
@@ -109,7 +108,7 @@ describe("PostService", () => {
         userRepository.save(owner);
 
         const player = new Player("P", new NationalTeam("NT"), new Club("C"));
-        const sticker = new Sticker(10, player, new Category("NEW", "REGULAR"));
+        const sticker = new Sticker(10, player, "NEW", "REGULAR");
         mockStickersById.set(sticker.number, sticker);
 
         const res = await PostService.createPost("owner", {
@@ -128,7 +127,7 @@ describe("PostService", () => {
         userRepository.save(owner);
 
         const player = new Player("P", new NationalTeam("NT"), new Club("C"));
-        const sticker = new Sticker(11, player, new Category("NEW", "REGULAR"));
+        const sticker = new Sticker(11, player, "NEW", "REGULAR");
         mockStickersById.set(sticker.number, sticker);
 
         const post = await (async () => {

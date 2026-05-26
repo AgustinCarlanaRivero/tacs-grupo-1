@@ -1,11 +1,12 @@
-import app from "./app/app";
 import "./config/env";
-import { connectMongo, disconnectMongo } from './infra/database/connection';
+import { connectMongo, disconnectMongo } from "./infra/database/connection";
 
 const URL = process.env.URL ?? "http://localhost:3000";
 const PORT = process.env.PORT ?? 3000;
 
 async function startServer() {
+    const { default: app } = await import("./app/app");
+
     await connectMongo();
 
     const server = app.listen(PORT, () => {
@@ -38,6 +39,6 @@ async function startServer() {
 }
 
 startServer().catch((error) => {
-  console.error("Failed to start backend", error);
-  process.exit(1);
+    console.error("Failed to start backend", error);
+    process.exit(1);
 });

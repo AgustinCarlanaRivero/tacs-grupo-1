@@ -7,7 +7,6 @@ import OfferService from "../../modules/offers/services/offer.service";
 import { DirectTrade } from "../../modules/posts/entities/direct-trade.entity";
 import type { Post } from "../../modules/posts/entities/post.entity";
 import postRepository from "../../modules/posts/repositories/post.repository";
-import { Category } from "../../modules/stickers/entities/category.entity";
 import { Club } from "../../modules/stickers/entities/club.entity";
 import { NationalTeam } from "../../modules/stickers/entities/national-team.entity";
 import { Player } from "../../modules/stickers/entities/player.entity";
@@ -125,7 +124,7 @@ describe("OfferService", () => {
         userRepository.save(offerer);
 
         const player = new Player("P", new NationalTeam("NT"), new Club("C"));
-        const sticker = new Sticker(21, player, new Category("NEW", "REGULAR"));
+        const sticker = new Sticker(21, player, "NEW", "REGULAR");
 
         const post = new DirectTrade(owner, sticker);
         post.setId("post1");

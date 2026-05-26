@@ -1,3 +1,4 @@
+import type { z } from "zod";
 import {
     BadRequestError,
     NotFoundError,
@@ -6,6 +7,27 @@ import StickerService from "../../stickers/services/sticker.service";
 import { CollectionItem } from "../entities/collection-item.interface";
 import { Collection } from "../entities/collection.entity";
 import collectionRepository from "../repositories/collection.repository";
+import {
+    collectionItemAddRequestSchema,
+    missingStickerAddRequestSchema,
+} from "../schemas/collection.schemas";
+
+type AddCollectionItemData = z.infer<typeof collectionItemAddRequestSchema>;
+type AddMissingStickerData = z.infer<typeof missingStickerAddRequestSchema>;
+
+const buildCollectionSticker = (
+    sticker: AddCollectionItemData["sticker"]
+): CollectionItem["sticker"] =>
+    ({
+        number: sticker.number,
+        player: {
+            ...sticker.player,
+            image: sticker.player.image ?? "",
+        },
+        state: "NEW",
+        type: sticker.type,
+        description: "",
+    } as CollectionItem["sticker"]);
 
 export default class CollectionService {
     /**
@@ -23,29 +45,24 @@ export default class CollectionService {
      */
     static async addCollectionItem(
         userId: string,
-        itemData: { stickerId: number; quantity?: number },
+        itemData: AddCollectionItemData
     ) {
-        const { stickerId, quantity = 1 } = itemData;
-
-        // Validar que el sticker exista
-        const sticker = await StickerService.getStickerByNumberOrFail(
-            String(stickerId),
-        );
+        const { sticker, quantity = 1 } = itemData;
 
         const newItem: CollectionItem = {
-            sticker,
+            sticker: buildCollectionSticker(sticker),
             quantity,
         };
 
         const collection = await collectionRepository.addCollectionItem(
             userId,
-            newItem,
+            newItem
         );
         if (!collection) {
             throw new NotFoundError(`User ${userId} not found`);
         }
 
-        return { stickerId, quantity };
+        return newItem;
     }
 
     /**
@@ -55,7 +72,7 @@ export default class CollectionService {
     static async updateCollectionItemQuantity(
         userId: string,
         stickerId: string,
-        quantity: number,
+        quantity: number
     ) {
         if (quantity < 0) {
             throw new BadRequestError("Quantity cannot be negative");
@@ -69,11 +86,11 @@ export default class CollectionService {
             await collectionRepository.updateCollectionItemQuantity(
                 userId,
                 id,
-                quantity,
+                quantity
             );
         if (!collection) {
             throw new NotFoundError(
-                `User ${userId} not found or collection not initialized`,
+                `User ${userId} not found or collection not initialized`
             );
         }
 
@@ -91,11 +108,11 @@ export default class CollectionService {
 
         const collection = await collectionRepository.removeCollectionItem(
             userId,
-            id,
+            id
         );
         if (!collection) {
             throw new NotFoundError(
-                `User ${userId} not found or collection not initialized`,
+                `User ${userId} not found or collection not initialized`
             );
         }
     }
@@ -104,21 +121,21 @@ export default class CollectionService {
      * POST /users/:userId/collection/missing
      * Agregar un Sticker a la lista de faltantes
      */
-    static async addMissingSticker(userId: string, stickerId: string) {
-        const id = parseInt(stickerId, 10);
-        // Validar que el sticker exista
-        const sticker =
-            await StickerService.getStickerByNumberOrFail(stickerId);
+    static async addMissingSticker(
+        userId: string,
+        itemData: AddMissingStickerData
+    ) {
+        const sticker = buildCollectionSticker(itemData.sticker);
 
         const collection = await collectionRepository.addMissingSticker(
             userId,
-            sticker,
+            sticker
         );
         if (!collection) {
             throw new NotFoundError(`User ${userId} not found`);
         }
 
-        return { stickerId: id, sticker };
+        return sticker;
     }
 
     /**
@@ -132,11 +149,11 @@ export default class CollectionService {
 
         const collection = await collectionRepository.removeMissingSticker(
             userId,
-            id,
+            id
         );
         if (!collection) {
             throw new NotFoundError(
-                `User ${userId} not found or collection not initialized`,
+                `User ${userId} not found or collection not initialized`
             );
         }
     }

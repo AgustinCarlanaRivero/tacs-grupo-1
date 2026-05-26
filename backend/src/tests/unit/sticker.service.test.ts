@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Category } from "../../modules/stickers/entities/category.entity";
 import { Club } from "../../modules/stickers/entities/club.entity";
 import { NationalTeam } from "../../modules/stickers/entities/national-team.entity";
 import { Player } from "../../modules/stickers/entities/player.entity";
@@ -70,13 +69,9 @@ describe("StickerService", () => {
         const messi = new Player("Lionel Messi", argentina, boca);
         const neymar = new Player("Neymar", brazil, flamengo);
 
-        const sticker1 = new Sticker(1, messi, new Category("NEW", "REGULAR"));
-        const sticker2 = new Sticker(2, neymar, new Category("NEW", "SHINY"));
-        const sticker3 = new Sticker(
-            3,
-            messi,
-            new Category("DAMAGED", "REGULAR"),
-        );
+        const sticker1 = new Sticker(1, messi, "NEW", "REGULAR");
+        const sticker2 = new Sticker(2, neymar, "NEW", "SHINY");
+        const sticker3 = new Sticker(3, messi, "DAMAGED", "REGULAR");
 
         mockStickersById.set(sticker1.number, sticker1);
         mockStickersById.set(sticker2.number, sticker2);

@@ -1,29 +1,59 @@
-import { z } from "zod"
-import { stickerResponseSchema } from "../../stickers/schemas/sticker.schemas"
-import { nonNegativeInt, positiveInt } from "../../../shared/validation/common"
+import { z } from "zod";
+import {
+    nonEmptyString,
+    nonNegativeInt,
+    positiveInt,
+} from "../../../shared/validation/common";
+import {
+    stickerResponseSchema,
+    stickerTypeEnum,
+} from "../../stickers/schemas/sticker.schemas";
+
+const collectionItemAddStickerSchema = z
+    .object({
+        number: positiveInt,
+        player: z.object({
+            name: nonEmptyString,
+            nationalTeam: z.object({ name: nonEmptyString }).nullable(),
+            club: z.object({ name: nonEmptyString }).nullable(),
+            image: z.string().nullable(),
+        }),
+        type: stickerTypeEnum,
+    })
+    .meta({ id: "CollectionItemAddSticker" });
 
 /** POST /users/:userId/collection/items */
-export const collectionItemAddRequestSchema = z.object({
-    stickerId: positiveInt,
-    quantity: positiveInt.default(1),
-}).meta({ id: "CollectionItemAddRequest" })
+export const collectionItemAddRequestSchema = z
+    .object({
+        sticker: collectionItemAddStickerSchema,
+        quantity: positiveInt.default(1),
+    })
+    .meta({ id: "CollectionItemAddRequest" });
 
 /** PATCH /users/:userId/collection/items/:stickerId */
-export const collectionItemUpdateQuantityRequestSchema = z.object({
-    quantity: nonNegativeInt,
-}).meta({ id: "CollectionItemUpdateQuantityRequest" })
+export const collectionItemUpdateQuantityRequestSchema = z
+    .object({
+        quantity: nonNegativeInt,
+    })
+    .meta({ id: "CollectionItemUpdateQuantityRequest" });
 
 /** POST /users/:userId/collection/missing */
-export const missingStickerAddRequestSchema = z.object({
-    stickerId: positiveInt,
-}).meta({ id: "MissingStickerAddRequest" })
+export const missingStickerAddRequestSchema = z
+    .object({
+        sticker: collectionItemAddStickerSchema,
+    })
+    .meta({ id: "MissingStickerAddRequest" });
 
-export const collectionItemResponseSchema = z.object({
-    sticker: stickerResponseSchema,
-    quantity: nonNegativeInt,
-}).meta({ id: "CollectionItem" })
+export const collectionItemResponseSchema = z
+    .object({
+        sticker: stickerResponseSchema,
+        quantity: nonNegativeInt,
+    })
+    .meta({ id: "CollectionItem" });
 
-export const collectionResponseSchema = z.object({
-    items: z.array(collectionItemResponseSchema),
-    missingStickers: z.array(stickerResponseSchema),
-}).meta({ id: "Collection" })
+export const collectionResponseSchema = z
+    .object({
+        items: z.array(collectionItemResponseSchema),
+        missingStickers: z.array(stickerResponseSchema),
+    })
+    .meta({ id: "Collection" });

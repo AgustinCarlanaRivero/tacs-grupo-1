@@ -73,8 +73,11 @@ function buildPostQueryFilter(filters: PostListFilters) {
 function toStickerResponse(sticker: Sticker) {
     return stickerResponseSchema.parse({
         number: sticker.number,
-        state: sticker.category.state,
-        type: sticker.category.type,
+        title:
+            sticker.getDisplayName?.() ??
+            `#${sticker.number} ${sticker.player.name}`,
+        state: sticker.state,
+        type: sticker.type,
         description: sticker.description ?? "",
         player: {
             name: sticker.player.name,
@@ -118,7 +121,7 @@ export default class PostService {
         const repo = postRepository as typeof postRepository & {
             paginate?: (
                 filter: Record<string, unknown>,
-                options: { page: number; limit: number },
+                options: { page: number; limit: number }
             ) => Promise<{
                 data: Post[];
                 total: number;
@@ -152,7 +155,7 @@ export default class PostService {
         }
 
         const sticker = await StickerService.getStickerByNumberOrFail(
-            String(body.stickerId),
+            String(body.stickerId)
         );
         let post: Post;
 
@@ -173,7 +176,7 @@ export default class PostService {
             const minimumRequirement = body.minimumRequirement ?? 1;
             if (minimumRequirement < 1) {
                 throw new BadRequestError(
-                    "minimumRequirement debe ser mayor o igual a 1",
+                    "minimumRequirement debe ser mayor o igual a 1"
                 );
             }
 
@@ -181,7 +184,7 @@ export default class PostService {
                 owner,
                 sticker,
                 endsAt,
-                minimumRequirement,
+                minimumRequirement
             );
         } else {
             post = TradeService.createTrade(owner, sticker);
@@ -204,7 +207,7 @@ export default class PostService {
     static async updatePostState(
         ownerId: string,
         postId: string,
-        state: PostState,
+        state: PostState
     ) {
         const post = await postRepository.findById(postId);
         if (!post || post.owner.id !== ownerId) {
@@ -230,7 +233,7 @@ export default class PostService {
         const repo = postRepository as typeof postRepository & {
             paginate?: (
                 filter: Record<string, unknown>,
-                options: { page: number; limit: number },
+                options: { page: number; limit: number }
             ) => Promise<{
                 data: Post[];
                 total: number;
@@ -261,7 +264,7 @@ export default class PostService {
     private static async notifyMissingUsers(
         sticker: Sticker,
         postId: string,
-        ownerId: string,
+        ownerId: string
     ) {
         const repo = userRepository as typeof userRepository & {
             findMany?: (filter: Record<string, unknown>) => Promise<User[]>;
@@ -278,7 +281,7 @@ export default class PostService {
             users.map(async (user) => {
                 if (user.id === ownerId) return;
                 const collection = await collectionRepository.getCollection(
-                    user.id,
+                    user.id
                 );
                 if (collection && collection.isMissing(sticker.number)) {
                     await notifications.stickerAvailable(user.id, {
@@ -286,7 +289,7 @@ export default class PostService {
                         postId,
                     });
                 }
-            }),
+            })
         );
     }
 

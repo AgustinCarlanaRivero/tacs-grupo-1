@@ -1,40 +1,43 @@
-import { Category } from "./category.entity";
+import type { StickerState, StickerType } from "./category.entity";
 import { Player } from "./player.entity";
 
 export class Sticker {
     number: number;
     player: Player;
-    category: Category;
+    state: StickerState;
+    type: StickerType;
     description: string;
 
     constructor(
         number: number,
         player: Player,
-        category: Category = new Category("NEW", "REGULAR"),
+        state: StickerState = "NEW",
+        type: StickerType = "REGULAR",
         description: string = "",
     ) {
         this.number = number;
         this.player = player;
-        this.category = category;
+        this.state = state;
+        this.type = type;
         this.description = description;
     }
 
     // --- MÉTODOS DE VALIDACIÓN/DOMINIO ---
 
     public isShinySticker(): boolean {
-        return this.category.type === "SHINY";
+        return this.type === "SHINY";
     }
 
     public isRegularSticker(): boolean {
-        return this.category.type === "REGULAR";
+        return this.type === "REGULAR";
     }
 
     public isNewSticker(): boolean {
-        return this.category.state === "NEW";
+        return this.state === "NEW";
     }
 
     public isDamagedSticker(): boolean {
-        return this.category.state === "DAMAGED";
+        return this.state === "DAMAGED";
     }
 
     public playsForNationalTeam(teamName: string): boolean {
@@ -54,12 +57,12 @@ export class Sticker {
 
     public matchesState(state: string | undefined): boolean {
         if (!state) return true;
-        return this.category.state === state;
+        return this.state === state;
     }
 
     public matchesType(type: string | undefined): boolean {
         if (!type) return true;
-        return this.category.type === type;
+        return this.type === type;
     }
 
     public matchesTeam(teamName: string | undefined): boolean {

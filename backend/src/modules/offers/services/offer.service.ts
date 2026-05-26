@@ -1,8 +1,8 @@
+import { createObjectIdString } from "../../../infra/database/schema-helpers";
 import {
     BadRequestError,
     NotFoundError,
 } from "../../../shared/errors/http-errors";
-import { createObjectIdString } from "../../../infra/database/schema-helpers";
 import {
     getStickerSearchValues,
     matchesAnyQuery,
@@ -47,7 +47,7 @@ function getOffererId(offer: Offer): string | undefined {
 function matchesOfferRole(
     offer: OfferReadModel,
     userId: string,
-    role: OfferRole,
+    role: OfferRole
 ): boolean {
     const isSent = getOffererId(offer) === userId;
     const isReceived = offer.postOwnerId === userId;
@@ -61,7 +61,7 @@ function matchesOfferQuery(offer: Offer, query?: string): boolean {
     if (!query) return true;
     const offeredItems = offer.offered ?? [];
     return offeredItems.some((item) =>
-        matchesAnyQuery(getStickerSearchValues(item?.sticker), query),
+        matchesAnyQuery(getStickerSearchValues(item?.sticker), query)
     );
 }
 
@@ -94,8 +94,11 @@ async function loadPostForOffers(postId: string): Promise<Post | null> {
 function toStickerResponse(sticker: Sticker) {
     return stickerResponseSchema.parse({
         number: sticker.number,
-        state: sticker.category.state,
-        type: sticker.category.type,
+        title:
+            sticker.getDisplayName?.() ??
+            `#${sticker.number} ${sticker.player.name}`,
+        state: sticker.state,
+        type: sticker.type,
         description: sticker.description ?? "",
         player: {
             name: sticker.player.name,
@@ -134,7 +137,7 @@ export default class OfferService {
         const repo = offerRepository as typeof offerRepository & {
             paginate?: (
                 filter: Record<string, unknown>,
-                options: { page: number; limit: number },
+                options: { page: number; limit: number }
             ) => Promise<{
                 data: OfferReadModel[];
                 total: number;
@@ -148,15 +151,12 @@ export default class OfferService {
                 filters.role === "sent"
                     ? { offererId: userId }
                     : filters.role === "received"
-                      ? { postOwnerId: userId }
-                      : {
-                            $or: [
-                                { offererId: userId },
-                                { postOwnerId: userId },
-                            ],
-                        };
+                    ? { postOwnerId: userId }
+                    : {
+                          $or: [{ offererId: userId }, { postOwnerId: userId }],
+                      };
             const queryFilter = buildOfferQueryFilter(
-                normalizedQuery ?? undefined,
+                normalizedQuery ?? undefined
             );
             const filter = queryFilter
                 ? { $and: [roleFilter, queryFilter] }
@@ -186,7 +186,7 @@ export default class OfferService {
     static async getOffersByPost(
         postOwnerId: string,
         postId: string,
-        filters: OfferListFilters,
+        filters: OfferListFilters
     ) {
         const post = await postRepository.findById(postId);
         if (!post || post.owner.id !== postOwnerId) {
@@ -197,7 +197,7 @@ export default class OfferService {
         const repo = offerRepository as typeof offerRepository & {
             paginate?: (
                 filter: Record<string, unknown>,
-                options: { page: number; limit: number },
+                options: { page: number; limit: number }
             ) => Promise<{
                 data: OfferReadModel[];
                 total: number;
@@ -212,7 +212,7 @@ export default class OfferService {
                 postOwnerId,
             };
             const queryFilter = buildOfferQueryFilter(
-                normalizedQuery ?? undefined,
+                normalizedQuery ?? undefined
             );
             const filter = queryFilter
                 ? { $and: [baseFilter, queryFilter] }
@@ -243,7 +243,7 @@ export default class OfferService {
         postOwnerId: string,
         postId: string,
         offererId: string,
-        body: OfferCreatePayload,
+        body: OfferCreatePayload
     ) {
         const post = await loadPostForOffers(postId);
         if (!post || post.owner.id !== postOwnerId) {
@@ -269,20 +269,20 @@ export default class OfferService {
             const existing = collection.getItemByStickerId(item.stickerId);
             if (!existing) {
                 throw new BadRequestError(
-                    "El usuario no posee la figurita ofrecida",
+                    "El usuario no posee la figurita ofrecida"
                 );
             }
 
             const quantity = item.quantity ?? 1;
             if (quantity <= 0) {
                 throw new BadRequestError(
-                    "La cantidad ofrecida debe ser positiva",
+                    "La cantidad ofrecida debe ser positiva"
                 );
             }
 
             if (quantity > existing.quantity) {
                 throw new BadRequestError(
-                    "Cantidad ofrecida supera la disponible en coleccion",
+                    "Cantidad ofrecida supera la disponible en coleccion"
                 );
             }
 
@@ -316,7 +316,7 @@ export default class OfferService {
         postId: string,
         offerId: string,
         state: OfferState,
-        actorId: string,
+        actorId: string
     ) {
         const post = await loadPostForOffers(postId);
         if (!post || post.owner.id !== postOwnerId) {
@@ -363,4 +363,3 @@ export default class OfferService {
         return toOfferResponse(stored);
     }
 }
-

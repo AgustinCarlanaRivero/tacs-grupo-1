@@ -8,7 +8,6 @@ import { DirectTrade } from "../../modules/posts/entities/direct-trade.entity";
 import { Auction } from "../../modules/posts/entities/auction.entity";
 import type { Post } from "../../modules/posts/entities/post.entity";
 import { Rating } from "../../modules/ratings/entities/rating.entity";
-import { Category } from "../../modules/stickers/entities/category.entity";
 import { Club } from "../../modules/stickers/entities/club.entity";
 import { NationalTeam } from "../../modules/stickers/entities/national-team.entity";
 import { Player } from "../../modules/stickers/entities/player.entity";
@@ -60,7 +59,8 @@ export const buildSticker = (
     return new Sticker(
         number,
         player,
-        new Category(overrides.state ?? "NEW", overrides.type ?? "REGULAR"),
+        overrides.state ?? "NEW",
+        overrides.type ?? "REGULAR",
     );
 };
 

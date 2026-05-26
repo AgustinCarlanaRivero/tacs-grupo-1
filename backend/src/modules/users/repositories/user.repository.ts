@@ -1,4 +1,4 @@
-import type { FilterQuery, HydratedDocument } from "mongoose";
+import type { FilterQuery, HydratedDocument, PipelineStage } from "mongoose";
 import { BaseRepository } from "../../../infra/database/base.repository";
 import {
     createObjectIdString,
@@ -45,10 +45,10 @@ const buildStickerFilter = (
     const filter: Record<string, unknown> = {};
 
     if (filters.state) {
-        filter["category.state"] = filters.state;
+        filter.state = filters.state;
     }
     if (filters.type) {
-        filter["category.type"] = filters.type;
+        filter.type = filters.type;
     }
     if (filters.team) {
         filter["player.nationalTeam.name"] = filters.team;
@@ -180,14 +180,16 @@ class UserRepository extends BaseRepository<UserPersistence, User> {
         const stickerFilter = buildStickerFilter(filters);
         const hasFilters = Object.keys(stickerFilter).length > 0;
 
-        const pipeline: any[] = [];
+        const pipeline: PipelineStage[] = [];
 
         if (hasFilters) {
-            const itemMatch: Record<string, any> = {};
+            const itemMatch: Record<string, unknown> = {};
             for (const [key, value] of Object.entries(stickerFilter)) {
                 if (key === "$or") {
-                    itemMatch.$or = (value as any[]).map((cond) => {
-                        const newCond: any = {};
+                    itemMatch.$or = (
+                        value as Record<string, unknown>[]
+                    ).map((cond) => {
+                        const newCond: Record<string, unknown> = {};
                         for (const [k, v] of Object.entries(cond)) {
                             newCond[`sticker.${k}`] = v;
                         }
@@ -232,9 +234,21 @@ class UserRepository extends BaseRepository<UserPersistence, User> {
         pipeline.push({ $unwind: "$allStickers" });
 
         if (hasFilters) {
-            const finalMatch: Record<string, any> = {};
+            const finalMatch: Record<string, unknown> = {};
             for (const [key, value] of Object.entries(stickerFilter)) {
-                finalMatch[`allStickers.${key}`] = value;
+                if (key === "$or") {
+                    finalMatch.$or = (
+                        value as Record<string, unknown>[]
+                    ).map((cond) => {
+                        const newCond: Record<string, unknown> = {};
+                        for (const [k, v] of Object.entries(cond)) {
+                            newCond[`allStickers.${k}`] = v;
+                        }
+                        return newCond;
+                    });
+                } else {
+                    finalMatch[`allStickers.${key}`] = value;
+                }
             }
             pipeline.push({ $match: finalMatch });
         }
