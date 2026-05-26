@@ -88,6 +88,24 @@ export default class PostController {
         return res.status(200).json(updated);
     };
 
+    deletePost = async (req: Request, res: Response) => {
+        const { userId: ownerId, postId } = req.params as UserPostParams;
+        const authUserId = getAuthUserId(req);
+
+        if (!authUserId) {
+            throw new UnauthorizedError();
+        }
+
+        if (ownerId !== authUserId) {
+            throw new ForbiddenError(
+                "No autorizado para eliminar publicaciones de otro usuario",
+            );
+        }
+
+        await PostService.deletePost(ownerId, postId);
+        return res.status(204).send();
+    };
+
     listPostsByOwner = async (req: Request, res: Response) => {
         const { userId } = req.params as UserParams;
         const { type, state, query, page, limit } =

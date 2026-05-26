@@ -2,24 +2,35 @@
 
 import React, { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
 import { Bell, Check, Circle } from "lucide-react";
-import { mockNotifications } from "@/data/mock-notifications";
 import { useClickOutside } from "@/hooks/useClickOutside";
-import type { MockNotification } from "@/data/types";
+import { useAuth } from "@/hooks/useAuth";
+import { useNotificationStream } from "@/hooks/useNotificationStream";
+import {
+  notificationApi,
+  notificationLinkFor,
+  useGetUnreadCountQuery,
+  useGetUserNotificationsQuery,
+  useMarkAllReadMutation,
+  useMarkNotificationReadMutation,
+  type NotificationDTO,
+} from "@/store/api/notificationApi";
 
 interface NotificationRowProps {
-  notif: MockNotification;
+  notif: NotificationDTO;
   onMarkRead: (id: string) => void;
-  onNavigate: (notif: MockNotification) => void;
+  onNavigate: (notif: NotificationDTO) => void;
 }
 
 function NotificationRow({ notif, onMarkRead, onNavigate }: NotificationRowProps) {
+  const link = notificationLinkFor(notif.type, notif.payload);
   return (
     <div
-      onClick={() => notif.link && onNavigate(notif)}
+      onClick={() => link && onNavigate(notif)}
       className={`flex items-start gap-3 p-4 border-b border-slate-50 transition-colors last:border-none ${
         notif.read ? "bg-white" : "bg-blue-50/50"
-      } ${notif.link ? "cursor-pointer hover:bg-slate-50" : ""}`}
+      } ${link ? "cursor-pointer hover:bg-slate-50" : ""}`}
     >
       <div className="mt-0.5">
         {notif.read ? (
@@ -58,29 +69,44 @@ function NotificationRow({ notif, onMarkRead, onNavigate }: NotificationRowProps
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<MockNotification[]>(mockNotifications);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
+  const dispatch = useDispatch();
+  const { user } = useAuth();
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const { data: notifications = [], isLoading } = useGetUserNotificationsQuery(
+    user?.id ?? "",
+    { skip: !user?.id }
+  );
+  const { data: unreadCountData } = useGetUnreadCountQuery(undefined, {
+    skip: !user?.id,
+  });
+  const [markRead] = useMarkNotificationReadMutation();
+  const [markAllRead] = useMarkAllReadMutation();
+
+  const unreadCount = unreadCountData?.count ?? 0;
+
+  const handleStreamEvent = useCallback(() => {
+    dispatch(notificationApi.util.invalidateTags(["Notifications"]));
+  }, [dispatch]);
+  useNotificationStream(user?.id, handleStreamEvent);
 
   const close = useCallback(() => setIsOpen(false), []);
   useClickOutside(dropdownRef, close);
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const handleMarkRead = (id: string) => {
+    markRead(id);
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const handleMarkAllRead = () => {
+    markAllRead();
   };
 
-  const handleNavigate = (notif: MockNotification) => {
-    markAsRead(notif.id);
+  const handleNavigate = (notif: NotificationDTO) => {
+    if (!notif.read) markRead(notif.id);
     setIsOpen(false);
-    if (notif.link) router.push(notif.link);
+    const link = notificationLinkFor(notif.type, notif.payload);
+    if (link) router.push(link);
   };
 
   return (
@@ -101,7 +127,7 @@ export default function NotificationBell() {
             <h3 className="font-bold text-slate-800 text-sm">Notificaciones</h3>
             {unreadCount > 0 && (
               <button
-                onClick={markAllAsRead}
+                onClick={handleMarkAllRead}
                 className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
               >
                 Marcar leídas
@@ -110,7 +136,11 @@ export default function NotificationBell() {
           </div>
 
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
+            {isLoading ? (
+              <div className="p-4 text-center text-sm text-slate-500">
+                Cargando...
+              </div>
+            ) : notifications.length === 0 ? (
               <div className="p-4 text-center text-sm text-slate-500">
                 No tenés notificaciones.
               </div>
@@ -120,7 +150,7 @@ export default function NotificationBell() {
                   <NotificationRow
                     key={notif.id}
                     notif={notif}
-                    onMarkRead={markAsRead}
+                    onMarkRead={handleMarkRead}
                     onNavigate={handleNavigate}
                   />
                 ))}

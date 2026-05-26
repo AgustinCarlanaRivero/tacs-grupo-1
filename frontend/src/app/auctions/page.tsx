@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
 import SearchBar from "@/components/common/SearchBar";
@@ -12,7 +12,10 @@ import { useSearch } from "@/hooks/useSearch";
 import { useAuth } from "@/hooks/useAuth";
 import { mockStickers } from "@/data/mock-stickers";
 
-import { useGetUserAuctionsQuery } from "@/store/api/postApi";
+import {
+  useCreatePostMutation,
+  useGetUserAuctionsQuery,
+} from "@/store/api/postApi";
 import RequireAuth from "@/components/layout/RequireAuth";
 import type { MockAuction, MockCollectionItem } from "@/data/types";
 
@@ -22,31 +25,30 @@ const myCollection: MockCollectionItem[] = mockStickers.filter(
   (item) => item.quantity > 0
 );
 
-const getSearchFields = ({ sticker }: MockAuction) => [
-  sticker.player.name,
-  sticker.player.nationalTeam?.name,
-  sticker.player.club?.name,
-];
-
 function AuctionsContent() {
   const { isAuthenticated, user } = useAuth();
   const [tab, setTab] = useState<AuctionTabKey>("market");
   const [selectedAuction, setSelectedAuction] = useState<MockAuction | null>(null);
   const [showCreateAuction, setShowCreateAuction] = useState(false);
-  const [allAuctions, setAllAuctions] = useState<MockAuction[]>([]);
+  const [cancelledAuctionIds, setCancelledAuctionIds] = useState<number[]>([]);
+  const [createPost] = useCreatePostMutation();
   const { data: auctions = [] } = useGetUserAuctionsQuery(user?.id ?? "", {
     skip: !user?.id,
   });
-
-  useEffect(() => {
-    if (auctions.length > 0 && allAuctions.length === 0) {
-      setAllAuctions(auctions as unknown as MockAuction[]);
-    }
-  }, [auctions, allAuctions.length]);
+  const allAuctions = (auctions as unknown as MockAuction[]).filter(
+    (auction) => !cancelledAuctionIds.includes(auction.id)
+  );
 
   const { query, setQuery, filtered } = useSearch<MockAuction>(
     allAuctions,
-    useCallback(getSearchFields, [])
+    useCallback(
+      ({ sticker }: MockAuction) => [
+        sticker.player.name,
+        sticker.player.nationalTeam?.name,
+        sticker.player.club?.name,
+      ],
+      []
+    )
   );
 
   const marketAuctions = filtered.filter((a) => a.owner.id !== user?.id);
@@ -57,7 +59,7 @@ function AuctionsContent() {
     if (
       window.confirm(`¿Cancelar la subasta de ${auction.sticker.player.name}?`)
     ) {
-      setAllAuctions((prev) => prev.filter((a) => a.id !== auction.id));
+      setCancelledAuctionIds((prev) => [...prev, auction.id]);
     }
   }
 
@@ -139,13 +141,16 @@ function AuctionsContent() {
         <CreateAuctionModal
           myCollection={myCollection}
           onClose={() => setShowCreateAuction(false)}
-          onSubmit={({ sticker, requirements, durationHours }) => {
-            console.log("Crear subasta pendiente de endpoint", {
-              sticker,
-              requirements,
-              durationHours,
-            });
-            setShowCreateAuction(false);
+          onSubmit={async (post) => {
+            if (!user?.id) return;
+
+            try {
+              await createPost({ userId: user.id, post }).unwrap();
+              setShowCreateAuction(false);
+            } catch (error) {
+              console.error("No se pudo crear la subasta", error);
+              alert("No se pudo publicar la subasta. Intentá nuevamente.");
+            }
           }}
         />
       )}

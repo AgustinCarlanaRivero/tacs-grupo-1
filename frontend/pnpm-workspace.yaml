@@ -1,0 +1,12 @@
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver
+ignoredBuiltDependencies:
+  - browser-tabs-lock
+  - msw
+allowBuilds:
+  browser-tabs-lock: false
+  cypress: true
+  msw: false
+  sharp: true
+  unrs-resolver: true

@@ -1,6 +1,5 @@
 import { z } from "zod"
 import {
-    isoDateTime,
     nonEmptyString,
     paginatedResponseSchema,
     paginationQuerySchema,
@@ -24,7 +23,7 @@ export const ratingResponseSchema = z.object({
     revieweeId: nonEmptyString,
     score: z.number().int().min(1).max(5),
     comment: z.string(),
-    createdAt: isoDateTime,
+    createdAt: z.date(),
 }).meta({ id: "Rating" })
 
 export const ratingsResponseSchema = paginatedResponseSchema(ratingResponseSchema).meta({ id: "Ratings" })

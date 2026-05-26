@@ -6,5 +6,6 @@ module.exports = {
     transform: {
         "^.+\\.ts$": ["babel-jest", { configFile: "./babel.config.cjs" }],
     },
+    setupFilesAfterEnv: ["<rootDir>/src/tests/setup-tests.ts"],
     clearMocks: true,
-}
+};

@@ -1,6 +1,7 @@
 import { User } from "../../users/entities/user.entity";
 import { UserRole } from "../../users/enums/user-role.enum";
 import userRepository from "../../users/repositories/user.repository";
+import { createObjectIdString } from "../../../infra/database/schema-helpers";
 
 interface Auth0Profile {
     email?: string;
@@ -20,7 +21,7 @@ export default class AuthService {
         auth0Sub: string,
         profile: Auth0Profile,
     ): Promise<User> {
-        const existing = userRepository.findByAuth0Sub(auth0Sub);
+        const existing = await userRepository.findByAuth0Sub(auth0Sub);
         if (existing) return existing;
 
         const name = profile.name?.split(" ") ?? [];
@@ -32,7 +33,7 @@ export default class AuthService {
             UserRole.STANDARD,
             0,
             null,
-            crypto.randomUUID(),
+            createObjectIdString(),
         );
         user.auth0Sub = auth0Sub;
 
@@ -42,7 +43,8 @@ export default class AuthService {
     /**
      * Devuelve el usuario actual autenticado por su id interno.
      */
-    static async getCurrentUser(userId: string): Promise<User | undefined> {
+    static async getCurrentUser(userId: string): Promise<User | null> {
         return userRepository.findById(userId);
     }
 }
+

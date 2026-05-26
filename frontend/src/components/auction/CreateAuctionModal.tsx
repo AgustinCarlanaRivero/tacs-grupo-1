@@ -1,13 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import { Check, Plus, Minus, Trash2, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  useForm,
+  type Resolver,
+  type UseFormRegister,
+} from "react-hook-form";
 import ModalShell from "@/components/common/ModalShell";
 import StickerSearchInput from "@/components/common/StickerSearchInput";
 import SelectableStickerOption from "@/components/sticker/SelectableStickerOption";
-import StickerFace from "@/components/sticker/StickerFace";
 import { filterStickers } from "@/lib/utils";
 import type { MockCollectionItem, MockSticker } from "@/data/types";
+import {
+  auctionPostCreateRequestSchema,
+  type PostCreateRequest,
+} from "@/lib/schemas/postSchema";
 
 const DURATIONS: Array<{ label: string; hours: number }> = [
   { label: "1 hora", hours: 1 },
@@ -16,17 +25,16 @@ const DURATIONS: Array<{ label: string; hours: number }> = [
   { label: "48 horas", hours: 48 },
 ];
 
-const STEP_LABELS = ["Figurita", "Requisitos", "Duración"];
+const STEP_LABELS = ["Figurita", "Mínimo", "Duración"];
 
-interface Requirement {
-  sticker: MockSticker;
-  quantity: number;
-}
+type AuctionFormValues = Extract<PostCreateRequest, { type: "AUCTION" }>;
 
-export interface CreateAuctionSubmit {
-  sticker: MockSticker | null;
-  requirements: Requirement[];
-  durationHours: number;
+const auctionFormResolver = zodResolver(
+  auctionPostCreateRequestSchema as never
+) as Resolver<AuctionFormValues>;
+
+function getEndsAtIso(durationHours: number) {
+  return new Date(Date.now() + durationHours * 60 * 60 * 1000).toISOString();
 }
 
 interface StepStickerProps {
@@ -66,130 +74,32 @@ function StepSticker({ myCollection, selected, onSelect }: StepStickerProps) {
   );
 }
 
-interface StepRequirementsProps {
-  catalog: MockCollectionItem[];
-  requirements: Requirement[];
-  onAdd: (sticker: MockSticker) => void;
-  onRemove: (number: number) => void;
-  onChangeQty: (number: number, delta: number) => void;
+interface StepMinimumRequirementProps {
+  register: UseFormRegister<AuctionFormValues>;
+  error?: string;
 }
 
-function StepRequirements({
-  catalog,
-  requirements,
-  onAdd,
-  onRemove,
-  onChangeQty,
-}: StepRequirementsProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const addedNumbers = requirements.map((r) => r.sticker.number);
-  const results = filterStickers(catalog, searchQuery);
-
+function StepMinimumRequirement({
+  register,
+  error,
+}: StepMinimumRequirementProps) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <p className="text-sm text-slate-500">
-        Especificá qué figuritas querés recibir. Podés dejarlo vacío.
+        Indicá cuántas figuritas como mínimo debe incluir cada oferta.
       </p>
-
-      <StickerSearchInput
-        value={searchQuery}
-        onChange={setSearchQuery}
-        placeholder="Buscar figurita para agregar como requisito..."
-      />
-
-      {searchQuery.length > 0 && results.length > 0 && (
-        <div className="border border-slate-200 rounded-xl overflow-hidden">
-          {results.slice(0, 5).map((item) => {
-            const alreadyAdded = addedNumbers.includes(item.sticker.number);
-            return (
-              <button
-                key={item.sticker.number}
-                onClick={() => {
-                  if (!alreadyAdded) {
-                    onAdd(item.sticker);
-                    setSearchQuery("");
-                  }
-                }}
-                disabled={alreadyAdded}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 text-left border-b last:border-b-0 border-slate-100 transition-colors ${
-                  alreadyAdded ? "opacity-40 cursor-not-allowed" : "hover:bg-slate-50"
-                }`}
-              >
-                <div className="w-8 shrink-0 aspect-[4/5]">
-                  <StickerFace sticker={item.sticker} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-800 truncate">
-                    {item.sticker.player.name}
-                  </p>
-                  <p className="text-xs text-slate-400 truncate">
-                    {item.sticker.player.nationalTeam?.name} ·{" "}
-                    {item.sticker.player.club?.name}
-                  </p>
-                </div>
-                {alreadyAdded ? (
-                  <Check size={14} className="text-slate-400 shrink-0" />
-                ) : (
-                  <Plus size={14} className="text-[#002B5E] shrink-0" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {requirements.length === 0 ? (
-        <div className="py-8 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-xl">
-          <p className="text-sm text-slate-400 italic">
-            Sin requisitos — cualquier figurita será válida
-          </p>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {requirements.map((req) => (
-            <div
-              key={req.sticker.number}
-              className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2"
-            >
-              <div className="w-8 shrink-0 aspect-[4/5]">
-                <StickerFace sticker={req.sticker} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 truncate">
-                  {req.sticker.player.name}
-                </p>
-                <p className="text-xs text-slate-400 truncate">
-                  {req.sticker.player.nationalTeam?.name}
-                </p>
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  onClick={() => onChangeQty(req.sticker.number, -1)}
-                  className="w-6 h-6 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center transition-colors"
-                >
-                  <Minus size={10} />
-                </button>
-                <span className="text-sm font-bold text-slate-700 w-4 text-center">
-                  {req.quantity}
-                </span>
-                <button
-                  onClick={() => onChangeQty(req.sticker.number, +1)}
-                  className="w-6 h-6 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center transition-colors"
-                >
-                  <Plus size={10} />
-                </button>
-              </div>
-              <button
-                onClick={() => onRemove(req.sticker.number)}
-                className="ml-1 p-1 text-slate-400 hover:text-red-500 transition-colors shrink-0"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      <label className="flex flex-col gap-2">
+        <span className="text-sm font-semibold text-slate-700">
+          Mínimo requerido
+        </span>
+        <input
+          type="number"
+          min="1"
+          {...register("minimumRequirement", { valueAsNumber: true })}
+          className="form-input"
+        />
+        {error && <span className="text-xs text-red-500">{error}</span>}
+      </label>
     </div>
   );
 }
@@ -206,6 +116,7 @@ function StepDuration({ duration, onSelect }: StepDurationProps) {
       <div className="grid grid-cols-2 gap-3">
         {DURATIONS.map((d) => (
           <button
+            type="button"
             key={d.hours}
             onClick={() => onSelect(d.hours)}
             className={`flex flex-col items-center justify-center gap-2 py-8 border-2 rounded-2xl transition-all ${
@@ -229,7 +140,7 @@ function StepDuration({ duration, onSelect }: StepDurationProps) {
 interface CreateAuctionModalProps {
   myCollection: MockCollectionItem[];
   onClose: () => void;
-  onSubmit: (payload: CreateAuctionSubmit) => void;
+  onSubmit: (payload: PostCreateRequest) => void | Promise<void>;
 }
 
 export default function CreateAuctionModal({
@@ -238,34 +149,57 @@ export default function CreateAuctionModal({
   onSubmit,
 }: CreateAuctionModalProps) {
   const [step, setStep] = useState<number>(1);
-  const [selectedSticker, setSelectedSticker] = useState<MockSticker | null>(null);
-  const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [duration, setDuration] = useState<number>(24);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<AuctionFormValues>({
+    resolver: auctionFormResolver,
+    defaultValues: {
+      type: "AUCTION",
+      stickerId: 0,
+      endsAt: getEndsAtIso(duration),
+      minimumRequirement: 1,
+    },
+  });
 
-  function addRequirement(sticker: MockSticker) {
-    setRequirements((prev) => [...prev, { sticker, quantity: 1 }]);
+  const selectedStickerId = watch("stickerId");
+  const minimumRequirement = watch("minimumRequirement");
+  const selectedSticker =
+    myCollection.find((item) => item.sticker.number === selectedStickerId)
+      ?.sticker ?? null;
+
+  function selectSticker(sticker: MockSticker) {
+    setValue("stickerId", sticker.number, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
   }
 
-  function removeRequirement(number: number) {
-    setRequirements((prev) => prev.filter((r) => r.sticker.number !== number));
+  function selectDuration(hours: number) {
+    setDuration(hours);
+    setValue("endsAt", getEndsAtIso(hours), {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
   }
 
-  function changeQty(number: number, delta: number) {
-    setRequirements((prev) =>
-      prev.map((r) =>
-        r.sticker.number === number
-          ? { ...r, quantity: Math.max(1, r.quantity + delta) }
-          : r
-      )
-    );
+  async function submitForm(values: AuctionFormValues) {
+    await onSubmit({
+      ...values,
+      endsAt: getEndsAtIso(duration),
+    });
   }
 
-  function handleSubmit() {
-    onSubmit({ sticker: selectedSticker, requirements, durationHours: duration });
-    onClose();
-  }
-
-  const canNext = step === 1 ? !!selectedSticker : true;
+  const canNext =
+    step === 1
+      ? !!selectedSticker
+      : step === 2
+        ? Number.isInteger(minimumRequirement) && minimumRequirement > 0
+        : true;
 
   return (
     <ModalShell
@@ -289,24 +223,24 @@ export default function CreateAuctionModal({
           <StepSticker
             myCollection={myCollection}
             selected={selectedSticker}
-            onSelect={setSelectedSticker}
+            onSelect={selectSticker}
           />
         )}
         {step === 2 && (
-          <StepRequirements
-            catalog={myCollection}
-            requirements={requirements}
-            onAdd={addRequirement}
-            onRemove={removeRequirement}
-            onChangeQty={changeQty}
+          <StepMinimumRequirement
+            register={register}
+            error={errors.minimumRequirement?.message}
           />
         )}
-        {step === 3 && <StepDuration duration={duration} onSelect={setDuration} />}
+        {step === 3 && (
+          <StepDuration duration={duration} onSelect={selectDuration} />
+        )}
       </div>
 
       <div className="shrink-0 p-4 md:p-6 border-t border-slate-100 flex gap-3">
         {step > 1 && (
           <button
+            type="button"
             onClick={() => setStep((s) => s - 1)}
             className="px-5 py-3 rounded-lg text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
           >
@@ -314,11 +248,18 @@ export default function CreateAuctionModal({
           </button>
         )}
         <button
-          disabled={!canNext}
-          onClick={() => (step < 3 ? setStep((s) => s + 1) : handleSubmit())}
+          type="button"
+          disabled={!canNext || isSubmitting}
+          onClick={() =>
+            step < 3 ? setStep((s) => s + 1) : void handleSubmit(submitForm)()
+          }
           className="flex-1 py-3 rounded-lg text-sm font-bold uppercase tracking-wide transition-all bg-[#002B5E] hover:bg-[#003a7a] text-white shadow-lg shadow-blue-900/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
         >
-          {step < 3 ? "Siguiente" : "Publicar subasta"}
+          {step < 3
+            ? "Siguiente"
+            : isSubmitting
+              ? "Publicando..."
+              : "Publicar subasta"}
         </button>
       </div>
     </ModalShell>

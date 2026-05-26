@@ -5,6 +5,9 @@
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
     "alwaysStrict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
   }
 }

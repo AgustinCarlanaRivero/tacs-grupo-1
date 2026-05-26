@@ -1,9 +1,10 @@
 FROM node:22-alpine
+RUN corepack enable
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY . .
-RUN npm run build \
+RUN pnpm build \
  && cp -r .next/static .next/standalone/.next/static \
  && cp -r public .next/standalone/public
 ENV HOSTNAME=0.0.0.0 PORT=3000

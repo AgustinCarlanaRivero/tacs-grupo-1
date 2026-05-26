@@ -1,15 +1,12 @@
 import { z } from "zod";
 import {
-    isoDateTime,
     nonEmptyString,
     paginatedResponseSchema,
     paginationQuerySchema,
+    positiveInt,
     queryString,
 } from "../../../shared/validation/common";
-import {
-    collectionItemAddRequestSchema,
-    collectionItemResponseSchema,
-} from "../../collection/schemas/collection.schemas";
+import { collectionItemResponseSchema } from "../../collection/schemas/collection.schemas";
 import { OfferState } from "../enums/offer-state.enum";
 
 export const offerStateEnum = z.enum([
@@ -20,6 +17,11 @@ export const offerStateEnum = z.enum([
 ]);
 
 const offerRoleEnum = z.enum(["sent", "received", "all"]);
+
+const offerItemCreateRequestSchema = z.object({
+    stickerId: positiveInt,
+    quantity: positiveInt.default(1),
+});
 
 /** GET /users/:userId/offers?role=&query=&page=&limit= */
 export const offerUserQuerySchema = paginationQuerySchema.extend({
@@ -36,7 +38,7 @@ export const offerPostQuerySchema = paginationQuerySchema.extend({
 export const offerCreateRequestSchema = z
     .object({
         offered: z
-            .array(collectionItemAddRequestSchema)
+            .array(offerItemCreateRequestSchema)
             .min(1, "Debe ofrecer al menos una figurita"),
     })
     .meta({ id: "OfferCreateRequest" });
@@ -60,15 +62,17 @@ export const offerResponseSchema = z
     .object({
         id: nonEmptyString,
         state: offerStateEnum,
-        createdAt: isoDateTime,
+        createdAt: z.date(),
         offerer: z.object({
             id: nonEmptyString,
             username: z.string(),
         }),
         offered: z.array(collectionItemResponseSchema),
+        postId: nonEmptyString,
+        postOwnerId: nonEmptyString,
     })
     .meta({ id: "Offer" });
 
 export const offersResponseSchema = paginatedResponseSchema(
-    offerResponseSchema,
+    offerResponseSchema
 ).meta({ id: "Offers" });

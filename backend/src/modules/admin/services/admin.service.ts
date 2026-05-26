@@ -25,8 +25,8 @@ export default class AdminService {
      * persistencia real, sumar acá las métricas correspondientes.
      */
     static async getStats(): Promise<StatsResponseDto> {
-        const users = userRepository.findAll();
-        const notifications = notificationRepository.findAll();
+        const users = await userRepository.findAll();
+        const notifications = await notificationRepository.findAll();
 
         const notificationsByType: Record<string, number> = {};
         for (const type of Object.values(NotificationType)) {
@@ -67,11 +67,12 @@ export default class AdminService {
     }
 
     static async getUsers(): Promise<UserResponseDto[]> {
-        return userRepository.findAll().map((u) => userResponseSchema.parse(u));
+        const users = await userRepository.findAll();
+        return users.map((u) => userResponseSchema.parse(u));
     }
 
     static async getUserById(userId: string): Promise<UserResponseDto> {
-        const user = userRepository.findById(userId);
+        const user = await userRepository.findById(userId);
         if (!user) {
             throw new NotFoundError("Usuario no encontrado");
         }
@@ -97,7 +98,7 @@ export default class AdminService {
             );
         }
 
-        const user = userRepository.findById(userId);
+        const user = await userRepository.findById(userId);
         if (!user) {
             throw new NotFoundError("Usuario no encontrado");
         }
@@ -112,11 +113,9 @@ export default class AdminService {
         }
 
         if (isDemotingFromAdmin) {
-            const remainingAdmins = userRepository
-                .findAll()
-                .filter(
-                    (u) => u.role === UserRole.ADMIN && u.id !== user.id,
-                ).length;
+            const remainingAdmins = (await userRepository.findAll()).filter(
+                (u) => u.role === UserRole.ADMIN && u.id !== user.id,
+            ).length;
             if (remainingAdmins === 0) {
                 throw new BadRequestError(
                     "No se puede degradar al último admin",
@@ -125,7 +124,7 @@ export default class AdminService {
         }
 
         user.role = newRole;
-        userRepository.save(user);
+        await userRepository.save(user);
 
         return roleUpdateResponseSchema.parse({
             id: user.id,

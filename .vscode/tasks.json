@@ -1,0 +1,18 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "eslint:watch",
+      "type": "shell",
+      "command": "npx chokidar \"src/**/*.ts\" \"src/**/*.tsx\" -c \"npm run lint:fix\" --ignore-initial --debounce 300",
+      "isBackground": true,
+      "problemMatcher": [
+        "$eslint-stylish"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}

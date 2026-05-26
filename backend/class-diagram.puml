@@ -80,10 +80,10 @@ class Sticker {
   +player: Player
   +category: Category
   +description: string
-  +isShiny(): boolean
-  +isRegular(): boolean
-  +isNew(): boolean
-  +isDamaged(): boolean
+  +isShinySticker(): boolean
+  +isRegularSticker(): boolean
+  +isNewSticker(): boolean
+  +isDamagedSticker(): boolean
   +playsForNationalTeam(teamName: string): boolean
   +playsForClub(clubName: string): boolean
   +belongsToPlayer(playerName: string): boolean
@@ -147,7 +147,7 @@ class Collection {
 ' ============================================================
 
 class Rating {
-  +id: string?
+  +id: string
   +reviewer: User
   +reviewee: User
   +score: number
@@ -164,7 +164,7 @@ class Rating {
 ' ============================================================
 
 class Offer {
-  +id: string?
+  +id: string
   +offerer: User
   +state: OfferState
   +createdAt: Date
@@ -184,13 +184,14 @@ class Offer {
 ' ============================================================
 
 abstract class Post {
-  +id: string?
+  +id: string
   +owner: User
   +sticker: Sticker
   +state: PostState
   +offers: Offer[]
   {abstract} +getType(): PostType
   +setId(id: string): void
+  +hydrateOffers(offers: Offer[]): void
   +isOwnedBy(user: User): boolean
   +isActive(): boolean
   +canReceiveOffers(at: Date): boolean
@@ -204,6 +205,7 @@ abstract class Post {
   +close(): void
   -ensureOwnerActor(actor: User): void
   -requireOfferById(offerId: string): Offer
+  #requireHydratedOffers(): Offer[]
 }
 
 class DirectTrade {
@@ -234,6 +236,7 @@ class Notification {
   +read: boolean
   +payload: Record<string, unknown>
   +createdAt: Date
+  +setId(id: string): void
 }
 
 interface NotificationChannel {
