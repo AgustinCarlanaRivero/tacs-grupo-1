@@ -21,36 +21,36 @@ import {
     buildNotificationsFacadeMock,
 } from "../helpers/repo-mocks";
 
-const postRepoMock = buildPostRepoMock();
-const offerRepoMock = buildOfferRepoMock();
-const userRepoMock = buildUserRepoMock();
-const stickerRepoMock = buildStickerRepoMock();
-const collectionRepoMock = buildCollectionRepoMock();
-const notificationsFacadeMock = buildNotificationsFacadeMock();
+const mockPostRepo = buildPostRepoMock();
+const mockOfferRepo = buildOfferRepoMock();
+const mockUserRepo = buildUserRepoMock();
+const mockStickerRepo = buildStickerRepoMock();
+const mockCollectionRepo = buildCollectionRepoMock();
+const mockNotificationsFacade = buildNotificationsFacadeMock();
 
 jest.mock("../../modules/posts/repositories/post.repository", () => ({
     __esModule: true,
-    default: postRepoMock,
+    default: mockPostRepo,
 }));
 jest.mock("../../modules/offers/repositories/offer.repository", () => ({
     __esModule: true,
-    default: offerRepoMock,
+    default: mockOfferRepo,
 }));
 jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
-    default: userRepoMock,
+    default: mockUserRepo,
 }));
 jest.mock("../../modules/stickers/repositories/sticker.repository", () => ({
     __esModule: true,
-    default: stickerRepoMock,
+    default: mockStickerRepo,
 }));
 jest.mock("../../modules/collection/repositories/collection.repository", () => ({
     __esModule: true,
-    default: collectionRepoMock,
+    default: mockCollectionRepo,
 }));
 jest.mock("../../modules/notifications/services/notification.facade", () => ({
     __esModule: true,
-    notifications: notificationsFacadeMock,
+    notifications: mockNotificationsFacade,
 }));
 
 let app: Express;
@@ -61,19 +61,19 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-    await postRepoMock.clear();
-    await offerRepoMock.clear();
-    await userRepoMock.clear();
-    stickerRepoMock.clear();
-    await collectionRepoMock.clear();
+    await mockPostRepo.clear();
+    await mockOfferRepo.clear();
+    await mockUserRepo.clear();
+    mockStickerRepo.clear();
+    await mockCollectionRepo.clear();
 });
 
 describe("Posts routes (integration)", () => {
     test("GET /posts returns paginated posts", async () => {
-        await postRepoMock.save(
+        await mockPostRepo.save(
             buildDirectTrade("post-1", buildUser("owner-1"), 10),
         );
-        await postRepoMock.save(
+        await mockPostRepo.save(
             buildDirectTrade("post-2", buildUser("owner-2"), 11),
         );
 
@@ -84,10 +84,10 @@ describe("Posts routes (integration)", () => {
     });
 
     test("GET /users/:userId/posts filters by owner", async () => {
-        await postRepoMock.save(
+        await mockPostRepo.save(
             buildDirectTrade("post-1", buildUser("owner-1"), 10),
         );
-        await postRepoMock.save(
+        await mockPostRepo.save(
             buildDirectTrade("post-2", buildUser("owner-2"), 11),
         );
 
@@ -98,7 +98,7 @@ describe("Posts routes (integration)", () => {
     });
 
     test("GET /users/:userId/posts/:postId returns 404 on owner mismatch", async () => {
-        await postRepoMock.save(
+        await mockPostRepo.save(
             buildDirectTrade("post-1", buildUser("owner-1"), 10),
         );
 
@@ -111,8 +111,8 @@ describe("Posts routes (integration)", () => {
 
     test("POST /users/:userId/posts creates a direct trade", async () => {
         setMockUser("owner-1", "STANDARD");
-        await userRepoMock.save(buildUser("owner-1"));
-        stickerRepoMock.save(buildSticker(42));
+        await mockUserRepo.save(buildUser("owner-1"));
+        mockStickerRepo.save(buildSticker(42));
 
         const res = await request(app)
             .post("/users/owner-1/posts")
@@ -121,13 +121,13 @@ describe("Posts routes (integration)", () => {
 
         expect(res.body.id).toBeDefined();
         expect(res.body.type).toBe(PostType.DIRECT_TRADE);
-        expect(res.body.sticker.id).toBe(42);
-        expect(postRepoMock.store.size).toBe(1);
+        expect(res.body.sticker.number).toBe(42);
+        expect(mockPostRepo.store.size).toBe(1);
     });
 
     test("PATCH /users/:userId/posts/:postId/state transitions to COMPLETED", async () => {
         setMockUser("owner-1", "STANDARD");
-        await postRepoMock.save(
+        await mockPostRepo.save(
             buildDirectTrade("post-1", buildUser("owner-1"), 10),
         );
 
@@ -141,13 +141,13 @@ describe("Posts routes (integration)", () => {
 
     test("DELETE /users/:userId/posts/:postId removes post + cascades offers", async () => {
         setMockUser("owner-1", "STANDARD");
-        await postRepoMock.save(
+        await mockPostRepo.save(
             buildDirectTrade("post-1", buildUser("owner-1"), 10),
         );
 
         await request(app).delete("/users/owner-1/posts/post-1").expect(204);
 
-        expect(postRepoMock.store.size).toBe(0);
-        expect(offerRepoMock.deleteByPostId).toHaveBeenCalledWith("post-1");
+        expect(mockPostRepo.store.size).toBe(0);
+        expect(mockOfferRepo.deleteByPostId).toHaveBeenCalledWith("post-1");
     });
 });

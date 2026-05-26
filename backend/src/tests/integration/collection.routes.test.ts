@@ -21,21 +21,21 @@ import {
     buildUserRepoMock,
 } from "../helpers/repo-mocks";
 
-const userRepoMock = buildUserRepoMock();
-const stickerRepoMock = buildStickerRepoMock();
-const collectionRepoMock = buildCollectionRepoMock();
+const mockUserRepo = buildUserRepoMock();
+const mockStickerRepo = buildStickerRepoMock();
+const mockCollectionRepo = buildCollectionRepoMock();
 
 jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
-    default: userRepoMock,
+    default: mockUserRepo,
 }));
 jest.mock("../../modules/stickers/repositories/sticker.repository", () => ({
     __esModule: true,
-    default: stickerRepoMock,
+    default: mockStickerRepo,
 }));
 jest.mock("../../modules/collection/repositories/collection.repository", () => ({
     __esModule: true,
-    default: collectionRepoMock,
+    default: mockCollectionRepo,
 }));
 
 let app: Express;
@@ -46,16 +46,16 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-    await userRepoMock.clear();
-    stickerRepoMock.clear();
-    await collectionRepoMock.clear();
+    await mockUserRepo.clear();
+    mockStickerRepo.clear();
+    await mockCollectionRepo.clear();
 });
 
 describe("Collection routes (integration)", () => {
     test("GET /users/:userId/collection returns the collection", async () => {
-        await userRepoMock.save(buildUser("user-1"));
+        await mockUserRepo.save(buildUser("user-1"));
         const sticker = buildSticker(7);
-        collectionRepoMock.store.set(
+        mockCollectionRepo.store.set(
             "user-1",
             buildCollection([buildCollectionItem(sticker, 2)], [buildSticker(8)]),
         );
@@ -70,8 +70,8 @@ describe("Collection routes (integration)", () => {
     });
 
     test("POST /users/:userId/collection/items adds an item", async () => {
-        await userRepoMock.save(buildUser("user-1"));
-        stickerRepoMock.save(buildSticker(10));
+        await mockUserRepo.save(buildUser("user-1"));
+        mockStickerRepo.save(buildSticker(10));
 
         const res = await request(app)
             .post("/users/user-1/collection/items")
@@ -80,14 +80,14 @@ describe("Collection routes (integration)", () => {
 
         expect(res.body.stickerId).toBe(10);
         expect(res.body.quantity).toBe(3);
-        expect(collectionRepoMock.store.get("user-1")?.items).toHaveLength(1);
+        expect(mockCollectionRepo.store.get("user-1")?.items).toHaveLength(1);
     });
 
     test("PATCH /users/:userId/collection/items/:stickerId updates quantity", async () => {
-        await userRepoMock.save(buildUser("user-1"));
+        await mockUserRepo.save(buildUser("user-1"));
         const sticker = buildSticker(11);
-        stickerRepoMock.save(sticker);
-        collectionRepoMock.store.set(
+        mockStickerRepo.save(sticker);
+        mockCollectionRepo.store.set(
             "user-1",
             buildCollection([buildCollectionItem(sticker, 1)]),
         );
@@ -101,10 +101,10 @@ describe("Collection routes (integration)", () => {
     });
 
     test("DELETE /users/:userId/collection/items/:stickerId removes item", async () => {
-        await userRepoMock.save(buildUser("user-1"));
+        await mockUserRepo.save(buildUser("user-1"));
         const sticker = buildSticker(12);
-        stickerRepoMock.save(sticker);
-        collectionRepoMock.store.set(
+        mockStickerRepo.save(sticker);
+        mockCollectionRepo.store.set(
             "user-1",
             buildCollection([buildCollectionItem(sticker, 1)]),
         );
@@ -113,12 +113,12 @@ describe("Collection routes (integration)", () => {
             .delete("/users/user-1/collection/items/12")
             .expect(204);
 
-        expect(collectionRepoMock.store.get("user-1")?.items).toHaveLength(0);
+        expect(mockCollectionRepo.store.get("user-1")?.items).toHaveLength(0);
     });
 
     test("POST /users/:userId/collection/missing adds a missing sticker", async () => {
-        await userRepoMock.save(buildUser("user-1"));
-        stickerRepoMock.save(buildSticker(13));
+        await mockUserRepo.save(buildUser("user-1"));
+        mockStickerRepo.save(buildSticker(13));
 
         const res = await request(app)
             .post("/users/user-1/collection/missing")
@@ -127,22 +127,22 @@ describe("Collection routes (integration)", () => {
 
         expect(res.body.stickerId).toBe(13);
         expect(
-            collectionRepoMock.store.get("user-1")?.missingStickers,
+            mockCollectionRepo.store.get("user-1")?.missingStickers,
         ).toHaveLength(1);
     });
 
     test("DELETE /users/:userId/collection/missing/:stickerId removes missing", async () => {
-        await userRepoMock.save(buildUser("user-1"));
+        await mockUserRepo.save(buildUser("user-1"));
         const sticker = buildSticker(14);
-        stickerRepoMock.save(sticker);
-        collectionRepoMock.store.set("user-1", buildCollection([], [sticker]));
+        mockStickerRepo.save(sticker);
+        mockCollectionRepo.store.set("user-1", buildCollection([], [sticker]));
 
         await request(app)
             .delete("/users/user-1/collection/missing/14")
             .expect(204);
 
         expect(
-            collectionRepoMock.store.get("user-1")?.missingStickers,
+            mockCollectionRepo.store.get("user-1")?.missingStickers,
         ).toHaveLength(0);
     });
 });

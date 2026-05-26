@@ -16,16 +16,16 @@ import {
     buildUserRepoMock,
 } from "../helpers/repo-mocks";
 
-const userRepoMock = buildUserRepoMock();
-const notificationRepoMock = buildNotificationRepoMock();
+const mockUserRepo = buildUserRepoMock();
+const mockNotificationRepo = buildNotificationRepoMock();
 
 jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
-    default: userRepoMock,
+    default: mockUserRepo,
 }));
 jest.mock("../../modules/notifications/repositories/notification.repository", () => ({
     __esModule: true,
-    default: notificationRepoMock,
+    default: mockNotificationRepo,
 }));
 
 let app: Express;
@@ -36,17 +36,17 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-    await userRepoMock.clear();
-    await notificationRepoMock.clear();
+    await mockUserRepo.clear();
+    await mockNotificationRepo.clear();
 });
 
 describe("Admin routes (integration)", () => {
     test("GET /admin/stats returns aggregated stats for an ADMIN", async () => {
         setMockUser("admin-1", "ADMIN");
-        await userRepoMock.save(
+        await mockUserRepo.save(
             buildUser("admin-1", { role: UserRole.ADMIN, reputation: 10 }),
         );
-        await userRepoMock.save(
+        await mockUserRepo.save(
             buildUser("user-1", { role: UserRole.STANDARD, reputation: 4 }),
         );
 
@@ -66,10 +66,10 @@ describe("Admin routes (integration)", () => {
 
     test("PATCH /admin/users/:userId/role updates the role", async () => {
         setMockUser("admin-1", "ADMIN");
-        await userRepoMock.save(
+        await mockUserRepo.save(
             buildUser("admin-1", { role: UserRole.ADMIN }),
         );
-        await userRepoMock.save(
+        await mockUserRepo.save(
             buildUser("user-1", { role: UserRole.STANDARD }),
         );
 
@@ -83,7 +83,7 @@ describe("Admin routes (integration)", () => {
 
     test("PATCH /admin/users/:self/role rejects self-demotion", async () => {
         setMockUser("admin-1", "ADMIN");
-        await userRepoMock.save(
+        await mockUserRepo.save(
             buildUser("admin-1", { role: UserRole.ADMIN }),
         );
 

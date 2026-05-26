@@ -20,16 +20,16 @@ import {
     buildUserRepoMock,
 } from "../helpers/repo-mocks";
 
-const userRepoMock = buildUserRepoMock();
-const matchingRepoMock = buildMatchingRepoMock();
+const mockUserRepo = buildUserRepoMock();
+const mockMatchingRepo = buildMatchingRepoMock();
 
 jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
-    default: userRepoMock,
+    default: mockUserRepo,
 }));
 jest.mock("../../modules/matching/repositories/matching.repository", () => ({
     __esModule: true,
-    default: matchingRepoMock,
+    default: mockMatchingRepo,
 }));
 
 let app: Express;
@@ -40,20 +40,20 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-    await userRepoMock.clear();
+    await mockUserRepo.clear();
 });
 
 describe("Matching routes (integration)", () => {
     test("GET /matches?stickerId returns users who own the sticker", async () => {
         const sticker = buildSticker(50);
-        await userRepoMock.save(
+        await mockUserRepo.save(
             buildUser("user-2", {
                 username: "u2",
                 reputation: 5,
                 collection: buildCollection([buildCollectionItem(sticker, 3)]),
             }),
         );
-        await userRepoMock.save(
+        await mockUserRepo.save(
             buildUser("user-3", {
                 username: "u3",
                 reputation: 1,
@@ -72,12 +72,12 @@ describe("Matching routes (integration)", () => {
 
     test("GET /users/:userId/suggestions returns users with offerable stickers", async () => {
         const wanted = buildSticker(60);
-        await userRepoMock.save(
+        await mockUserRepo.save(
             buildUser("user-1", {
                 collection: buildCollection([], [wanted]),
             }),
         );
-        await userRepoMock.save(
+        await mockUserRepo.save(
             buildUser("user-2", {
                 username: "u2",
                 collection: buildCollection([buildCollectionItem(wanted, 2)]),
@@ -94,7 +94,7 @@ describe("Matching routes (integration)", () => {
     });
 
     test("GET /users/:userId/suggestions returns empty when user has no missing stickers", async () => {
-        await userRepoMock.save(
+        await mockUserRepo.save(
             buildUser("user-1", { collection: buildCollection([], []) }),
         );
 

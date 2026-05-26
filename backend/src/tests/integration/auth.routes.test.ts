@@ -12,11 +12,11 @@ import { getTestApp, setMockUser } from "../helpers/build-app";
 import { buildUser } from "../helpers/builders";
 import { buildUserRepoMock } from "../helpers/repo-mocks";
 
-const userRepoMock = buildUserRepoMock();
+const mockUserRepo = buildUserRepoMock();
 
 jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
-    default: userRepoMock,
+    default: mockUserRepo,
 }));
 
 let app: Express;
@@ -27,13 +27,13 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-    await userRepoMock.clear();
+    await mockUserRepo.clear();
 });
 
 describe("Auth routes (integration)", () => {
     test("GET /auth/me returns the current user when found", async () => {
         setMockUser("me-1", "STANDARD");
-        await userRepoMock.save(
+        await mockUserRepo.save(
             buildUser("me-1", { username: "me", email: "me@example.com" }),
         );
 

@@ -31,7 +31,7 @@ function toRatingResponse(rating: Rating) {
         revieweeId: rating.reviewee.id,
         score: rating.score,
         comment: rating.comment ?? "",
-        createdAt: rating.createdAt.toISOString(),
+        createdAt: rating.createdAt,
     });
 }
 

@@ -27,36 +27,36 @@ import {
     buildNotificationsFacadeMock,
 } from "../helpers/repo-mocks";
 
-const postRepoMock = buildPostRepoMock();
-const offerRepoMock = buildOfferRepoMock();
-const userRepoMock = buildUserRepoMock();
-const stickerRepoMock = buildStickerRepoMock();
-const collectionRepoMock = buildCollectionRepoMock();
-const notificationsFacadeMock = buildNotificationsFacadeMock();
+const mockPostRepo = buildPostRepoMock();
+const mockOfferRepo = buildOfferRepoMock();
+const mockUserRepo = buildUserRepoMock();
+const mockStickerRepo = buildStickerRepoMock();
+const mockCollectionRepo = buildCollectionRepoMock();
+const mockNotificationsFacade = buildNotificationsFacadeMock();
 
 jest.mock("../../modules/posts/repositories/post.repository", () => ({
     __esModule: true,
-    default: postRepoMock,
+    default: mockPostRepo,
 }));
 jest.mock("../../modules/offers/repositories/offer.repository", () => ({
     __esModule: true,
-    default: offerRepoMock,
+    default: mockOfferRepo,
 }));
 jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
-    default: userRepoMock,
+    default: mockUserRepo,
 }));
 jest.mock("../../modules/stickers/repositories/sticker.repository", () => ({
     __esModule: true,
-    default: stickerRepoMock,
+    default: mockStickerRepo,
 }));
 jest.mock("../../modules/collection/repositories/collection.repository", () => ({
     __esModule: true,
-    default: collectionRepoMock,
+    default: mockCollectionRepo,
 }));
 jest.mock("../../modules/notifications/services/notification.facade", () => ({
     __esModule: true,
-    notifications: notificationsFacadeMock,
+    notifications: mockNotificationsFacade,
 }));
 
 let app: Express;
@@ -67,18 +67,18 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-    await postRepoMock.clear();
-    await offerRepoMock.clear();
-    await userRepoMock.clear();
-    stickerRepoMock.clear();
-    await collectionRepoMock.clear();
+    await mockPostRepo.clear();
+    await mockOfferRepo.clear();
+    await mockUserRepo.clear();
+    mockStickerRepo.clear();
+    await mockCollectionRepo.clear();
 });
 
 describe("Offers routes (integration)", () => {
     test("GET /users/:userId/offers?role=sent returns sent offers", async () => {
         const offerer = buildUser("offerer-1");
         const sticker = buildSticker(10);
-        await offerRepoMock.save(
+        await mockOfferRepo.save(
             buildOffer("offer-1", offerer, [buildCollectionItem(sticker)], {
                 postId: "post-1",
                 postOwnerId: "owner-1",
@@ -95,16 +95,16 @@ describe("Offers routes (integration)", () => {
 
     test("GET /users/:userId/posts/:postId/offers returns offers for the post", async () => {
         const owner = buildUser("owner-1");
-        await postRepoMock.save(buildDirectTrade("post-1", owner, 10));
+        await mockPostRepo.save(buildDirectTrade("post-1", owner, 10));
 
         const offerer = buildUser("offerer-1");
-        await offerRepoMock.save(
+        await mockOfferRepo.save(
             buildOffer("offer-1", offerer, [buildCollectionItem(buildSticker(11))], {
                 postId: "post-1",
                 postOwnerId: owner.id,
             }),
         );
-        await offerRepoMock.save(
+        await mockOfferRepo.save(
             buildOffer("offer-2", offerer, [buildCollectionItem(buildSticker(12))], {
                 postId: "post-1",
                 postOwnerId: owner.id,
@@ -125,10 +125,10 @@ describe("Offers routes (integration)", () => {
         const offerer = buildUser("offerer-1");
         const sticker = buildSticker(20);
 
-        await userRepoMock.save(owner);
-        await userRepoMock.save(offerer);
-        await postRepoMock.save(buildDirectTrade("post-1", owner, 21));
-        collectionRepoMock.store.set(
+        await mockUserRepo.save(owner);
+        await mockUserRepo.save(offerer);
+        await mockPostRepo.save(buildDirectTrade("post-1", owner, 21));
+        mockCollectionRepo.store.set(
             "offerer-1",
             buildCollection([buildCollectionItem(sticker, 2)]),
         );
@@ -141,7 +141,7 @@ describe("Offers routes (integration)", () => {
         expect(res.body.id).toBeDefined();
         expect(res.body.state).toBe(OfferState.PENDING);
         expect(res.body.offerer.id).toBe("offerer-1");
-        expect(notificationsFacadeMock.offerReceived).toHaveBeenCalledWith(
+        expect(mockNotificationsFacade.offerReceived).toHaveBeenCalledWith(
             "owner-1",
             expect.objectContaining({ postId: "post-1", fromUserId: "offerer-1" }),
         );
@@ -153,16 +153,16 @@ describe("Offers routes (integration)", () => {
         const offerer = buildUser("offerer-1");
         const sticker = buildSticker(30);
 
-        await userRepoMock.save(owner);
-        await userRepoMock.save(offerer);
+        await mockUserRepo.save(owner);
+        await mockUserRepo.save(offerer);
         const post = buildDirectTrade("post-1", owner, 31);
         const offer = buildOffer("offer-1", offerer, [buildCollectionItem(sticker, 1)], {
             postId: "post-1",
             postOwnerId: owner.id,
         });
         post.offers = [offer];
-        await postRepoMock.save(post);
-        await offerRepoMock.save(offer);
+        await mockPostRepo.save(post);
+        await mockOfferRepo.save(offer);
 
         const res = await request(app)
             .patch("/users/owner-1/posts/post-1/offers/offer-1/state")
@@ -170,7 +170,7 @@ describe("Offers routes (integration)", () => {
             .expect(200);
 
         expect(res.body.state).toBe(OfferState.APPROVED);
-        expect(notificationsFacadeMock.offerAccepted).toHaveBeenCalledWith(
+        expect(mockNotificationsFacade.offerAccepted).toHaveBeenCalledWith(
             "offerer-1",
             expect.objectContaining({ offerId: "offer-1", postId: "post-1" }),
         );

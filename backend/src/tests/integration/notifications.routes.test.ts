@@ -13,11 +13,11 @@ import { getTestApp, setMockUser } from "../helpers/build-app";
 import { buildNotification } from "../helpers/builders";
 import { buildNotificationRepoMock } from "../helpers/repo-mocks";
 
-const notificationRepoMock = buildNotificationRepoMock();
+const mockNotificationRepo = buildNotificationRepoMock();
 
 jest.mock("../../modules/notifications/repositories/notification.repository", () => ({
     __esModule: true,
-    default: notificationRepoMock,
+    default: mockNotificationRepo,
 }));
 
 let app: Express;
@@ -28,20 +28,20 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-    await notificationRepoMock.clear();
+    await mockNotificationRepo.clear();
 });
 
 describe("Notifications routes (integration)", () => {
     test("GET /users/:userId/notifications returns the user's notifications", async () => {
         setMockUser("user-1", "STANDARD");
-        await notificationRepoMock.save(
+        await mockNotificationRepo.save(
             buildNotification("n-1", "user-1", {
                 type: NotificationType.OFFER_RECEIVED,
                 message: "msg-1",
                 createdAt: new Date("2026-01-01T00:00:00Z"),
             }),
         );
-        await notificationRepoMock.save(
+        await mockNotificationRepo.save(
             buildNotification("n-2", "user-2", {
                 type: NotificationType.OFFER_RECEIVED,
                 message: "other",
@@ -65,13 +65,13 @@ describe("Notifications routes (integration)", () => {
 
     test("GET /notifications/unread-count counts unread for current user", async () => {
         setMockUser("user-1", "STANDARD");
-        await notificationRepoMock.save(
+        await mockNotificationRepo.save(
             buildNotification("n-1", "user-1", { read: false }),
         );
-        await notificationRepoMock.save(
+        await mockNotificationRepo.save(
             buildNotification("n-2", "user-1", { read: true }),
         );
-        await notificationRepoMock.save(
+        await mockNotificationRepo.save(
             buildNotification("n-3", "user-1", { read: false }),
         );
 
@@ -84,7 +84,7 @@ describe("Notifications routes (integration)", () => {
 
     test("PATCH /notifications/:id/read marks as read for owner", async () => {
         setMockUser("user-1", "STANDARD");
-        await notificationRepoMock.save(
+        await mockNotificationRepo.save(
             buildNotification("n-1", "user-1", { read: false }),
         );
 
@@ -97,7 +97,7 @@ describe("Notifications routes (integration)", () => {
 
     test("PATCH /notifications/:id/read returns 403 for non-owner", async () => {
         setMockUser("user-1", "STANDARD");
-        await notificationRepoMock.save(
+        await mockNotificationRepo.save(
             buildNotification("n-1", "user-2", { read: false }),
         );
 
@@ -106,10 +106,10 @@ describe("Notifications routes (integration)", () => {
 
     test("PATCH /notifications/read-all marks all unread as read", async () => {
         setMockUser("user-1", "STANDARD");
-        await notificationRepoMock.save(
+        await mockNotificationRepo.save(
             buildNotification("n-1", "user-1", { read: false }),
         );
-        await notificationRepoMock.save(
+        await mockNotificationRepo.save(
             buildNotification("n-2", "user-1", { read: false }),
         );
 

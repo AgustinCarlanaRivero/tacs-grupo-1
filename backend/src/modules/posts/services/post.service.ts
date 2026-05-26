@@ -72,10 +72,7 @@ function buildPostQueryFilter(filters: PostListFilters) {
 
 function toStickerResponse(sticker: Sticker) {
     return stickerResponseSchema.parse({
-        id: sticker.number,
-        title:
-            sticker.getDisplayName?.() ??
-            `#${sticker.number} ${sticker.player.name}`,
+        number: sticker.number,
         state: sticker.category.state,
         type: sticker.category.type,
         description: sticker.description ?? "",
@@ -107,8 +104,8 @@ function toPostResponse(post: Post) {
     if (post instanceof Auction) {
         return postResponseSchema.parse({
             ...base,
-            createdAt: post.createdAt.toISOString(),
-            endsAt: post.endsAt.toISOString(),
+            createdAt: post.createdAt,
+            endsAt: post.endsAt,
             minimumRequirement: post.minimumRequirement,
         });
     }

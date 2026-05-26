@@ -12,11 +12,11 @@ import { getTestApp, setMockUser } from "../helpers/build-app";
 import { buildUser } from "../helpers/builders";
 import { buildUserRepoMock } from "../helpers/repo-mocks";
 
-const userRepoMock = buildUserRepoMock();
+const mockUserRepo = buildUserRepoMock();
 
 jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
-    default: userRepoMock,
+    default: mockUserRepo,
 }));
 
 let app: Express;
@@ -27,13 +27,13 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-    await userRepoMock.clear();
+    await mockUserRepo.clear();
 });
 
 describe("Users routes (integration)", () => {
     test("GET /users returns paginated list", async () => {
-        await userRepoMock.save(buildUser("user-1"));
-        await userRepoMock.save(buildUser("user-2"));
+        await mockUserRepo.save(buildUser("user-1"));
+        await mockUserRepo.save(buildUser("user-2"));
 
         const res = await request(app).get("/users").expect(200);
 
@@ -42,7 +42,7 @@ describe("Users routes (integration)", () => {
     });
 
     test("GET /users/:userId returns user", async () => {
-        await userRepoMock.save(buildUser("user-1"));
+        await mockUserRepo.save(buildUser("user-1"));
 
         const res = await request(app).get("/users/user-1").expect(200);
         expect(res.body.id).toBe("user-1");
@@ -50,7 +50,7 @@ describe("Users routes (integration)", () => {
 
     test("PATCH /users/:userId updates user data", async () => {
         setMockUser("admin-1", "ADMIN");
-        await userRepoMock.save(buildUser("user-1"));
+        await mockUserRepo.save(buildUser("user-1"));
 
         const res = await request(app)
             .patch("/users/user-1")
@@ -62,8 +62,8 @@ describe("Users routes (integration)", () => {
 
     test("PATCH /users/:userId returns 409 on duplicate username", async () => {
         setMockUser("admin-1", "ADMIN");
-        await userRepoMock.save(buildUser("user-1", { username: "user1" }));
-        await userRepoMock.save(buildUser("user-2", { username: "taken" }));
+        await mockUserRepo.save(buildUser("user-1", { username: "user1" }));
+        await mockUserRepo.save(buildUser("user-2", { username: "taken" }));
 
         const res = await request(app)
             .patch("/users/user-1")
@@ -75,16 +75,16 @@ describe("Users routes (integration)", () => {
 
     test("DELETE /users/:userId removes user", async () => {
         setMockUser("admin-1", "ADMIN");
-        await userRepoMock.save(buildUser("user-1"));
+        await mockUserRepo.save(buildUser("user-1"));
 
         await request(app).delete("/users/user-1").expect(204);
-        expect(userRepoMock.store.size).toBe(0);
+        expect(mockUserRepo.store.size).toBe(0);
     });
 
     test("PATCH /users/:other returns 403 when STANDARD updates someone else", async () => {
         setMockUser("user-1", "STANDARD");
-        await userRepoMock.save(buildUser("user-1"));
-        await userRepoMock.save(buildUser("user-2"));
+        await mockUserRepo.save(buildUser("user-1"));
+        await mockUserRepo.save(buildUser("user-2"));
 
         await request(app)
             .patch("/users/user-2")

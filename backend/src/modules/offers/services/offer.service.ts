@@ -92,10 +92,7 @@ async function loadPostForOffers(postId: string): Promise<Post | null> {
 
 function toStickerResponse(sticker: Sticker) {
     return stickerResponseSchema.parse({
-        id: sticker.number,
-        title:
-            sticker.getDisplayName?.() ??
-            `#${sticker.number} ${sticker.player.name}`,
+        number: sticker.number,
         state: sticker.category.state,
         type: sticker.category.type,
         description: sticker.description ?? "",
@@ -116,7 +113,7 @@ function toOfferResponse(offer: OfferReadModel) {
     return offerResponseSchema.parse({
         id: offer.id ?? "",
         state: offer.state,
-        createdAt: offer.createdAt.toISOString(),
+        createdAt: offer.createdAt,
         offerer: {
             id: offer.offerer.id,
             username: offer.offerer.username,

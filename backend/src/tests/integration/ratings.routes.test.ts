@@ -16,21 +16,21 @@ import {
     buildUserRepoMock,
 } from "../helpers/repo-mocks";
 
-const ratingRepoMock = buildRatingRepoMock();
-const userRepoMock = buildUserRepoMock();
-const notificationsFacadeMock = buildNotificationsFacadeMock();
+const mockRatingRepo = buildRatingRepoMock();
+const mockUserRepo = buildUserRepoMock();
+const mockNotificationsFacade = buildNotificationsFacadeMock();
 
 jest.mock("../../modules/ratings/repositories/rating.repository", () => ({
     __esModule: true,
-    default: ratingRepoMock,
+    default: mockRatingRepo,
 }));
 jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
-    default: userRepoMock,
+    default: mockUserRepo,
 }));
 jest.mock("../../modules/notifications/services/notification.facade", () => ({
     __esModule: true,
-    notifications: notificationsFacadeMock,
+    notifications: mockNotificationsFacade,
 }));
 
 let app: Express;
@@ -41,15 +41,15 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-    await ratingRepoMock.clear();
-    await userRepoMock.clear();
+    await mockRatingRepo.clear();
+    await mockUserRepo.clear();
 });
 
 describe("Ratings routes (integration)", () => {
     test("GET /users/:userId/ratings returns paginated list", async () => {
         const reviewer = buildUser("reviewer-1");
         const reviewee = buildUser("reviewee-1");
-        await ratingRepoMock.save(buildRating("rating-1", reviewer, reviewee, 4));
+        await mockRatingRepo.save(buildRating("rating-1", reviewer, reviewee, 4));
 
         const res = await request(app)
             .get("/users/reviewee-1/ratings")
@@ -61,8 +61,8 @@ describe("Ratings routes (integration)", () => {
 
     test("POST /users/:userId/ratings creates rating and notifies reviewee", async () => {
         setMockUser("reviewer-1", "STANDARD");
-        await userRepoMock.save(buildUser("reviewer-1"));
-        await userRepoMock.save(buildUser("reviewee-1"));
+        await mockUserRepo.save(buildUser("reviewer-1"));
+        await mockUserRepo.save(buildUser("reviewee-1"));
 
         const res = await request(app)
             .post("/users/reviewee-1/ratings")
@@ -72,7 +72,7 @@ describe("Ratings routes (integration)", () => {
         expect(res.body.reviewerId).toBe("reviewer-1");
         expect(res.body.revieweeId).toBe("reviewee-1");
         expect(res.body.score).toBe(5);
-        expect(notificationsFacadeMock.ratingReceived).toHaveBeenCalledWith(
+        expect(mockNotificationsFacade.ratingReceived).toHaveBeenCalledWith(
             "reviewee-1",
             expect.objectContaining({ fromUserId: "reviewer-1", score: 5 }),
         );
@@ -80,8 +80,8 @@ describe("Ratings routes (integration)", () => {
 
     test("POST /users/:userId/ratings returns 400 when score is missing", async () => {
         setMockUser("reviewer-1", "STANDARD");
-        await userRepoMock.save(buildUser("reviewer-1"));
-        await userRepoMock.save(buildUser("reviewee-1"));
+        await mockUserRepo.save(buildUser("reviewer-1"));
+        await mockUserRepo.save(buildUser("reviewee-1"));
 
         await request(app)
             .post("/users/reviewee-1/ratings")

@@ -12,11 +12,11 @@ import { getTestApp } from "../helpers/build-app";
 import { buildSticker } from "../helpers/builders";
 import { buildStickerRepoMock } from "../helpers/repo-mocks";
 
-const stickerRepoMock = buildStickerRepoMock();
+const mockStickerRepo = buildStickerRepoMock();
 
 jest.mock("../../modules/stickers/repositories/sticker.repository", () => ({
     __esModule: true,
-    default: stickerRepoMock,
+    default: mockStickerRepo,
 }));
 
 let app: Express;
@@ -26,13 +26,13 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-    stickerRepoMock.clear();
+    mockStickerRepo.clear();
 });
 
 describe("Stickers routes (integration)", () => {
     test("GET /stickers lists all", async () => {
-        stickerRepoMock.save(buildSticker(1));
-        stickerRepoMock.save(buildSticker(2));
+        mockStickerRepo.save(buildSticker(1));
+        mockStickerRepo.save(buildSticker(2));
 
         const res = await request(app).get("/stickers").expect(200);
 
@@ -40,8 +40,8 @@ describe("Stickers routes (integration)", () => {
     });
 
     test("GET /stickers?team=Argentina filters by team", async () => {
-        stickerRepoMock.save(buildSticker(1, { teamName: "Argentina" }));
-        stickerRepoMock.save(buildSticker(2, { teamName: "Brasil" }));
+        mockStickerRepo.save(buildSticker(1, { teamName: "Argentina" }));
+        mockStickerRepo.save(buildSticker(2, { teamName: "Brasil" }));
 
         const res = await request(app)
             .get("/stickers?team=Argentina")
@@ -52,7 +52,7 @@ describe("Stickers routes (integration)", () => {
     });
 
     test("GET /stickers/:id returns sticker detail", async () => {
-        stickerRepoMock.save(buildSticker(42, { playerName: "Messi" }));
+        mockStickerRepo.save(buildSticker(42, { playerName: "Messi" }));
 
         const res = await request(app).get("/stickers/42").expect(200);
 
@@ -66,9 +66,9 @@ describe("Stickers routes (integration)", () => {
     });
 
     test("GET /stickers/players returns unique players sorted", async () => {
-        stickerRepoMock.save(buildSticker(1, { playerName: "Messi" }));
-        stickerRepoMock.save(buildSticker(2, { playerName: "Aimar" }));
-        stickerRepoMock.save(buildSticker(3, { playerName: "Messi" }));
+        mockStickerRepo.save(buildSticker(1, { playerName: "Messi" }));
+        mockStickerRepo.save(buildSticker(2, { playerName: "Aimar" }));
+        mockStickerRepo.save(buildSticker(3, { playerName: "Messi" }));
 
         const res = await request(app).get("/stickers/players").expect(200);
 
