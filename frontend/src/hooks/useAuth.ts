@@ -21,7 +21,31 @@ export interface UseAuthResult {
   getAccessTokenSilently: () => Promise<string>;
 }
 
+const DISABLE_AUTH = process.env.NEXT_PUBLIC_DISABLE_AUTH === "true";
+
+const MOCK_USER: AuthUser = {
+  id: "seed-user-ana",
+  name: "Ana Lopez",
+  email: "ana@seed.local",
+  sub: "dev|seed-user-ana",
+  role: "ADMIN",
+};
+
 export function useAuth(): UseAuthResult {
+  // ── Modo dev sin Auth0 ──────────────────────────────────────────────────────
+  if (DISABLE_AUTH) {
+    return {
+      isAuthenticated: true,
+      isLoading: false,
+      user: MOCK_USER,
+      loginWithRedirect: async () => {},
+      logout: async () => {},
+      getAccessTokenSilently: async () => "dev-token",
+    };
+  }
+
+  // ── Modo normal con Auth0 ───────────────────────────────────────────────────
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const {
     isAuthenticated,
     isLoading: auth0Loading,
@@ -31,6 +55,7 @@ export function useAuth(): UseAuthResult {
     getAccessTokenSilently,
   } = useAuth0();
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const { data: internalUser, isLoading: meLoading } = useGetMeQuery(undefined, {
     skip: !isAuthenticated,
   });

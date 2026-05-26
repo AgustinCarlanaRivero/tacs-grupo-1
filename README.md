@@ -59,6 +59,75 @@ CMD ["npm", "start"]                    # Ejecuta: next start
 
 ---
 
+## Desarrollo local (sin Docker)
+
+### 1. Variables de entorno
+
+**Backend** — crear `backend/config/.env.dev`:
+```env
+NODE_ENV=development
+PORT=3000
+AUTH0_ISSUER_BASE_URL=https://fake.auth0.com/
+AUTH0_AUDIENCE=https://fake-api
+DISABLE_AUTH=true
+MOCK_USER_ID=seed-user-ana
+MOCK_USER_ROLE=ADMIN
+```
+
+**Frontend** — crear `frontend/.env.local`:
+```env
+NEXT_PUBLIC_DISABLE_AUTH=true
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+Con `DISABLE_AUTH=true` no se necesitan credenciales reales de Auth0. El backend inyecta el usuario mock en cada request y el frontend muestra la UI como autenticado.
+
+### 2. Levantar backend
+
+```bash
+cd backend
+npm install
+npm run dev    # corre en localhost:3000
+```
+
+### 3. Levantar frontend
+
+```bash
+cd frontend
+npm install
+npm run dev    # corre en localhost:3001
+```
+
+---
+
+## Tests E2E (Cypress)
+
+Los tests requieren que **ambos servidores estén corriendo** (backend en `:3000`, frontend en `:3001`) con los `.env` de desarrollo configurados.
+
+```bash
+cd frontend
+
+# Modo interactivo (GUI — recomendado para debuggear)
+npm run cy:open
+
+# Modo headless (CI)
+npm run cy:run
+```
+
+### Cobertura de tests
+
+| Archivo | Qué testea | Datos |
+|---|---|---|
+| `auth.cy.ts` | Login, rutas protegidas, nav | Mock user (Ana Lopez, ADMIN) |
+| `coleccion.cy.ts` | Mi Colección, Figuritas Faltantes | Seed real del back |
+| `subastas.cy.ts` | Tabs, Mis subastas, modal Publicar/Pujar | Seed real + mock para mercado* |
+| `intercambios.cy.ts` | Tabs, Mis intercambios, Sugerencias, modal | Seed real + mock para mercado* |
+| `admin.cy.ts` | Dashboard stats, gestión de usuarios, filtros | Seed real del back |
+
+> *El tab "Mercado" usa mock porque `GET /users/:id/posts` solo devuelve posts propios, no de otros usuarios.
+
+---
+
 ## Comandos
 
 ### Levantar todo el proyecto
