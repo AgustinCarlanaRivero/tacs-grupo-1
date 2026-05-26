@@ -1,16 +1,28 @@
 "use client";
 
 import React, { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, type Resolver } from "react-hook-form";
 import ModalShell from "@/components/common/ModalShell";
 import StickerSearchInput from "@/components/common/StickerSearchInput";
 import SelectableStickerOption from "@/components/sticker/SelectableStickerOption";
 import { filterStickers } from "@/lib/utils";
 import type { MockCollectionItem, MockSticker } from "@/data/types";
+import {
+  directTradePostCreateRequestSchema,
+  type PostCreateRequest,
+} from "@/lib/schemas/postSchema";
+
+type TradeFormValues = Extract<PostCreateRequest, { type: "DIRECT_TRADE" }>;
+
+const tradeFormResolver = zodResolver(
+  directTradePostCreateRequestSchema as never
+) as Resolver<TradeFormValues>;
 
 interface CreateTradeModalProps {
   myCollection: MockCollectionItem[];
   onClose: () => void;
-  onSubmit: (sticker: MockSticker) => void;
+  onSubmit: (payload: PostCreateRequest) => void | Promise<void>;
 }
 
 export default function CreateTradeModal({
@@ -18,10 +30,36 @@ export default function CreateTradeModal({
   onClose,
   onSubmit,
 }: CreateTradeModalProps) {
-  const [selected, setSelected] = useState<MockSticker | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const {
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<TradeFormValues>({
+    resolver: tradeFormResolver,
+    defaultValues: {
+      type: "DIRECT_TRADE",
+      stickerId: 0,
+    },
+  });
 
   const available = filterStickers(myCollection, searchQuery);
+  const selectedStickerId = watch("stickerId");
+  const selected =
+    myCollection.find((item) => item.sticker.number === selectedStickerId)
+      ?.sticker ?? null;
+
+  function selectSticker(sticker: MockSticker) {
+    setValue("stickerId", sticker.number, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }
+
+  async function submitForm(values: TradeFormValues) {
+    await onSubmit(values);
+  }
 
   return (
     <ModalShell
@@ -49,25 +87,30 @@ export default function CreateTradeModal({
                 key={item.sticker.number}
                 item={item}
                 selected={selected?.number === item.sticker.number}
-                onToggle={setSelected}
+                onToggle={selectSticker}
               />
             ))}
           </div>
+        )}
+        {errors.stickerId && (
+          <p className="mt-3 text-xs text-red-500">
+            Seleccioná una figurita para publicar.
+          </p>
         )}
       </div>
 
       <div className="shrink-0 p-4 md:p-6 border-t border-slate-100">
         <button
-          disabled={!selected}
-          onClick={() => {
-            if (selected) {
-              onSubmit(selected);
-              onClose();
-            }
-          }}
+          type="button"
+          disabled={!selected || isSubmitting}
+          onClick={() => void handleSubmit(submitForm)()}
           className="w-full py-3.5 rounded-lg text-sm font-bold uppercase tracking-wide transition-all bg-[#002B5E] hover:bg-[#003a7a] text-white shadow-lg shadow-blue-900/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
         >
-          {selected ? `Publicar · ${selected.player.name}` : "Seleccioná una figurita"}
+          {isSubmitting
+            ? "Publicando..."
+            : selected
+              ? `Publicar · ${selected.player.name}`
+              : "Seleccioná una figurita"}
         </button>
       </div>
     </ModalShell>

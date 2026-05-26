@@ -55,9 +55,9 @@ export default class CollectionController {
     // POST /users/:userId/collection/missing
     addMissingSticker = async (req: Request, res: Response) => {
         const { userId } = req.params as UserParams
-        const { stickerId } = req.body as MissingStickerBody
+        const itemData = req.body as MissingStickerBody
 
-        const missingSticker = await CollectionService.addMissingSticker(userId, String(stickerId))
+        const missingSticker = await CollectionService.addMissingSticker(userId, itemData)
         return res.status(201).json(missingSticker)
     }
 

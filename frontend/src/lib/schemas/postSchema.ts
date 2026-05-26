@@ -5,6 +5,8 @@ import { collectionItemSchema, userSchema } from "./userSchema";
 export const postTypeSchema = z.enum(["DIRECT_TRADE", "AUCTION"]);
 export const postStateSchema = z.enum(["ACTIVE", "COMPLETED", "CLOSED"]);
 
+const postCreateStickerIdSchema = z.number().int().positive();
+
 export const offerStateSchema = z.enum([
   "PENDING",
   "APPROVED",
@@ -49,9 +51,31 @@ export const postSchema = z.discriminatedUnion("type", [
   auctionPostSchema,
 ]);
 
+export const directTradePostCreateRequestSchema = z
+  .object({
+    type: z.literal("DIRECT_TRADE"),
+    stickerId: postCreateStickerIdSchema,
+  })
+  .strict();
+
+export const auctionPostCreateRequestSchema = z
+  .object({
+    type: z.literal("AUCTION"),
+    stickerId: postCreateStickerIdSchema,
+    endsAt: z.iso.datetime(),
+    minimumRequirement: z.number().int().positive(),
+  })
+  .strict();
+
+export const postCreateRequestSchema = z.discriminatedUnion("type", [
+  directTradePostCreateRequestSchema,
+  auctionPostCreateRequestSchema,
+]);
+
 export type PostTypeDTO = z.infer<typeof postTypeSchema>;
 export type PostStateDTO = z.infer<typeof postStateSchema>;
 export type PostOwnerDTO = z.infer<typeof postOwnerSchema>;
 export type DirectTradePostDTO = z.infer<typeof directTradePostSchema>;
 export type AuctionPostDTO = z.infer<typeof auctionPostSchema>;
 export type PostDTO = z.infer<typeof postSchema>;
+export type PostCreateRequest = z.infer<typeof postCreateRequestSchema>;

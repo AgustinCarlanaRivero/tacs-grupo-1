@@ -25,7 +25,44 @@ type UserUpdatePayload = z.infer<typeof userUpdateRequestSchema>;
 export default class UserService {
     static async getUsers(filters: UserListFilters) {
         const normalizedQuery = normalizeQuery(filters.query);
-        const users = userRepository.findAll();
+        const repo = userRepository as typeof userRepository & {
+            paginate?: (
+                filter: Record<string, unknown>,
+                options: { page: number; limit: number },
+            ) => Promise<{
+                data: unknown[];
+                total: number;
+                page: number;
+                limit: number;
+            }>;
+        };
+
+        if (repo.paginate) {
+            const filter: Record<string, unknown> = {};
+            if (normalizedQuery) {
+                const regex = new RegExp(normalizedQuery, "i");
+                filter.$or = [
+                    { firstName: regex },
+                    { lastName: regex },
+                    { username: regex },
+                    { email: regex },
+                ];
+            }
+
+            const result = await repo.paginate(filter, {
+                page: filters.page,
+                limit: filters.limit,
+            });
+
+            return {
+                data: result.data.map((u) => userResponseSchema.parse(u)),
+                total: result.total,
+                page: result.page,
+                limit: result.limit,
+            };
+        }
+
+        const users = await userRepository.findAll();
         const filtered = normalizedQuery
             ? users.filter((user) =>
                   matchesAnyQuery(
@@ -45,7 +82,7 @@ export default class UserService {
     }
 
     static async getUserById(userId: string) {
-        const user = userRepository.findById(userId);
+        const user = await userRepository.findById(userId);
         if (!user) {
             throw new NotFoundError("Usuario no encontrado");
         }
@@ -53,20 +90,22 @@ export default class UserService {
     }
 
     static async updateUser(userId: string, updates: UserUpdatePayload) {
-        const user = userRepository.findById(userId);
+        const user = await userRepository.findById(userId);
         if (!user) {
             throw new NotFoundError("Usuario no encontrado");
         }
 
         if (updates.username) {
-            const existing = userRepository.findByUsername(updates.username);
+            const existing = await userRepository.findByUsername(
+                updates.username,
+            );
             if (existing && existing.id !== userId) {
                 throw new ConflictError("El username ya esta en uso");
             }
         }
 
         if (updates.email) {
-            const existing = userRepository.findByEmail(updates.email);
+            const existing = await userRepository.findByEmail(updates.email);
             if (existing && existing.id !== userId) {
                 throw new ConflictError("El email ya esta en uso");
             }
@@ -77,12 +116,12 @@ export default class UserService {
         if (updates.username !== undefined) user.username = updates.username;
         if (updates.email !== undefined) user.email = updates.email;
 
-        userRepository.save(user);
+        await userRepository.save(user);
         return userResponseSchema.parse(user);
     }
 
     static async deleteUser(userId: string) {
-        const deleted = userRepository.delete(userId);
+        const deleted = await userRepository.delete(userId);
         if (!deleted) {
             throw new NotFoundError("Usuario no encontrado");
         }

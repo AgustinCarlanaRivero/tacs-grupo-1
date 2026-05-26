@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, jest, test } from "@jest/globals";
 import { CollectionItem } from "../../modules/collection/entities/collection-item.interface";
 import { Offer } from "../../modules/offers/entities/offer.entity";
+import type { OfferReadModel } from "../../modules/offers/repositories/offer.repository";
 import offerRepository from "../../modules/offers/repositories/offer.repository";
 import OfferService from "../../modules/offers/services/offer.service";
 import { DirectTrade } from "../../modules/posts/entities/direct-trade.entity";
 import type { Post } from "../../modules/posts/entities/post.entity";
 import postRepository from "../../modules/posts/repositories/post.repository";
-import { Category } from "../../modules/stickers/entities/category.entity";
 import { Club } from "../../modules/stickers/entities/club.entity";
 import { NationalTeam } from "../../modules/stickers/entities/national-team.entity";
 import { Player } from "../../modules/stickers/entities/player.entity";
@@ -15,36 +15,30 @@ import { User } from "../../modules/users/entities/user.entity";
 import userRepository from "../../modules/users/repositories/user.repository";
 import { NotFoundError } from "../../shared/errors/http-errors";
 
-type OfferRecord = {
-    offer: Offer;
-    postId: string;
-    postOwnerId: string;
-};
-
-const mockOfferRecords: OfferRecord[] = [];
+const mockOfferRecords: OfferReadModel[] = [];
 const mockPostsById = new Map<string, Post>();
 const mockUsersById = new Map<string, User>();
 
 jest.mock("../../modules/offers/repositories/offer.repository", () => ({
     __esModule: true,
     default: {
-        save: (record: OfferRecord) => {
-            mockOfferRecords.push(record);
-            return record;
+        save: (offer: OfferReadModel) => {
+            mockOfferRecords.push(offer);
+            return offer;
         },
         findById: (id: string) =>
-            mockOfferRecords.find((record) => record.offer.id === id),
+            mockOfferRecords.find((record) => record.id === id),
         findByPostId: (postId: string) =>
             mockOfferRecords.filter((record) => record.postId === postId),
         findByUserId: (userId: string) =>
             mockOfferRecords.filter((record) => {
-                const offererId = record.offer.offerer.id;
+                const offererId = record.offerer.id;
                 return offererId === userId || record.postOwnerId === userId;
             }),
         findAll: () => [...mockOfferRecords],
         delete: (id: string) => {
             const index = mockOfferRecords.findIndex(
-                (record) => record.offer.id === id,
+                (record) => record.id === id,
             );
             if (index < 0) return false;
             mockOfferRecords.splice(index, 1);
@@ -130,7 +124,7 @@ describe("OfferService", () => {
         userRepository.save(offerer);
 
         const player = new Player("P", new NationalTeam("NT"), new Club("C"));
-        const sticker = new Sticker(21, player, new Category("NEW", "REGULAR"));
+        const sticker = new Sticker(21, player, "NEW", "REGULAR");
 
         const post = new DirectTrade(owner, sticker);
         post.setId("post1");
@@ -141,11 +135,12 @@ describe("OfferService", () => {
         offer.setId("offer1");
         post.addOffer(offer);
 
-        offerRepository.save({
-            offer,
-            postId: post.id ?? "post1",
-            postOwnerId: owner.id,
-        });
+        offerRepository.save(
+            Object.assign(offer, {
+                postId: post.id ?? "post1",
+                postOwnerId: owner.id,
+            }),
+        );
 
         const sent = await OfferService.getOffersByUser("from", {
             page: 1,

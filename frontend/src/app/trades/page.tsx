@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, Suspense } from "react";
+import React, { useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
@@ -16,7 +16,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { mockStickers } from "@/data/mock-stickers";
 import { mockOffers } from "@/data/mock-offers";
 import { mockSuggestions } from "@/data/mock-suggestions";
-import { useGetUserDirectTradesQuery } from "@/store/api/postApi";
+import {
+  useCreatePostMutation,
+  useGetUserDirectTradesQuery,
+} from "@/store/api/postApi";
 import RequireAuth from "@/components/layout/RequireAuth";
 import type {
   MockCollectionItem,
@@ -38,19 +41,17 @@ function TradesPageInner() {
       ? "suggestions"
       : "market";
   const [tab, setTab] = useState<TradeTabKey>(initialTab);
-  const [allTrades, setAllTrades] = useState<MockTrade[]>([]);
+  const [cancelledTradeIds, setCancelledTradeIds] = useState<number[]>([]);
   const [selectedTrade, setSelectedTrade] = useState<MockTrade | null>(null);
   const [suggestions, setSuggestions] = useState<MockSuggestion[]>(mockSuggestions);
   const [showCreateTrade, setShowCreateTrade] = useState(false);
+  const [createPost] = useCreatePostMutation();
   const { data: directTrades = [] } = useGetUserDirectTradesQuery(user?.id ?? "", {
     skip: !user?.id,
   });
-
-  useEffect(() => {
-    if (directTrades.length > 0 && allTrades.length === 0) {
-      setAllTrades(directTrades as unknown as MockTrade[]);
-    }
-  }, [directTrades, allTrades.length]);
+  const allTrades = (directTrades as unknown as MockTrade[]).filter(
+    (trade) => !cancelledTradeIds.includes(trade.id)
+  );
 
   const { query, setQuery, filtered } = useSearch<MockTrade>(
     allTrades,
@@ -73,7 +74,7 @@ function TradesPageInner() {
         `¿Cancelar el intercambio de ${trade.sticker.player.name}?`
       )
     ) {
-      setAllTrades((prev) => prev.filter((t) => t.id !== trade.id));
+      setCancelledTradeIds((prev) => [...prev, trade.id]);
       setSelectedTrade(null);
     }
   }
@@ -206,18 +207,16 @@ function TradesPageInner() {
             <CreateTradeModal
               myCollection={myCollection}
               onClose={() => setShowCreateTrade(false)}
-              onSubmit={(sticker) => {
-                const newTrade: MockTrade = {
-                  id: Date.now(),
-                  state: "ACTIVE",
-                  sticker,
-                  owner: {
-                    id: user?.id ?? "",
-                    name: user?.name ?? user?.email ?? "Usuario",
-                    username: user?.name ?? user?.email ?? "Usuario",
-                  },
-                };
-                setAllTrades((prev) => [newTrade, ...prev]);
+              onSubmit={async (post) => {
+                if (!user?.id) return;
+
+                try {
+                  await createPost({ userId: user.id, post }).unwrap();
+                  setShowCreateTrade(false);
+                } catch (error) {
+                  console.error("No se pudo crear el intercambio", error);
+                  alert("No se pudo publicar el intercambio. Intentá nuevamente.");
+                }
               }}
             />
           )}

@@ -21,28 +21,27 @@ export const postFilterQuerySchema = paginationQuerySchema.extend({
     query: queryString,
 })
 
+const directTradePostCreateRequestSchema = z.object({
+    type: z.literal(PostType.DIRECT_TRADE),
+    stickerId: positiveInt,
+}).strict()
+
+const auctionPostCreateRequestSchema = z.object({
+    type: z.literal(PostType.AUCTION),
+    stickerId: positiveInt,
+    endsAt: isoDateTime,
+    minimumRequirement: positiveInt.optional(),
+}).strict()
+
 /**
  * POST /users/:userId/posts.
  * Si el `type` es AUCTION, se requieren `endsAt` y opcionalmente
  * `minimumRequirement`. Para DIRECT_TRADE esos campos no aplican.
  */
-export const postCreateRequestSchema = z
-    .object({
-        type: postTypeEnum,
-        stickerId: positiveInt,
-        endsAt: isoDateTime.optional(),
-        minimumRequirement: positiveInt.optional(),
-    })
-    .superRefine((data, ctx) => {
-        if (data.type === PostType.AUCTION && !data.endsAt) {
-            ctx.addIssue({
-                code: "custom",
-                path: ["endsAt"],
-                message: "endsAt es requerido para subastas",
-            })
-        }
-    })
-    .meta({ id: "PostCreateRequest" })
+export const postCreateRequestSchema = z.discriminatedUnion("type", [
+    directTradePostCreateRequestSchema,
+    auctionPostCreateRequestSchema,
+]).meta({ id: "PostCreateRequest" })
 
 /** PATCH /users/:userId/posts/:postId/state */
 export const postStateUpdateRequestSchema = z.object({

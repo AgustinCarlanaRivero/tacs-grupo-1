@@ -2,7 +2,7 @@
 
 ## Reglas generales
 
-- Todas las entidades persistidas tienen `id: string` mapeado a `_id` (tipo String). `_id` y `__v` no se exponen en entidades ni en respuestas de la API.
+- Todas las entidades persistidas tienen `id: string` mapeado a `_id` (tipo ObjectId). `_id` y `__v` no se exponen en entidades ni en respuestas de la API.
 - Principio base: los datos que se leen juntos se guardan juntos.
 - Preferir embebido para relaciones 1:1 o listas acotadas usadas siempre junto al padre; preferir referencia para 1:N no acotadas o datos compartidos.
 - Evitar arrays sin limite y documentos cercanos al limite de 16MB; si una lista puede crecer sin bound, mover a coleccion propia o aplicar patron outlier.

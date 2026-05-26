@@ -3,12 +3,10 @@ import type { Post } from "../../modules/posts/entities/post.entity";
 import { PostType } from "../../modules/posts/enums/post-type.enum";
 import postRepository from "../../modules/posts/repositories/post.repository";
 import PostService from "../../modules/posts/services/post.service";
-import { Category } from "../../modules/stickers/entities/category.entity";
 import { Club } from "../../modules/stickers/entities/club.entity";
 import { NationalTeam } from "../../modules/stickers/entities/national-team.entity";
 import { Player } from "../../modules/stickers/entities/player.entity";
 import { Sticker } from "../../modules/stickers/entities/sticker.entity";
-import stickerRepository from "../../modules/stickers/repositories/sticker.repository";
 import { User } from "../../modules/users/entities/user.entity";
 import userRepository from "../../modules/users/repositories/user.repository";
 import { NotFoundError } from "../../shared/errors/http-errors";
@@ -65,50 +63,15 @@ jest.mock("../../modules/users/repositories/user.repository", () => ({
     },
 }));
 
-jest.mock("../../modules/stickers/repositories/sticker.repository", () => ({
+jest.mock("../../modules/stickers/services/sticker.service", () => ({
     __esModule: true,
     default: {
-        findAll: async () => Array.from(mockStickersById.values()),
-        findById: async (id: number) => mockStickersById.get(id) ?? null,
-        findByFilters: async (filters: {
-            state?: string;
-            type?: string;
-            team?: string;
-            club?: string;
-        }) =>
-            Array.from(mockStickersById.values()).filter((sticker) =>
-                sticker.matchesFilters(filters),
-            ),
-        getPlayers: async () => {
-            const players = new Set<string>();
-            for (const sticker of mockStickersById.values()) {
-                players.add(sticker.player.name);
+        getStickerByIdOrFail: async (id: string) => {
+            const sticker = mockStickersById.get(Number(id));
+            if (!sticker) {
+                throw new NotFoundError(`Sticker #${id} not found`);
             }
-            return Array.from(players).sort();
-        },
-        getTeams: async () => {
-            const teams = new Set<string>();
-            for (const sticker of mockStickersById.values()) {
-                if (sticker.player.nationalTeam) {
-                    teams.add(sticker.player.nationalTeam.name);
-                }
-            }
-            return Array.from(teams).sort();
-        },
-        getClubs: async () => {
-            const clubs = new Set<string>();
-            for (const sticker of mockStickersById.values()) {
-                if (sticker.player.club) {
-                    clubs.add(sticker.player.club.name);
-                }
-            }
-            return Array.from(clubs).sort();
-        },
-        save: (sticker: Sticker) => {
-            mockStickersById.set(sticker.number, sticker);
-        },
-        clear: () => {
-            mockStickersById.clear();
+            return sticker;
         },
     },
 }));
@@ -127,7 +90,7 @@ describe("PostService", () => {
     beforeEach(() => {
         postRepository.clear();
         userRepository.clear();
-        stickerRepository.clear();
+        mockStickersById.clear();
     });
 
     test("createPost throws when owner not found", async () => {
@@ -145,8 +108,8 @@ describe("PostService", () => {
         userRepository.save(owner);
 
         const player = new Player("P", new NationalTeam("NT"), new Club("C"));
-        const sticker = new Sticker(10, player, new Category("NEW", "REGULAR"));
-        stickerRepository.save(sticker);
+        const sticker = new Sticker(10, player, "NEW", "REGULAR");
+        mockStickersById.set(sticker.number, sticker);
 
         const res = await PostService.createPost("owner", {
             type: PostType.DIRECT_TRADE,
@@ -164,8 +127,8 @@ describe("PostService", () => {
         userRepository.save(owner);
 
         const player = new Player("P", new NationalTeam("NT"), new Club("C"));
-        const sticker = new Sticker(11, player, new Category("NEW", "REGULAR"));
-        stickerRepository.save(sticker);
+        const sticker = new Sticker(11, player, "NEW", "REGULAR");
+        mockStickersById.set(sticker.number, sticker);
 
         const post = await (async () => {
             // create a post via service to ensure repository populated
