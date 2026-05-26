@@ -66,10 +66,10 @@ jest.mock("../../modules/users/repositories/user.repository", () => ({
 jest.mock("../../modules/stickers/services/sticker.service", () => ({
     __esModule: true,
     default: {
-        getStickerByIdOrFail: async (id: string) => {
+        getStickerByNumberOrFail: async (id: string) => {
             const sticker = mockStickersById.get(Number(id));
             if (!sticker) {
-                throw new NotFoundError(`Sticker #${id} not found`);
+                throw new Error(`Sticker #${id} not found`);
             }
             return sticker;
         },

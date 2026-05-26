@@ -40,9 +40,15 @@ jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
     default: mockUserRepo,
 }));
-jest.mock("../../modules/stickers/repositories/sticker.repository", () => ({
+jest.mock("../../modules/stickers/services/sticker.service", () => ({
     __esModule: true,
-    default: mockStickerRepo,
+    default: {
+        getStickerByNumberOrFail: async (id: string) => {
+            const sticker = await mockStickerRepo.findById(Number(id));
+            if (!sticker) throw new Error(`Sticker #${id} not found`);
+            return sticker;
+        },
+    },
 }));
 jest.mock(
     "../../modules/collection/repositories/collection.repository",
@@ -125,7 +131,7 @@ describe("Posts routes (integration)", () => {
         expect(res.body.id).toBeDefined();
         expect(res.body.type).toBe(PostType.DIRECT_TRADE);
         expect(res.body.sticker.number).toBe(42);
-        expect(postRepoMock.store.size).toBe(1);
+        expect(mockPostRepo.store.size).toBe(1);
     });
 
     test("PATCH /users/:userId/posts/:postId/state transitions to COMPLETED", async () => {

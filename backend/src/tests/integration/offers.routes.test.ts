@@ -22,7 +22,6 @@ import {
     buildCollectionRepoMock,
     buildOfferRepoMock,
     buildPostRepoMock,
-    buildStickerRepoMock,
     buildUserRepoMock,
     buildNotificationsFacadeMock,
 } from "../helpers/repo-mocks";
@@ -30,7 +29,6 @@ import {
 const mockPostRepo = buildPostRepoMock();
 const mockOfferRepo = buildOfferRepoMock();
 const mockUserRepo = buildUserRepoMock();
-const mockStickerRepo = buildStickerRepoMock();
 const mockCollectionRepo = buildCollectionRepoMock();
 const mockNotificationsFacade = buildNotificationsFacadeMock();
 
@@ -45,10 +43,6 @@ jest.mock("../../modules/offers/repositories/offer.repository", () => ({
 jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
     default: mockUserRepo,
-}));
-jest.mock("../../modules/stickers/repositories/sticker.repository", () => ({
-    __esModule: true,
-    default: mockStickerRepo,
 }));
 jest.mock("../../modules/collection/repositories/collection.repository", () => ({
     __esModule: true,
@@ -70,7 +64,6 @@ beforeEach(async () => {
     await mockPostRepo.clear();
     await mockOfferRepo.clear();
     await mockUserRepo.clear();
-    mockStickerRepo.clear();
     await mockCollectionRepo.clear();
 });
 

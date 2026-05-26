@@ -24,25 +24,28 @@ import {
 const mockUserRepo = buildUserRepoMock();
 const mockStickerRepo = buildStickerRepoMock();
 const mockCollectionRepo = buildCollectionRepoMock();
-const mockUserRepo = buildUserRepoMock();
-const mockStickerRepo = buildStickerRepoMock();
-const mockCollectionRepo = buildCollectionRepoMock();
 
 jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
     default: mockUserRepo,
-    default: mockUserRepo,
 }));
-jest.mock("../../modules/stickers/repositories/sticker.repository", () => ({
+jest.mock("../../modules/stickers/services/sticker.service", () => ({
     __esModule: true,
-    default: mockStickerRepo,
-    default: mockStickerRepo,
+    default: {
+        getStickerByNumberOrFail: async (id: string) => {
+            const sticker = await mockStickerRepo.findById(Number(id));
+            if (!sticker) throw new Error(`Sticker #${id} not found`);
+            return sticker;
+        },
+    },
 }));
-jest.mock("../../modules/collection/repositories/collection.repository", () => ({
-    __esModule: true,
-    default: mockCollectionRepo,
-    default: mockCollectionRepo,
-}));
+jest.mock(
+    "../../modules/collection/repositories/collection.repository",
+    () => ({
+        __esModule: true,
+        default: mockCollectionRepo,
+    })
+);
 
 let app: Express;
 
@@ -66,9 +69,11 @@ describe("Collection routes (integration)", () => {
         await mockUserRepo.save(buildUser("user-1"));
         const sticker = buildSticker(7);
         mockCollectionRepo.store.set(
-        mockCollectionRepo.store.set(
             "user-1",
-            buildCollection([buildCollectionItem(sticker, 2)], [buildSticker(8)]),
+            buildCollection(
+                [buildCollectionItem(sticker, 2)],
+                [buildSticker(8)]
+            )
         );
 
         const res = await request(app)
@@ -91,7 +96,9 @@ describe("Collection routes (integration)", () => {
                     number: sticker.number,
                     player: {
                         name: sticker.player.name,
-                        nationalTeam: { name: sticker.player.nationalTeam.name },
+                        nationalTeam: {
+                            name: sticker.player.nationalTeam.name,
+                        },
                         club: { name: sticker.player.club.name },
                         image: sticker.player.image || null,
                     },
@@ -104,7 +111,6 @@ describe("Collection routes (integration)", () => {
         expect(res.body.sticker.number).toBe(10);
         expect(res.body.quantity).toBe(3);
         expect(mockCollectionRepo.store.get("user-1")?.items).toHaveLength(1);
-        expect(mockCollectionRepo.store.get("user-1")?.items).toHaveLength(1);
     });
 
     test("PATCH /users/:userId/collection/items/:stickerId updates quantity", async () => {
@@ -113,10 +119,8 @@ describe("Collection routes (integration)", () => {
         const sticker = buildSticker(11);
         mockStickerRepo.save(sticker);
         mockCollectionRepo.store.set(
-        mockStickerRepo.save(sticker);
-        mockCollectionRepo.store.set(
             "user-1",
-            buildCollection([buildCollectionItem(sticker, 1)]),
+            buildCollection([buildCollectionItem(sticker, 1)])
         );
 
         const res = await request(app)
@@ -133,17 +137,14 @@ describe("Collection routes (integration)", () => {
         const sticker = buildSticker(12);
         mockStickerRepo.save(sticker);
         mockCollectionRepo.store.set(
-        mockStickerRepo.save(sticker);
-        mockCollectionRepo.store.set(
             "user-1",
-            buildCollection([buildCollectionItem(sticker, 1)]),
+            buildCollection([buildCollectionItem(sticker, 1)])
         );
 
         await request(app)
             .delete("/users/user-1/collection/items/12")
             .expect(204);
 
-        expect(mockCollectionRepo.store.get("user-1")?.items).toHaveLength(0);
         expect(mockCollectionRepo.store.get("user-1")?.items).toHaveLength(0);
     });
 
@@ -158,7 +159,9 @@ describe("Collection routes (integration)", () => {
                     number: sticker.number,
                     player: {
                         name: sticker.player.name,
-                        nationalTeam: { name: sticker.player.nationalTeam.name },
+                        nationalTeam: {
+                            name: sticker.player.nationalTeam.name,
+                        },
                         club: { name: sticker.player.club.name },
                         image: sticker.player.image || null,
                     },
@@ -169,17 +172,13 @@ describe("Collection routes (integration)", () => {
 
         expect(res.body.number).toBe(13);
         expect(
-            mockCollectionRepo.store.get("user-1")?.missingStickers,
-            mockCollectionRepo.store.get("user-1")?.missingStickers,
+            mockCollectionRepo.store.get("user-1")?.missingStickers
         ).toHaveLength(1);
     });
 
     test("DELETE /users/:userId/collection/missing/:stickerId removes missing", async () => {
         await mockUserRepo.save(buildUser("user-1"));
-        await mockUserRepo.save(buildUser("user-1"));
         const sticker = buildSticker(14);
-        mockStickerRepo.save(sticker);
-        mockCollectionRepo.store.set("user-1", buildCollection([], [sticker]));
         mockStickerRepo.save(sticker);
         mockCollectionRepo.store.set("user-1", buildCollection([], [sticker]));
 
@@ -188,8 +187,7 @@ describe("Collection routes (integration)", () => {
             .expect(204);
 
         expect(
-            mockCollectionRepo.store.get("user-1")?.missingStickers,
-            mockCollectionRepo.store.get("user-1")?.missingStickers,
+            mockCollectionRepo.store.get("user-1")?.missingStickers
         ).toHaveLength(0);
     });
 });

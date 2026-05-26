@@ -9,6 +9,11 @@ const mockStickersById = new Map<number, Sticker>();
 
 jest.mock("../../modules/posts/repositories/post.repository", () => ({
     __esModule: true,
+    default: {},
+}));
+
+jest.mock("../../modules/users/repositories/user.repository", () => ({
+    __esModule: true,
     default: {
         findStickersByFilters: async (filters: {
             state?: string;
@@ -46,14 +51,6 @@ jest.mock("../../modules/posts/repositories/post.repository", () => ({
             }
             return Array.from(clubs).sort();
         },
-    },
-}));
-
-jest.mock("../../modules/users/repositories/user.repository", () => ({
-    __esModule: true,
-    default: {
-        findStickerInCollections: async (id: number) =>
-            mockStickersById.get(id) ?? null,
     },
 }));
 

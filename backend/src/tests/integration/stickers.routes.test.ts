@@ -14,9 +14,19 @@ import { buildStickerRepoMock } from "../helpers/repo-mocks";
 
 const mockStickerRepo = buildStickerRepoMock();
 
-jest.mock("../../modules/stickers/repositories/sticker.repository", () => ({
+jest.mock("../../modules/stickers/services/sticker.service", () => ({
     __esModule: true,
-    default: mockStickerRepo,
+    default: {
+        getStickers: async (filters?: Parameters<typeof mockStickerRepo.findByFilters>[0]) =>
+            filters && Object.keys(filters).length > 0
+                ? mockStickerRepo.findByFilters(filters)
+                : mockStickerRepo.findAll(),
+        getStickerByNumber: async (id: string) =>
+            mockStickerRepo.findById(Number(id)),
+        getPlayers: async () => mockStickerRepo.getPlayers(),
+        getTeams: async () => mockStickerRepo.getTeams(),
+        getClubs: async () => mockStickerRepo.getClubs(),
+    },
 }));
 
 let app: Express;

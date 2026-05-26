@@ -4,7 +4,7 @@ import type { OfferReadModel } from "../../modules/offers/repositories/offer.rep
 import type { Post } from "../../modules/posts/entities/post.entity";
 import type { Rating } from "../../modules/ratings/entities/rating.entity";
 import type { Sticker } from "../../modules/stickers/entities/sticker.entity";
-import type { Collection } from "../../modules/collection/entities/collection.entity";
+import { Collection } from "../../modules/collection/entities/collection.entity";
 import type { CollectionItem } from "../../modules/collection/entities/collection-item.interface";
 import type { User } from "../../modules/users/entities/user.entity";
 
@@ -351,13 +351,9 @@ export const buildCollectionRepoMock = () => {
     const store = new Map<string, Collection>();
 
     const getOrCreate = (userId: string): Collection => {
-        const { Collection: CollectionCtor } =
-            require("../../modules/collection/entities/collection.entity") as {
-                Collection: new () => Collection;
-            };
         const existing = store.get(userId);
         if (existing) return existing;
-        const fresh = new CollectionCtor();
+        const fresh = new Collection();
         store.set(userId, fresh);
         return fresh;
     };
