@@ -191,7 +191,12 @@ export default class PostService {
         }
 
         await postRepository.save(post);
-        await this.notifyMissingUsers(sticker, post.id ?? "", ownerId);
+
+        try {
+            await this.notifyMissingUsers(sticker, post.id ?? "", ownerId);
+        } catch (error) {
+            console.warn("No se pudieron notificar usuarios faltantes", error);
+        }
 
         return toPostResponse(post);
     }
@@ -279,7 +284,8 @@ export default class PostService {
 
         await Promise.all(
             users.map(async (user) => {
-                if (user.id === ownerId) return;
+                if (!user.id || user.id === ownerId) return;
+
                 const collection = await collectionRepository.getCollection(
                     user.id
                 );
