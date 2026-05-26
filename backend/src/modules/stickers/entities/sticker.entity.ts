@@ -21,19 +21,19 @@ export class Sticker {
 
     // --- MÉTODOS DE VALIDACIÓN/DOMINIO ---
 
-    public isShiny(): boolean {
+    public isShinySticker(): boolean {
         return this.category.type === "SHINY";
     }
 
-    public isRegular(): boolean {
+    public isRegularSticker(): boolean {
         return this.category.type === "REGULAR";
     }
 
-    public isNew(): boolean {
+    public isNewSticker(): boolean {
         return this.category.state === "NEW";
     }
 
-    public isDamaged(): boolean {
+    public isDamagedSticker(): boolean {
         return this.category.state === "DAMAGED";
     }
 
@@ -89,8 +89,8 @@ export class Sticker {
     // --- MÉTODOS DE PRESENTACIÓN ---
 
     public getDisplayName(): string {
-        const shinyLabel = this.isShiny() ? " ✨" : "";
-        const damageLabel = this.isDamaged() ? " (Dañado)" : "";
+        const shinyLabel = this.isShinySticker() ? " ✨" : "";
+        const damageLabel = this.isDamagedSticker() ? " (Dañado)" : "";
         return `#${this.number} ${this.player.name}${shinyLabel}${damageLabel}`;
     }
 }

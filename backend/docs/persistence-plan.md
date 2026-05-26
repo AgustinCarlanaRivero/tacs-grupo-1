@@ -15,8 +15,8 @@
 
 - Definir schemas Zod de persistencia por modulo (User, Sticker, Post, Offer, Rating, Notification), reusando sub-schemas existentes.
 - Validacion con Zod + zod-to-mongoose. Reusar los schemas actuales y solo ajustar los que terminan en `Response`.
-- Generar schemas Mongoose con zod-to-mongoose.
-- Configurar `_id: String` y `versionKey: false`.
+- Generar schemas Mongoose con `generateRawSchema()`.
+- Configurar `_id: ObjectId` y `versionKey: false`.
 - Agregar `toJSON/toObject` para exponer `id` y eliminar `_id` y `__v`.
 - Usar `loadClass` + `toJSON` para mapear persistence -> response (ocultar `auth0Sub`, mapear refs y embebidos; fechas quedan como ISO en JSON).
 - Agregar validaciones en schema (requeridos, enums, rangos) y, si aplica, validator `$jsonSchema` en colecciones.

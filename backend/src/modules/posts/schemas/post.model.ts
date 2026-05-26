@@ -42,6 +42,13 @@ postModelSchema.virtual("offers", {
 });
 
 postModelSchema.loadClass(Post);
+overrideSchemaPath(postModelSchema, "_id", {
+    type: mongoose.Schema.Types.ObjectId,
+});
+overrideSchemaPath(postModelSchema, "ownerId", {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+});
 overrideSchemaPath(postModelSchema, "sticker", stickerModelSchema);
 
 postModelSchema.index({ ownerId: 1 });

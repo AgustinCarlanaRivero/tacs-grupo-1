@@ -53,9 +53,9 @@ describe("CollectionService", () => {
     describe("addCollectionItem", () => {
         it("adds item to new collection", async () => {
             const sticker = createTestSticker(1);
-            jest.mocked(StickerService.getStickerByIdOrFail).mockResolvedValue(
-                sticker,
-            );
+            jest.mocked(
+                StickerService.getStickerByNumberOrFail,
+            ).mockResolvedValue(sticker);
 
             const result = await CollectionService.addCollectionItem("user1", {
                 stickerId: 1,
@@ -64,9 +64,9 @@ describe("CollectionService", () => {
 
             expect(result.stickerId).toBe(1);
             expect(result.quantity).toBe(3);
-            expect(StickerService.getStickerByIdOrFail).toHaveBeenCalledWith(
-                "1",
-            );
+            expect(
+                StickerService.getStickerByNumberOrFail,
+            ).toHaveBeenCalledWith("1");
 
             const collection =
                 await collectionRepository.getCollection("user1");
@@ -80,9 +80,9 @@ describe("CollectionService", () => {
                 sticker: sticker1,
                 quantity: 1,
             });
-            jest.mocked(StickerService.getStickerByIdOrFail).mockResolvedValue(
-                sticker2,
-            );
+            jest.mocked(
+                StickerService.getStickerByNumberOrFail,
+            ).mockResolvedValue(sticker2);
 
             await CollectionService.addCollectionItem("user1", {
                 stickerId: 2,
@@ -95,9 +95,9 @@ describe("CollectionService", () => {
         });
 
         it("throws error when sticker not found", async () => {
-            jest.mocked(StickerService.getStickerByIdOrFail).mockRejectedValue(
-                new Error("Sticker not found"),
-            );
+            jest.mocked(
+                StickerService.getStickerByNumberOrFail,
+            ).mockRejectedValue(new Error("Sticker not found"));
 
             await expect(
                 CollectionService.addCollectionItem("user1", {
@@ -114,9 +114,9 @@ describe("CollectionService", () => {
                 sticker,
                 quantity: 1,
             });
-            jest.mocked(StickerService.getStickerByIdOrFail).mockResolvedValue(
-                sticker,
-            );
+            jest.mocked(
+                StickerService.getStickerByNumberOrFail,
+            ).mockResolvedValue(sticker);
 
             const result = await CollectionService.updateCollectionItemQuantity(
                 "user1",
@@ -143,9 +143,9 @@ describe("CollectionService", () => {
 
         it("throws error when collection not found", async () => {
             const sticker = createTestSticker(1);
-            jest.mocked(StickerService.getStickerByIdOrFail).mockResolvedValue(
-                sticker,
-            );
+            jest.mocked(
+                StickerService.getStickerByNumberOrFail,
+            ).mockResolvedValue(sticker);
 
             await expect(
                 CollectionService.updateCollectionItemQuantity("user1", "1", 2),
@@ -162,9 +162,9 @@ describe("CollectionService", () => {
                 sticker,
                 quantity: 1,
             });
-            jest.mocked(StickerService.getStickerByIdOrFail).mockResolvedValue(
-                sticker,
-            );
+            jest.mocked(
+                StickerService.getStickerByNumberOrFail,
+            ).mockResolvedValue(sticker);
 
             await CollectionService.removeCollectionItem("user1", "1");
 
@@ -175,9 +175,9 @@ describe("CollectionService", () => {
 
         it("throws error when collection not found", async () => {
             const sticker = createTestSticker(1);
-            jest.mocked(StickerService.getStickerByIdOrFail).mockResolvedValue(
-                sticker,
-            );
+            jest.mocked(
+                StickerService.getStickerByNumberOrFail,
+            ).mockResolvedValue(sticker);
 
             await expect(
                 CollectionService.removeCollectionItem("user1", "1"),
@@ -190,9 +190,9 @@ describe("CollectionService", () => {
     describe("addMissingSticker", () => {
         it("adds sticker to missing list", async () => {
             const sticker = createTestSticker(1);
-            jest.mocked(StickerService.getStickerByIdOrFail).mockResolvedValue(
-                sticker,
-            );
+            jest.mocked(
+                StickerService.getStickerByNumberOrFail,
+            ).mockResolvedValue(sticker);
 
             const result = await CollectionService.addMissingSticker(
                 "user1",
@@ -207,9 +207,9 @@ describe("CollectionService", () => {
         });
 
         it("throws error when sticker not found", async () => {
-            jest.mocked(StickerService.getStickerByIdOrFail).mockRejectedValue(
-                new Error("Sticker not found"),
-            );
+            jest.mocked(
+                StickerService.getStickerByNumberOrFail,
+            ).mockRejectedValue(new Error("Sticker not found"));
 
             await expect(
                 CollectionService.addMissingSticker("user1", "999"),
@@ -221,9 +221,9 @@ describe("CollectionService", () => {
         it("removes sticker from missing list", async () => {
             const sticker = createTestSticker(1);
             await collectionRepository.addMissingSticker("user1", sticker);
-            jest.mocked(StickerService.getStickerByIdOrFail).mockResolvedValue(
-                sticker,
-            );
+            jest.mocked(
+                StickerService.getStickerByNumberOrFail,
+            ).mockResolvedValue(sticker);
 
             await CollectionService.removeMissingSticker("user1", "1");
 
@@ -234,9 +234,9 @@ describe("CollectionService", () => {
 
         it("throws error when collection not found", async () => {
             const sticker = createTestSticker(1);
-            jest.mocked(StickerService.getStickerByIdOrFail).mockResolvedValue(
-                sticker,
-            );
+            jest.mocked(
+                StickerService.getStickerByNumberOrFail,
+            ).mockResolvedValue(sticker);
 
             await expect(
                 CollectionService.removeMissingSticker("user1", "1"),

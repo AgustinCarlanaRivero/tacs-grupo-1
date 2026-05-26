@@ -80,10 +80,10 @@ class Sticker {
   +player: Player
   +category: Category
   +description: string
-  +isShiny(): boolean
-  +isRegular(): boolean
-  +isNew(): boolean
-  +isDamaged(): boolean
+  +isShinySticker(): boolean
+  +isRegularSticker(): boolean
+  +isNewSticker(): boolean
+  +isDamagedSticker(): boolean
   +playsForNationalTeam(teamName: string): boolean
   +playsForClub(clubName: string): boolean
   +belongsToPlayer(playerName: string): boolean

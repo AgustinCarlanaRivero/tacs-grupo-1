@@ -1,5 +1,11 @@
 import type { FilterQuery, HydratedDocument } from "mongoose";
 import { BaseRepository } from "../../../infra/database/base.repository";
+import {
+    createObjectIdString,
+    toIdString,
+    toObjectId,
+    type PersistenceId,
+} from "../../../infra/database/schema-helpers";
 import type { CollectionItem } from "../../collection/entities/collection-item.interface";
 import { User } from "../../users/entities/user.entity";
 import { UserRole } from "../../users/enums/user-role.enum";
@@ -13,13 +19,13 @@ export type OfferReadModel = Offer & {
 };
 
 type OfferPersistence = {
-    _id: string;
+    _id: PersistenceId;
     state: OfferState;
     createdAt: Date;
-    offererId: string;
+    offererId: PersistenceId;
     offered: CollectionItem[];
-    postId: string;
-    postOwnerId: string;
+    postId: PersistenceId;
+    postOwnerId: PersistenceId;
     offerer?: User;
 };
 
@@ -36,37 +42,37 @@ class OfferRepository extends BaseRepository<OfferPersistence, OfferReadModel> {
     protected toEntity(
         doc: HydratedDocument<OfferPersistence>,
     ): OfferReadModel {
-        const offerer = doc.offerer ?? buildUserRef(doc.offererId);
+        const offerer = doc.offerer ?? buildUserRef(toIdString(doc.offererId));
         const offer = new Offer(
             offerer,
             doc.offered ?? [],
             doc.state,
             doc.createdAt,
-            doc._id,
+            toIdString(doc._id),
         );
 
         return Object.assign(offer, {
-            postId: doc.postId,
-            postOwnerId: doc.postOwnerId,
+            postId: toIdString(doc.postId),
+            postOwnerId: toIdString(doc.postOwnerId),
         });
     }
 
     protected toPersistence(
         offer: OfferReadModel,
-    ): Partial<OfferPersistence> & { _id?: string } {
-        const id = offer.id || crypto.randomUUID();
+    ): Partial<OfferPersistence> & { _id?: PersistenceId } {
+        const id = offer.id || createObjectIdString();
         if (!offer.id) {
             offer.setId(id);
         }
 
         return {
-            _id: id,
+            _id: toObjectId(id),
             state: offer.state,
             createdAt: offer.createdAt,
-            offererId: offer.offerer.id,
+            offererId: toObjectId(offer.offerer.id),
             offered: offer.offered,
-            postId: offer.postId,
-            postOwnerId: offer.postOwnerId,
+            postId: toObjectId(offer.postId),
+            postOwnerId: toObjectId(offer.postOwnerId),
         };
     }
 
@@ -106,3 +112,4 @@ class OfferRepository extends BaseRepository<OfferPersistence, OfferReadModel> {
 }
 
 export default new OfferRepository();
+

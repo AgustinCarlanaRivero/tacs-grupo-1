@@ -7,6 +7,7 @@ import type {
     UpdateQuery,
 } from "mongoose";
 import type { PaginatedResult } from "../../shared/utils/query";
+import type { PersistenceId } from "./schema-helpers";
 
 export type PopulateSpec = PopulateOptions | string;
 export type PopulateProfiles = Record<string, PopulateSpec[]>;
@@ -47,7 +48,7 @@ export abstract class BaseRepository<TPersistence, TEntity> {
 
     protected abstract toPersistence(
         entity: TEntity,
-    ): Partial<TPersistence> & { _id?: string };
+    ): Partial<TPersistence> & { _id?: PersistenceId };
 
     protected resolvePopulate(
         profiles?: string | string[],
@@ -231,3 +232,4 @@ export abstract class BaseRepository<TPersistence, TEntity> {
         return result.deletedCount ?? 0;
     }
 }
+

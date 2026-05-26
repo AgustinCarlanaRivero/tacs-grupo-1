@@ -1,8 +1,11 @@
-import { Collection } from "../entities/collection.entity"
-import { CollectionItem } from "../entities/collection-item.interface"
-import StickerService from "../../stickers/services/sticker.service"
-import collectionRepository from "../repositories/collection.repository"
-import { BadRequestError, NotFoundError } from "../../../shared/errors/http-errors"
+import {
+    BadRequestError,
+    NotFoundError,
+} from "../../../shared/errors/http-errors";
+import StickerService from "../../stickers/services/sticker.service";
+import { CollectionItem } from "../entities/collection-item.interface";
+import { Collection } from "../entities/collection.entity";
+import collectionRepository from "../repositories/collection.repository";
 
 export default class CollectionService {
     /**
@@ -10,52 +13,71 @@ export default class CollectionService {
      * Obtiene toda la coleccion del usuario
      */
     static async getCollection(userId: string) {
-        const collection = await collectionRepository.getCollection(userId)
-        return collection || new Collection()
+        const collection = await collectionRepository.getCollection(userId);
+        return collection || new Collection();
     }
 
     /**
      * POST /users/:userId/collection/items
      * Agregar una figurita obtenida
      */
-    static async addCollectionItem(userId: string, itemData: { stickerId: number; quantity?: number }) {
-        const { stickerId, quantity = 1 } = itemData
+    static async addCollectionItem(
+        userId: string,
+        itemData: { stickerId: number; quantity?: number },
+    ) {
+        const { stickerId, quantity = 1 } = itemData;
 
         // Validar que el sticker exista
-        const sticker = await StickerService.getStickerByIdOrFail(String(stickerId))
+        const sticker = await StickerService.getStickerByNumberOrFail(
+            String(stickerId),
+        );
 
         const newItem: CollectionItem = {
             sticker,
-            quantity
-        }
+            quantity,
+        };
 
-        const collection = await collectionRepository.addCollectionItem(userId, newItem)
+        const collection = await collectionRepository.addCollectionItem(
+            userId,
+            newItem,
+        );
         if (!collection) {
-            throw new NotFoundError(`User ${userId} not found`)
+            throw new NotFoundError(`User ${userId} not found`);
         }
 
-        return { stickerId, quantity }
+        return { stickerId, quantity };
     }
 
     /**
      * PATCH /users/:userId/collection/items/:stickerId
      * Actualiza la cantidad de un item
      */
-    static async updateCollectionItemQuantity(userId: string, stickerId: string, quantity: number) {
+    static async updateCollectionItemQuantity(
+        userId: string,
+        stickerId: string,
+        quantity: number,
+    ) {
         if (quantity < 0) {
-            throw new BadRequestError("Quantity cannot be negative")
+            throw new BadRequestError("Quantity cannot be negative");
         }
 
-        const id = parseInt(stickerId, 10)
+        const id = parseInt(stickerId, 10);
         // Validar que el sticker exista
-        await StickerService.getStickerByIdOrFail(stickerId)
+        await StickerService.getStickerByNumberOrFail(stickerId);
 
-        const collection = await collectionRepository.updateCollectionItemQuantity(userId, id, quantity)
+        const collection =
+            await collectionRepository.updateCollectionItemQuantity(
+                userId,
+                id,
+                quantity,
+            );
         if (!collection) {
-            throw new NotFoundError(`User ${userId} not found or collection not initialized`)
+            throw new NotFoundError(
+                `User ${userId} not found or collection not initialized`,
+            );
         }
 
-        return { stickerId: id, quantity }
+        return { stickerId: id, quantity };
     }
 
     /**
@@ -63,13 +85,18 @@ export default class CollectionService {
      * Elimina el item de la coleccion
      */
     static async removeCollectionItem(userId: string, stickerId: string) {
-        const id = parseInt(stickerId, 10)
+        const id = parseInt(stickerId, 10);
         // Validar que el sticker exista
-        await StickerService.getStickerByIdOrFail(stickerId)
+        await StickerService.getStickerByNumberOrFail(stickerId);
 
-        const collection = await collectionRepository.removeCollectionItem(userId, id)
+        const collection = await collectionRepository.removeCollectionItem(
+            userId,
+            id,
+        );
         if (!collection) {
-            throw new NotFoundError(`User ${userId} not found or collection not initialized`)
+            throw new NotFoundError(
+                `User ${userId} not found or collection not initialized`,
+            );
         }
     }
 
@@ -78,16 +105,20 @@ export default class CollectionService {
      * Agregar un Sticker a la lista de faltantes
      */
     static async addMissingSticker(userId: string, stickerId: string) {
-        const id = parseInt(stickerId, 10)
+        const id = parseInt(stickerId, 10);
         // Validar que el sticker exista
-        const sticker = await StickerService.getStickerByIdOrFail(stickerId)
+        const sticker =
+            await StickerService.getStickerByNumberOrFail(stickerId);
 
-        const collection = await collectionRepository.addMissingSticker(userId, sticker)
+        const collection = await collectionRepository.addMissingSticker(
+            userId,
+            sticker,
+        );
         if (!collection) {
-            throw new NotFoundError(`User ${userId} not found`)
+            throw new NotFoundError(`User ${userId} not found`);
         }
 
-        return { stickerId: id, sticker }
+        return { stickerId: id, sticker };
     }
 
     /**
@@ -95,13 +126,18 @@ export default class CollectionService {
      * Eliminar de la lista de faltantes
      */
     static async removeMissingSticker(userId: string, stickerId: string) {
-        const id = parseInt(stickerId, 10)
+        const id = parseInt(stickerId, 10);
         // Validar que el sticker exista
-        await StickerService.getStickerByIdOrFail(stickerId)
+        await StickerService.getStickerByNumberOrFail(stickerId);
 
-        const collection = await collectionRepository.removeMissingSticker(userId, id)
+        const collection = await collectionRepository.removeMissingSticker(
+            userId,
+            id,
+        );
         if (!collection) {
-            throw new NotFoundError(`User ${userId} not found or collection not initialized`)
+            throw new NotFoundError(
+                `User ${userId} not found or collection not initialized`,
+            );
         }
     }
 }

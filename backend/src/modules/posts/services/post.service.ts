@@ -151,7 +151,7 @@ export default class PostService {
             throw new NotFoundError("Usuario no encontrado");
         }
 
-        const sticker = await StickerService.getStickerByIdOrFail(
+        const sticker = await StickerService.getStickerByNumberOrFail(
             String(body.stickerId),
         );
         let post: Post;

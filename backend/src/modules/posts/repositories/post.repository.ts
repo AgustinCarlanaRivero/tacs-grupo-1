@@ -1,5 +1,11 @@
 import type { FilterQuery, HydratedDocument } from "mongoose";
 import { BaseRepository } from "../../../infra/database/base.repository";
+import {
+    createObjectIdString,
+    toIdString,
+    toObjectId,
+    type PersistenceId,
+} from "../../../infra/database/schema-helpers";
 import { Offer } from "../../offers/entities/offer.entity";
 import { Sticker } from "../../stickers/entities/sticker.entity";
 import { User } from "../../users/entities/user.entity";
@@ -12,10 +18,10 @@ import { PostType } from "../enums/post-type.enum";
 import { PostModel } from "../schemas/post.model";
 
 type PostPersistence = {
-    _id: string;
+    _id: PersistenceId;
     type: PostType;
     state: PostState;
-    ownerId: string;
+    ownerId: PersistenceId;
     sticker: Sticker;
     createdAt?: Date;
     endsAt?: Date;
@@ -38,9 +44,9 @@ class PostRepository extends BaseRepository<PostPersistence, Post> {
     }
 
     protected toEntity(doc: HydratedDocument<PostPersistence>): Post {
-        const owner = doc.owner ?? buildUserRef(doc.ownerId);
+        const owner = doc.owner ?? buildUserRef(toIdString(doc.ownerId));
         const offers = Array.isArray(doc.offers) ? (doc.offers as Offer[]) : [];
-        const id = doc._id;
+        const id = toIdString(doc._id);
 
         if (doc.type === PostType.AUCTION) {
             return new Auction(
@@ -60,19 +66,19 @@ class PostRepository extends BaseRepository<PostPersistence, Post> {
 
     protected toPersistence(
         post: Post,
-    ): Partial<PostPersistence> & { _id?: string } {
-        const id = post.id || crypto.randomUUID();
+    ): Partial<PostPersistence> & { _id?: PersistenceId } {
+        const id = post.id || createObjectIdString();
         if (!post.id) {
             post.setId(id);
         }
 
         const base = {
-            _id: id,
+            _id: toObjectId(id),
             type: post.getType(),
             state: post.state,
-            ownerId: post.owner.id,
+            ownerId: toObjectId(post.owner.id),
             sticker: post.sticker,
-        } as Partial<PostPersistence> & { _id?: string };
+        } as Partial<PostPersistence> & { _id?: PersistenceId };
 
         if (post instanceof Auction) {
             return {
@@ -115,4 +121,6 @@ class PostRepository extends BaseRepository<PostPersistence, Post> {
     }
 }
 
+
 export default new PostRepository();
+

@@ -1,12 +1,19 @@
 import type { FilterQuery, HydratedDocument } from "mongoose";
 import { BaseRepository } from "../../../infra/database/base.repository";
+import {
+    createObjectIdString,
+    toIdString,
+    toObjectId,
+    type PersistenceId,
+} from "../../../infra/database/schema-helpers";
 import type { Collection } from "../../collection/entities/collection.entity";
+import type { Sticker } from "../../stickers/entities/sticker.entity";
 import { User } from "../entities/user.entity";
 import { UserRole } from "../enums/user-role.enum";
 import { UserModel } from "../schemas/user.model";
 
 type UserPersistence = {
-    _id: string;
+    _id: PersistenceId;
     auth0Sub?: string;
     firstName: string;
     lastName: string;
@@ -17,25 +24,91 @@ type UserPersistence = {
     collection: Collection | null;
 };
 
+type UserCollectionStickerLookup = {
+    collection?: {
+        items?: Array<{ sticker: Sticker }>;
+        missingStickers?: Sticker[];
+    } | null;
+};
+
+type StickerFilters = {
+    state?: string;
+    type?: string;
+    team?: string;
+    club?: string;
+    query?: string;
+};
+
+const buildStickerFilter = (
+    filters: StickerFilters = {},
+): Record<string, unknown> => {
+    const filter: Record<string, unknown> = {};
+
+    if (filters.state) {
+        filter["category.state"] = filters.state;
+    }
+    if (filters.type) {
+        filter["category.type"] = filters.type;
+    }
+    if (filters.team) {
+        filter["player.nationalTeam.name"] = filters.team;
+    }
+    if (filters.club) {
+        filter["player.club.name"] = filters.club;
+    }
+
+    if (filters.query) {
+        const regex = new RegExp(filters.query, "i");
+        const orFilters: Record<string, unknown>[] = [
+            { description: regex },
+            { "player.name": regex },
+            { "player.nationalTeam.name": regex },
+            { "player.club.name": regex },
+        ];
+
+        const numericQuery = Number(filters.query);
+        if (!Number.isNaN(numericQuery)) {
+            orFilters.push({ number: numericQuery });
+        }
+
+        filter.$or = orFilters;
+    }
+
+    return filter;
+};
+
 class UserRepository extends BaseRepository<UserPersistence, User> {
     constructor() {
         super(UserModel);
     }
 
     protected toEntity(doc: HydratedDocument<UserPersistence>): User {
-        return doc as unknown as User;
+        const collection = doc.get("collection") as Collection | null;
+        const user = new User(
+            doc.firstName,
+            doc.lastName,
+            doc.username,
+            doc.email,
+            doc.role,
+            doc.reputation,
+            collection ?? null,
+            toIdString(doc._id),
+        );
+
+        user.auth0Sub = doc.auth0Sub ?? "";
+        return user;
     }
 
     protected toPersistence(
         user: User,
-    ): Partial<UserPersistence> & { _id?: string } {
-        const id = user.id || crypto.randomUUID();
+    ): Partial<UserPersistence> & { _id?: PersistenceId } {
+        const id = user.id || createObjectIdString();
         if (!user.id) {
             user.setId(id);
         }
 
         return {
-            _id: id,
+            _id: toObjectId(id),
             auth0Sub: user.auth0Sub || undefined,
             firstName: user.firstName,
             lastName: user.lastName,
@@ -72,6 +145,151 @@ class UserRepository extends BaseRepository<UserPersistence, User> {
         return this.findOne({ username } as FilterQuery<UserPersistence>);
     }
 
+    async findStickerByNumber(stickerNumber: number): Promise<Sticker | null> {
+        const fromItems = await UserModel.findOne(
+            {
+                "collection.items.sticker.number": stickerNumber,
+            } as FilterQuery<UserPersistence>,
+            {
+                "collection.items.$": 1,
+            },
+        )
+            .lean<UserCollectionStickerLookup>()
+            .exec();
+
+        const itemSticker = fromItems?.collection?.items?.[0]?.sticker;
+        if (itemSticker) {
+            return itemSticker;
+        }
+
+        const fromMissing = await UserModel.findOne(
+            {
+                "collection.missingStickers.number": stickerNumber,
+            } as FilterQuery<UserPersistence>,
+            {
+                "collection.missingStickers.$": 1,
+            },
+        )
+            .lean<UserCollectionStickerLookup>()
+            .exec();
+
+        return fromMissing?.collection?.missingStickers?.[0] ?? null;
+    }
+
+    async findStickersByFilters(filters: StickerFilters = {}): Promise<Sticker[]> {
+        const stickerFilter = buildStickerFilter(filters);
+        const hasFilters = Object.keys(stickerFilter).length > 0;
+
+        const pipeline: any[] = [];
+
+        if (hasFilters) {
+            const itemMatch: Record<string, any> = {};
+            for (const [key, value] of Object.entries(stickerFilter)) {
+                if (key === "$or") {
+                    itemMatch.$or = (value as any[]).map((cond) => {
+                        const newCond: any = {};
+                        for (const [k, v] of Object.entries(cond)) {
+                            newCond[`sticker.${k}`] = v;
+                        }
+                        return newCond;
+                    });
+                } else {
+                    itemMatch[`sticker.${key}`] = value;
+                }
+            }
+
+            pipeline.push({
+                $match: {
+                    $or: [
+                        { "collection.items": { $elemMatch: itemMatch } },
+                        {
+                            "collection.missingStickers": {
+                                $elemMatch: stickerFilter,
+                            },
+                        },
+                    ],
+                },
+            });
+        }
+
+        pipeline.push({
+            $project: {
+                allStickers: {
+                    $concatArrays: [
+                        {
+                            $map: {
+                                input: { $ifNull: ["$collection.items", []] },
+                                as: "item",
+                                in: "$$item.sticker",
+                            },
+                        },
+                        { $ifNull: ["$collection.missingStickers", []] },
+                    ],
+                },
+            },
+        });
+
+        pipeline.push({ $unwind: "$allStickers" });
+
+        if (hasFilters) {
+            const finalMatch: Record<string, any> = {};
+            for (const [key, value] of Object.entries(stickerFilter)) {
+                finalMatch[`allStickers.${key}`] = value;
+            }
+            pipeline.push({ $match: finalMatch });
+        }
+
+        pipeline.push({
+            $group: {
+                _id: "$allStickers.number",
+                sticker: { $first: "$allStickers" },
+            },
+        });
+
+        pipeline.push({ $replaceRoot: { newRoot: "$sticker" } });
+
+        return await UserModel.aggregate(pipeline).exec();
+    }
+
+    async getStickerPlayers(): Promise<string[]> {
+        const itemsPlayers = await UserModel.distinct(
+            "collection.items.sticker.player.name",
+        ).exec();
+        const missingPlayers = await UserModel.distinct(
+            "collection.missingStickers.player.name",
+        ).exec();
+
+        return Array.from(new Set([...itemsPlayers, ...missingPlayers]))
+            .filter((v): v is string => typeof v === "string")
+            .sort();
+    }
+
+    async getStickerTeams(): Promise<string[]> {
+        const itemsTeams = await UserModel.distinct(
+            "collection.items.sticker.player.nationalTeam.name",
+        ).exec();
+        const missingTeams = await UserModel.distinct(
+            "collection.missingStickers.player.nationalTeam.name",
+        ).exec();
+
+        return Array.from(new Set([...itemsTeams, ...missingTeams]))
+            .filter((v): v is string => typeof v === "string")
+            .sort();
+    }
+
+    async getStickerClubs(): Promise<string[]> {
+        const itemsClubs = await UserModel.distinct(
+            "collection.items.sticker.player.club.name",
+        ).exec();
+        const missingClubs = await UserModel.distinct(
+            "collection.missingStickers.player.club.name",
+        ).exec();
+
+        return Array.from(new Set([...itemsClubs, ...missingClubs]))
+            .filter((v): v is string => typeof v === "string")
+            .sort();
+    }
+
     async save(user: User): Promise<User> {
         return super.save(user);
     }
@@ -88,4 +306,6 @@ class UserRepository extends BaseRepository<UserPersistence, User> {
     }
 }
 
+
 export default new UserRepository();
+

@@ -3,6 +3,9 @@ import { UserModel } from "../../users/schemas/user.model";
 import { CollectionItem } from "../entities/collection-item.interface";
 import { Collection } from "../entities/collection.entity";
 
+const getUserCollection = (user: { get: (path: string) => unknown } | null) =>
+    (user?.get("collection") as Collection | null) ?? null;
+
 class CollectionRepository {
     private async loadUser(userId: string) {
         return UserModel.findById(userId).select("collection").exec();
@@ -10,7 +13,7 @@ class CollectionRepository {
 
     async getCollection(userId: string): Promise<Collection | null> {
         const user = await this.loadUser(userId);
-        return user?.collection ?? null;
+        return getUserCollection(user);
     }
 
     async addCollectionItem(
@@ -20,7 +23,7 @@ class CollectionRepository {
         const user = await this.loadUser(userId);
         if (!user) return null;
 
-        const collection = user.collection ?? new Collection();
+        const collection = getUserCollection(user) ?? new Collection();
         collection.addItem(collectionItem);
 
         await UserModel.updateOne(
@@ -37,16 +40,17 @@ class CollectionRepository {
         quantity: number,
     ): Promise<Collection | null> {
         const user = await this.loadUser(userId);
-        if (!user || !user.collection) return null;
+        const collection = getUserCollection(user);
+        if (!user || !collection) return null;
 
-        user.collection.updateItemQuantity(stickerId, quantity);
+        collection.updateItemQuantity(stickerId, quantity);
 
         await UserModel.updateOne(
             { _id: userId },
-            { $set: { collection: user.collection } },
+            { $set: { collection } },
         ).exec();
 
-        return user.collection;
+        return collection;
     }
 
     async removeCollectionItem(
@@ -54,16 +58,17 @@ class CollectionRepository {
         stickerId: number,
     ): Promise<Collection | null> {
         const user = await this.loadUser(userId);
-        if (!user || !user.collection) return null;
+        const collection = getUserCollection(user);
+        if (!user || !collection) return null;
 
-        user.collection.removeItem(stickerId);
+        collection.removeItem(stickerId);
 
         await UserModel.updateOne(
             { _id: userId },
-            { $set: { collection: user.collection } },
+            { $set: { collection } },
         ).exec();
 
-        return user.collection;
+        return collection;
     }
 
     async addMissingSticker(
@@ -73,7 +78,7 @@ class CollectionRepository {
         const user = await this.loadUser(userId);
         if (!user) return null;
 
-        const collection = user.collection ?? new Collection();
+        const collection = getUserCollection(user) ?? new Collection();
         collection.addMissing(sticker);
 
         await UserModel.updateOne(
@@ -89,16 +94,17 @@ class CollectionRepository {
         stickerId: number,
     ): Promise<Collection | null> {
         const user = await this.loadUser(userId);
-        if (!user || !user.collection) return null;
+        const collection = getUserCollection(user);
+        if (!user || !collection) return null;
 
-        user.collection.removeMissing(stickerId);
+        collection.removeMissing(stickerId);
 
         await UserModel.updateOne(
             { _id: userId },
-            { $set: { collection: user.collection } },
+            { $set: { collection } },
         ).exec();
 
-        return user.collection;
+        return collection;
     }
 
     async initializeCollection(userId: string): Promise<Collection> {

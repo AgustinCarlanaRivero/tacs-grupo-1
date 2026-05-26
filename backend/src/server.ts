@@ -1,12 +1,12 @@
 import app from "./app/app";
 import "./config/env";
-// import { connectMongo, disconnectMongo } from './infra/database/connection';
+import { connectMongo, disconnectMongo } from './infra/database/connection';
 
 const URL = process.env.URL ?? "http://localhost:3000";
 const PORT = process.env.PORT ?? 3000;
 
 async function startServer() {
-    //await connectMongo();
+    await connectMongo();
 
     const server = app.listen(PORT, () => {
         console.log(`Backend running on ${URL}`);
@@ -25,7 +25,7 @@ async function startServer() {
             await new Promise<void>((resolve) => {
                 server.close(() => resolve());
             });
-            //await disconnectMongo();
+            await disconnectMongo();
         } catch (error) {
             console.error("Failed to shutdown cleanly", error);
         } finally {

@@ -4,20 +4,12 @@ import { CollectionItem } from "../../collection/entities/collection-item.interf
 import { Sticker } from "../../stickers/entities/sticker.entity";
 import type { User } from "../../users/entities/user.entity";
 import userRepository from "../../users/repositories/user.repository";
-import MatchingRepository from "../repositories/matching.repository";
 
 export default class MatchingService {
     /**
      * GET /users/:userId/suggestions?page=1&limit=20
      * Obtiene sugerencias de usuarios para matching con paginación
      * Usa índices para búsqueda O(1) en lugar de iterar todos los usuarios
-     *
-     * TODO - REFACTOR MONGODB:
-     * - Usar aggregation pipeline con $lookup y $match
-     * - Query: db.users.aggregate([{$match: {_id: {$ne: userId}}}, {$skip}, {$limit}])
-     * - Crear índice: db.users.createIndex({"collection.items.sticker.number": 1})
-     * - Eliminar: userRepository.findAll() carga TODO en memoria
-     * - PERFORMANCE: O(n×m) → O(log n) (2-5s → 50-200ms con 100k usuarios)
      */
     static async getSuggestionsByUser(
         userId: string,
@@ -134,14 +126,6 @@ export default class MatchingService {
      * GET /matches?stickerId=...&page=1&limit=20
      * Obtiene usuarios que tienen un sticker específico con paginación
      * Usa índices para O(1) lookup en lugar de iterar todos los usuarios
-     *
-     * TODO - REFACTOR MONGODB:
-     * - Query directa: db.users.find({"collection.items.sticker.number": stickerId})
-     * - Crear índice: db.users.createIndex({"collection.items.sticker.number": 1})
-     * - Sort en BD: .sort({reputation: -1}) (no en código)
-     * - Paginación en BD: .skip((page-1)*limit).limit(limit)
-     * - Contar total: db.users.countDocuments({"collection.items.sticker.number": stickerId})
-     * - PERFORMANCE: O(n) → O(log n) (2-5s → 50-200ms con 100k usuarios + 1k matches)
      */
     static async getMatches(
         stickerId: string,
@@ -227,18 +211,5 @@ export default class MatchingService {
 
         const { data, total } = paginate(allMatches, page, limit);
         return { data, page, limit, total };
-    }
-
-    /**
-     * Actualiza los índices de matching (llamar cuando cambia una colección)
-     *
-     * TODO - MONGODB:
-     * - Los índices MongoDB son automáticos después de crear el índice en BD
-     * - No necesita llamada manual desde aplicación
-     * - Considerar eliminar este método o hacer un no-op
-     * - Llamar desde CollectionService cuando se actualiza collection
-     */
-    static updateUserIndex(user: User): void {
-        MatchingRepository.updateUserIndex(user);
     }
 }

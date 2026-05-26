@@ -21,6 +21,8 @@ const offerPersistenceSchema = offerResponseSchema
     .extend({
         _id: nonEmptyString,
         offererId: nonEmptyString,
+        postId: nonEmptyString,
+        postOwnerId: nonEmptyString,
         offered: z.array(collectionItemPersistenceSchema),
     });
 
@@ -36,6 +38,21 @@ offerModelSchema.virtual("offerer", {
 });
 
 offerModelSchema.loadClass(Offer);
+overrideSchemaPath(offerModelSchema, "_id", {
+    type: mongoose.Schema.Types.ObjectId,
+});
+overrideSchemaPath(offerModelSchema, "offererId", {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+});
+overrideSchemaPath(offerModelSchema, "postId", {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Post",
+});
+overrideSchemaPath(offerModelSchema, "postOwnerId", {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+});
 overrideSchemaPath(offerModelSchema, "offered", [collectionItemModelSchema]);
 
 offerModelSchema.index({ postId: 1 });

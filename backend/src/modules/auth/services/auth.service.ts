@@ -1,6 +1,7 @@
 import { User } from "../../users/entities/user.entity";
 import { UserRole } from "../../users/enums/user-role.enum";
 import userRepository from "../../users/repositories/user.repository";
+import { createObjectIdString } from "../../../infra/database/schema-helpers";
 
 interface Auth0Profile {
     email?: string;
@@ -32,7 +33,7 @@ export default class AuthService {
             UserRole.STANDARD,
             0,
             null,
-            crypto.randomUUID(),
+            createObjectIdString(),
         );
         user.auth0Sub = auth0Sub;
 
@@ -46,3 +47,4 @@ export default class AuthService {
         return userRepository.findById(userId);
     }
 }
+

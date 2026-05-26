@@ -84,15 +84,6 @@ export default class RatingService {
         return paginate(data, filters.page, filters.limit);
     }
 
-    /**
-     * STUB — devuelve `[]` hasta que se implemente la lógica real.
-     *
-     * NOTA PARA EL DUEÑO DE RATINGS:
-     * Cuando persistas el rating real, mantené la llamada al facade después de
-     * guardar — el destinatario es el `revieweeId`. Hay que pasarle el id del
-     * rating recién creado y el score real (acá uso 0 como placeholder).
-     * Ver `modules/notifications/README.md`.
-     */
     static async createRating(
         revieweeId: string,
         reviewerId: string,
@@ -136,3 +127,4 @@ export default class RatingService {
         return toRatingResponse(rating);
     }
 }
+

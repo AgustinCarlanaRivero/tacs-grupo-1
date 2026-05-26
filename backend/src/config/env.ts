@@ -9,8 +9,8 @@ dotenv.config({ path: path.resolve(__dirname, "../../config/.env.dev") })
 // Keep this list in sync with config/.env.example
 const requiredEnvKeys = [
 	"NODE_ENV",
-	//"MONGO_URI",
-	//"MONGODB_DB_NAME",
+	"MONGO_URI",
+	"MONGODB_DB_NAME",
 	"AUTH0_ISSUER_BASE_URL",
 	"AUTH0_AUDIENCE",
 ]

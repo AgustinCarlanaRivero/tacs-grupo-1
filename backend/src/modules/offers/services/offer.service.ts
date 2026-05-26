@@ -2,6 +2,7 @@ import {
     BadRequestError,
     NotFoundError,
 } from "../../../shared/errors/http-errors";
+import { createObjectIdString } from "../../../infra/database/schema-helpers";
 import {
     getStickerSearchValues,
     matchesAnyQuery,
@@ -238,16 +239,6 @@ export default class OfferService {
         return paginate(data, filters.page, filters.limit);
     }
 
-    /**
-     * STUB — devuelve `[]` hasta que se implemente la lógica real.
-     *
-     * NOTA PARA EL DUEÑO DE OFFERS:
-     * Cuando implementes la creación real, **mantené la llamada al facade de
-     * notificaciones después de persistir la oferta**. El destinatario es el
-     * dueño de la publicación (`postOwnerId`). El payload (`offerId`) deberá
-     * apuntar al id real de la oferta recién creada.
-     * Ver `modules/notifications/README.md`.
-     */
     static async createOffer(
         postOwnerId: string,
         postId: string,
@@ -299,7 +290,7 @@ export default class OfferService {
         });
 
         const offer = new Offer(offerer, offeredItems);
-        offer.setId(crypto.randomUUID());
+        offer.setId(createObjectIdString());
 
         post.addOffer(offer);
         await postRepository.save(post);
@@ -320,16 +311,6 @@ export default class OfferService {
         return toOfferResponse(stored);
     }
 
-    /**
-     * STUB — devuelve `[]` hasta que se implemente la lógica real.
-     *
-     * NOTA PARA EL DUEÑO DE OFFERS:
-     * Cuando tengas la oferta persistida, conocé el `offererId` (el destinatario
-     * de la notificación) y según el `state` final llamá a:
-     *   - `notifications.offerAccepted(offererId, { offerId, postId })`
-     *   - `notifications.offerRejected(offererId, { offerId, postId })`
-     * Hoy sólo dejo logueado el TODO porque el stub no tiene acceso al offererId.
-     */
     static async updateOfferState(
         postOwnerId: string,
         postId: string,
@@ -382,3 +363,4 @@ export default class OfferService {
         return toOfferResponse(stored);
     }
 }
+

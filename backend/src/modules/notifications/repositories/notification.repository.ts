@@ -1,12 +1,18 @@
 import type { FilterQuery, HydratedDocument } from "mongoose";
 import { BaseRepository } from "../../../infra/database/base.repository";
+import {
+    createObjectIdString,
+    toIdString,
+    toObjectId,
+    type PersistenceId,
+} from "../../../infra/database/schema-helpers";
 import { Notification } from "../entities/notification.entity";
 import { NotificationType } from "../enums/notification-type.enum";
 import { NotificationModel } from "../schemas/notification.model";
 
 type NotificationPersistence = {
-    _id: string;
-    userId: string;
+    _id: PersistenceId;
+    userId: PersistenceId;
     type: NotificationType;
     message: string;
     read: boolean;
@@ -25,20 +31,29 @@ class NotificationRepository extends BaseRepository<
     protected toEntity(
         doc: HydratedDocument<NotificationPersistence>,
     ): Notification {
-        return doc as unknown as Notification;
+        const notification = new Notification(
+            toIdString(doc.userId),
+            doc.type,
+            doc.message,
+            doc.payload ?? {},
+            doc.createdAt,
+            toIdString(doc._id),
+        );
+        notification.read = doc.read;
+        return notification;
     }
 
     protected toPersistence(
         notification: Notification,
-    ): Partial<NotificationPersistence> & { _id?: string } {
-        const id = notification.id || crypto.randomUUID();
+    ): Partial<NotificationPersistence> & { _id?: PersistenceId } {
+        const id = notification.id || createObjectIdString();
         if (!notification.id) {
             notification.setId(id);
         }
 
         return {
-            _id: id,
-            userId: notification.userId,
+            _id: toObjectId(id),
+            userId: toObjectId(notification.userId),
             type: notification.type,
             message: notification.message,
             read: notification.read,
@@ -95,3 +110,4 @@ class NotificationRepository extends BaseRepository<
 }
 
 export default new NotificationRepository();
+
