@@ -16,20 +16,14 @@ import {
     buildUser,
 } from "../helpers/builders";
 import {
-    buildMatchingRepoMock,
     buildUserRepoMock,
 } from "../helpers/repo-mocks";
 
 const mockUserRepo = buildUserRepoMock();
-const mockMatchingRepo = buildMatchingRepoMock();
 
 jest.mock("../../modules/users/repositories/user.repository", () => ({
     __esModule: true,
     default: mockUserRepo,
-}));
-jest.mock("../../modules/matching/repositories/matching.repository", () => ({
-    __esModule: true,
-    default: mockMatchingRepo,
 }));
 
 let app: Express;
