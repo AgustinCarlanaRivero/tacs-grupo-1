@@ -8,83 +8,74 @@ import {
 } from "@jest/globals";
 import type { Express } from "express";
 import request from "supertest";
-import { DirectTrade } from "../../modules/posts/entities/direct-trade.entity";
-import type { Post } from "../../modules/posts/entities/post.entity";
-import postRepository from "../../modules/posts/repositories/post.repository";
-import { Category } from "../../modules/stickers/entities/category.entity";
-import { Club } from "../../modules/stickers/entities/club.entity";
-import { NationalTeam } from "../../modules/stickers/entities/national-team.entity";
-import { Player } from "../../modules/stickers/entities/player.entity";
-import { Sticker } from "../../modules/stickers/entities/sticker.entity";
-import { User } from "../../modules/users/entities/user.entity";
+import { PostState } from "../../modules/posts/enums/post-state.enum";
+import { PostType } from "../../modules/posts/enums/post-type.enum";
+import { getTestApp, setMockUser } from "../helpers/build-app";
+import { buildDirectTrade, buildSticker, buildUser } from "../helpers/builders";
+import {
+    buildCollectionRepoMock,
+    buildOfferRepoMock,
+    buildPostRepoMock,
+    buildStickerRepoMock,
+    buildUserRepoMock,
+    buildNotificationsFacadeMock,
+} from "../helpers/repo-mocks";
 
-const mockPostsById = new Map<string, Post>();
+const postRepoMock = buildPostRepoMock();
+const offerRepoMock = buildOfferRepoMock();
+const userRepoMock = buildUserRepoMock();
+const stickerRepoMock = buildStickerRepoMock();
+const collectionRepoMock = buildCollectionRepoMock();
+const notificationsFacadeMock = buildNotificationsFacadeMock();
 
 jest.mock("../../modules/posts/repositories/post.repository", () => ({
     __esModule: true,
-    default: {
-        save: (post: Post) => {
-            if (!post.id) {
-                post.setId(`post-${mockPostsById.size + 1}`);
-            }
-            mockPostsById.set(post.id ?? "", post);
-            return post;
-        },
-        findById: (id: string) => mockPostsById.get(id),
-        findAll: () => Array.from(mockPostsById.values()),
-        findByOwnerId: (ownerId: string) =>
-            Array.from(mockPostsById.values()).filter(
-                (post) => post.owner.id === ownerId,
-            ),
-        delete: (id: string) => mockPostsById.delete(id),
-        clear: () => {
-            mockPostsById.clear();
-        },
-    },
+    default: postRepoMock,
+}));
+jest.mock("../../modules/offers/repositories/offer.repository", () => ({
+    __esModule: true,
+    default: offerRepoMock,
+}));
+jest.mock("../../modules/users/repositories/user.repository", () => ({
+    __esModule: true,
+    default: userRepoMock,
+}));
+jest.mock("../../modules/stickers/repositories/sticker.repository", () => ({
+    __esModule: true,
+    default: stickerRepoMock,
+}));
+jest.mock("../../modules/collection/repositories/collection.repository", () => ({
+    __esModule: true,
+    default: collectionRepoMock,
+}));
+jest.mock("../../modules/notifications/services/notification.facade", () => ({
+    __esModule: true,
+    notifications: notificationsFacadeMock,
 }));
 
 let app: Express;
 
 beforeAll(async () => {
-    process.env.DISABLE_AUTH = "true";
-    process.env.MOCK_USER_ID = "user-1";
-    process.env.MOCK_USER_ROLE = "ADMIN";
-    const module = await import("../../app/app");
-    app = module.default;
+    setMockUser("owner-1", "ADMIN");
+    app = await getTestApp();
 });
 
-beforeEach(() => {
-    postRepository.clear();
+beforeEach(async () => {
+    await postRepoMock.clear();
+    await offerRepoMock.clear();
+    await userRepoMock.clear();
+    stickerRepoMock.clear();
+    await collectionRepoMock.clear();
 });
-
-function buildUser(id: string, username: string) {
-    const user = new User("Test", "User", username, `${username}@example.com`);
-    user.setId(id);
-    return user;
-}
-
-function buildSticker(number: number) {
-    const player = new Player("Player", new NationalTeam("NT"), new Club("FC"));
-    return new Sticker(number, player, new Category("NEW", "REGULAR"));
-}
-
-function buildPost(
-    id: string,
-    ownerId: string,
-    ownerUsername: string,
-    stickerNumber: number,
-) {
-    const owner = buildUser(ownerId, ownerUsername);
-    const sticker = buildSticker(stickerNumber);
-    const post = new DirectTrade(owner, sticker);
-    post.setId(id);
-    return post;
-}
 
 describe("Posts routes (integration)", () => {
     test("GET /posts returns paginated posts", async () => {
-        postRepository.save(buildPost("post-1", "owner-1", "owner1", 10));
-        postRepository.save(buildPost("post-2", "owner-2", "owner2", 11));
+        await postRepoMock.save(
+            buildDirectTrade("post-1", buildUser("owner-1"), 10),
+        );
+        await postRepoMock.save(
+            buildDirectTrade("post-2", buildUser("owner-2"), 11),
+        );
 
         const res = await request(app).get("/posts").expect(200);
 
@@ -93,8 +84,12 @@ describe("Posts routes (integration)", () => {
     });
 
     test("GET /users/:userId/posts filters by owner", async () => {
-        postRepository.save(buildPost("post-1", "owner-1", "owner1", 10));
-        postRepository.save(buildPost("post-2", "owner-2", "owner2", 11));
+        await postRepoMock.save(
+            buildDirectTrade("post-1", buildUser("owner-1"), 10),
+        );
+        await postRepoMock.save(
+            buildDirectTrade("post-2", buildUser("owner-2"), 11),
+        );
 
         const res = await request(app).get("/users/owner-1/posts").expect(200);
 
@@ -103,12 +98,56 @@ describe("Posts routes (integration)", () => {
     });
 
     test("GET /users/:userId/posts/:postId returns 404 on owner mismatch", async () => {
-        postRepository.save(buildPost("post-1", "owner-1", "owner1", 10));
+        await postRepoMock.save(
+            buildDirectTrade("post-1", buildUser("owner-1"), 10),
+        );
 
         const res = await request(app)
             .get("/users/owner-2/posts/post-1")
             .expect(404);
 
         expect(res.body.message).toBe("Publicacion no encontrada");
+    });
+
+    test("POST /users/:userId/posts creates a direct trade", async () => {
+        setMockUser("owner-1", "STANDARD");
+        await userRepoMock.save(buildUser("owner-1"));
+        stickerRepoMock.save(buildSticker(42));
+
+        const res = await request(app)
+            .post("/users/owner-1/posts")
+            .send({ type: PostType.DIRECT_TRADE, stickerId: 42 })
+            .expect(201);
+
+        expect(res.body.id).toBeDefined();
+        expect(res.body.type).toBe(PostType.DIRECT_TRADE);
+        expect(res.body.sticker.id).toBe(42);
+        expect(postRepoMock.store.size).toBe(1);
+    });
+
+    test("PATCH /users/:userId/posts/:postId/state transitions to COMPLETED", async () => {
+        setMockUser("owner-1", "STANDARD");
+        await postRepoMock.save(
+            buildDirectTrade("post-1", buildUser("owner-1"), 10),
+        );
+
+        const res = await request(app)
+            .patch("/users/owner-1/posts/post-1/state")
+            .send({ state: PostState.COMPLETED })
+            .expect(200);
+
+        expect(res.body.state).toBe(PostState.COMPLETED);
+    });
+
+    test("DELETE /users/:userId/posts/:postId removes post + cascades offers", async () => {
+        setMockUser("owner-1", "STANDARD");
+        await postRepoMock.save(
+            buildDirectTrade("post-1", buildUser("owner-1"), 10),
+        );
+
+        await request(app).delete("/users/owner-1/posts/post-1").expect(204);
+
+        expect(postRepoMock.store.size).toBe(0);
+        expect(offerRepoMock.deleteByPostId).toHaveBeenCalledWith("post-1");
     });
 });
