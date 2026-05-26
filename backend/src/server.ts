@@ -1,14 +1,12 @@
-import "./config/env";
 import app from "./app/app";
+import "./config/env";
 // import { connectMongo, disconnectMongo } from './infra/database/connection';
-import { seedData } from "./modules/data";
 
 const URL = process.env.URL ?? "http://localhost:3000";
 const PORT = process.env.PORT ?? 3000;
 
 async function startServer() {
     //await connectMongo();
-    await seedData();
 
     const server = app.listen(PORT, () => {
         console.log(`Backend running on ${URL}`);
