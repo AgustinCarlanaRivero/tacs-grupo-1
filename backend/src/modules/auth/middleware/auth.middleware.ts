@@ -6,6 +6,13 @@ import AuthService from "../services/auth.service";
 let jwtVerifier: RequestHandler | null = null;
 
 /**
+ * Namespace de los custom claims que la Action post-login de Auth0 inyecta en el
+ * access token (`<namespace>/email`, `<namespace>/name`). El access token estándar
+ * no trae `email`/`name`, por eso los leemos desde acá.
+ */
+const CLAIMS_NAMESPACE = "https://api.tacs-figuritas.com";
+
+/**
  * Middleware de Auth0 que valida la firma y claims del JWT contra el issuer y la audience.
  * Se construye de forma perezosa para que el servidor pueda arrancar con DISABLE_AUTH=true
  * sin tener AUTH0_* definidas (p. ej. Docker dev).
@@ -37,14 +44,19 @@ export async function attachUser(
   next: NextFunction
 ) {
   try {
-    const auth0Sub = req.auth?.payload?.sub;
+    const payload = req.auth?.payload;
+    const auth0Sub = payload?.sub;
     if (!auth0Sub) {
       return next(new UnauthorizedError("Token sin claim 'sub'"));
     }
 
     const user = await AuthService.getOrCreateUser(auth0Sub, {
-      email: req.auth?.payload?.email as string | undefined,
-      name: req.auth?.payload?.name as string | undefined,
+      email: (payload?.[`${CLAIMS_NAMESPACE}/email`] ?? payload?.email) as
+        | string
+        | undefined,
+      name: (payload?.[`${CLAIMS_NAMESPACE}/name`] ?? payload?.name) as
+        | string
+        | undefined,
     });
 
     (req as Request & { user: { id: string; role: string } }).user = {

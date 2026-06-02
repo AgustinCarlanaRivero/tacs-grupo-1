@@ -24,10 +24,17 @@ export default class AuthService {
         const existing = await userRepository.findByAuth0Sub(auth0Sub);
         if (existing) return existing;
 
-        const name = profile.name?.split(" ") ?? [];
+        // El schema exige firstName/lastName no vacíos. Derivamos del name del
+        // perfil y, si falta o trae una sola palabra, usamos fallbacks para no
+        // romper la validación durante el JIT provisioning.
+        const source = (profile.name ?? profile.email ?? auth0Sub).trim();
+        const parts = source.split(/\s+/).filter(Boolean);
+        const firstName = parts[0] ?? "Usuario";
+        const lastName = parts.slice(1).join(" ") || firstName;
+
         const user = new User(
-            name[0] ?? "",
-            name.slice(1).join(" "),
+            firstName,
+            lastName,
             profile.email ?? auth0Sub,
             profile.email ?? "",
             UserRole.STANDARD,
