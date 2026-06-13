@@ -102,7 +102,7 @@ describe("RatingService", () => {
         expect(result.score).toBe(4);
         expect(result.revieweeId).toBe("ee");
 
-        const saved = userRepository.findById("ee")!;
+        const saved = (await userRepository.findById("ee"))!;
         expect(saved.reputation).toBe(4);
     });
 

@@ -1,11 +1,17 @@
-import { beforeEach, describe, expect, it } from "@jest/globals";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { buildUserRepoMock as mockBuildUserRepo } from "../helpers/repo-mocks";
 import AuthService from "../../modules/auth/services/auth.service";
 import { UserRole } from "../../modules/users/enums/user-role.enum";
 import userRepository from "../../modules/users/repositories/user.repository";
 
+jest.mock("../../modules/users/repositories/user.repository", () => ({
+    __esModule: true,
+    default: mockBuildUserRepo(),
+}));
+
 describe("AuthService", () => {
-    beforeEach(() => {
-        userRepository.clear();
+    beforeEach(async () => {
+        await userRepository.clear();
     });
 
     describe("getOrCreateUser", () => {
@@ -16,7 +22,7 @@ describe("AuthService", () => {
             });
 
             expect(user.id).not.toBe("");
-            expect(user.id).toMatch(/[0-9a-f-]{36}/);
+            expect(user.id).toMatch(/^[0-9a-f]{24}$/);
             expect(user.firstName).toBe("Ana");
             expect(user.lastName).toBe("Perez");
             expect(user.email).toBe("ana@example.com");
@@ -36,9 +42,13 @@ describe("AuthService", () => {
             });
 
             expect(a.id).not.toBe(b.id);
-            expect(userRepository.findAll()).toHaveLength(2);
-            expect(userRepository.findById(a.id)?.email).toBe("a@x.com");
-            expect(userRepository.findById(b.id)?.email).toBe("b@x.com");
+            expect(await userRepository.findAll()).toHaveLength(2);
+            expect((await userRepository.findById(a.id))?.email).toBe(
+                "a@x.com",
+            );
+            expect((await userRepository.findById(b.id))?.email).toBe(
+                "b@x.com",
+            );
         });
 
         it("retorna el mismo usuario al volver a invocar con el mismo sub", async () => {
@@ -52,7 +62,7 @@ describe("AuthService", () => {
             });
 
             expect(second.id).toBe(first.id);
-            expect(userRepository.findAll()).toHaveLength(1);
+            expect(await userRepository.findAll()).toHaveLength(1);
         });
 
         it("usa el sub como username cuando no hay email en el profile", async () => {
@@ -73,7 +83,7 @@ describe("AuthService", () => {
 
         it("devuelve undefined si el id no existe", async () => {
             const found = await AuthService.getCurrentUser("inexistente");
-            expect(found).toBeUndefined();
+            expect(found).toBeNull();
         });
     });
 });

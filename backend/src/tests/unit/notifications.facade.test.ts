@@ -1,4 +1,12 @@
-import { beforeEach, describe, expect, it } from "@jest/globals";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+    buildCollectionRepoMock as mockBuildCollectionRepo,
+    buildNotificationRepoMock as mockBuildNotificationRepo,
+    buildOfferRepoMock as mockBuildOfferRepo,
+    buildPostRepoMock as mockBuildPostRepo,
+    buildRatingRepoMock as mockBuildRatingRepo,
+    buildUserRepoMock as mockBuildUserRepo,
+} from "../helpers/repo-mocks";
 import AuthService from "../../modules/auth/services/auth.service";
 import collectionRepository from "../../modules/collection/repositories/collection.repository";
 import { NotificationType } from "../../modules/notifications/enums/notification-type.enum";
@@ -15,6 +23,33 @@ import { NationalTeam } from "../../modules/stickers/entities/national-team.enti
 import { Player } from "../../modules/stickers/entities/player.entity";
 import { Sticker } from "../../modules/stickers/entities/sticker.entity";
 import userRepository from "../../modules/users/repositories/user.repository";
+
+// El facade, OfferService y RatingService se ejercitan reales; sólo mockeamos
+// la capa de persistencia para no depender de una conexión a Mongo.
+jest.mock(
+    "../../modules/notifications/repositories/notification.repository",
+    () => ({ __esModule: true, default: mockBuildNotificationRepo() }),
+);
+jest.mock("../../modules/users/repositories/user.repository", () => ({
+    __esModule: true,
+    default: mockBuildUserRepo(),
+}));
+jest.mock("../../modules/collection/repositories/collection.repository", () => ({
+    __esModule: true,
+    default: mockBuildCollectionRepo(),
+}));
+jest.mock("../../modules/offers/repositories/offer.repository", () => ({
+    __esModule: true,
+    default: mockBuildOfferRepo(),
+}));
+jest.mock("../../modules/posts/repositories/post.repository", () => ({
+    __esModule: true,
+    default: mockBuildPostRepo(),
+}));
+jest.mock("../../modules/ratings/repositories/rating.repository", () => ({
+    __esModule: true,
+    default: mockBuildRatingRepo(),
+}));
 
 function createTestSticker(number: number) {
     const team = new NationalTeam("Argentina");
@@ -143,6 +178,8 @@ describe("integración: stubs de otros módulos disparan el facade", () => {
         await expect(
             RatingService.createRating(ownerId, ownerId, { score: 5 }),
         ).rejects.toMatchObject({ statusCode: 400 });
-        expect(notificationRepository.findByUserId(ownerId)).toHaveLength(0);
+        expect(await notificationRepository.findByUserId(ownerId)).toHaveLength(
+            0,
+        );
     });
 });

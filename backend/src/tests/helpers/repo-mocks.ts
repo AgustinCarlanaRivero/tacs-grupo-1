@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import { createObjectIdString } from "../../infra/database/schema-helpers";
 import type { Notification } from "../../modules/notifications/entities/notification.entity";
 import type { OfferReadModel } from "../../modules/offers/repositories/offer.repository";
 import type { Post } from "../../modules/posts/entities/post.entity";
@@ -38,10 +39,11 @@ const matchValue = (actual: unknown, expected: unknown): boolean => {
                 : actual !== cond.$ne;
         }
         if ("$in" in cond && Array.isArray(cond.$in)) {
+            const candidates = cond.$in as unknown[];
             if (Array.isArray(actual)) {
-                return actual.some((v) => cond.$in!.includes(v as never));
+                return actual.some((v) => candidates.includes(v as never));
             }
-            return cond.$in.includes(actual as never);
+            return candidates.includes(actual as never);
         }
     }
 
@@ -94,7 +96,11 @@ export const buildUserRepoMock = () => {
             return user;
         }),
         findById: jest.fn(async (id: string) => store.get(id) ?? null),
-        findByAuth0Sub: jest.fn(async (_sub: string) => null),
+        findByAuth0Sub: jest.fn(
+            async (sub: string) =>
+                Array.from(store.values()).find((u) => u.auth0Sub === sub) ??
+                null,
+        ),
         findByEmail: jest.fn(async (email: string) => {
             return (
                 Array.from(store.values()).find((u) => u.email === email) ?? null
@@ -262,7 +268,6 @@ export const buildRatingRepoMock = () => {
 
 export const buildNotificationRepoMock = () => {
     const store: Notification[] = [];
-    let counter = 0;
 
     return {
         store,
@@ -270,7 +275,8 @@ export const buildNotificationRepoMock = () => {
             store.length = 0;
         }),
         save: jest.fn(async (notification: Notification) => {
-            if (!notification.id) notification.setId(`notif-${++counter}`);
+            // Espejamos el repo real: si no tiene id, le asignamos un ObjectId.
+            if (!notification.id) notification.setId(createObjectIdString());
             const idx = store.findIndex((n) => n.id === notification.id);
             if (idx >= 0) store[idx] = notification;
             else store.push(notification);

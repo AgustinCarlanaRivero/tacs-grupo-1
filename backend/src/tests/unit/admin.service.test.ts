@@ -1,4 +1,8 @@
-import { beforeEach, describe, expect, it } from "@jest/globals";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import {
+    buildNotificationRepoMock as mockBuildNotificationRepo,
+    buildUserRepoMock as mockBuildUserRepo,
+} from "../helpers/repo-mocks";
 import AdminService from "../../modules/admin/services/admin.service";
 import AuthService from "../../modules/auth/services/auth.service";
 import { NotificationType } from "../../modules/notifications/enums/notification-type.enum";
@@ -8,13 +12,26 @@ import { UserRole } from "../../modules/users/enums/user-role.enum";
 import userRepository from "../../modules/users/repositories/user.repository";
 import { AppError } from "../../shared/errors/app-error";
 
+jest.mock("../../modules/users/repositories/user.repository", () => ({
+    __esModule: true,
+    default: mockBuildUserRepo(),
+}));
+
+jest.mock(
+    "../../modules/notifications/repositories/notification.repository",
+    () => ({
+        __esModule: true,
+        default: mockBuildNotificationRepo(),
+    }),
+);
+
 async function seedAdmin(sub = "auth0|admin"): Promise<string> {
     const u = await AuthService.getOrCreateUser(sub, {
         email: "admin@x.com",
         name: "Admin Root",
     });
     u.role = UserRole.ADMIN;
-    userRepository.save(u);
+    await userRepository.save(u);
     return u.id;
 }
 
@@ -24,9 +41,9 @@ async function seedStandard(sub: string, email: string): Promise<string> {
 }
 
 describe("AdminService", () => {
-    beforeEach(() => {
-        userRepository.clear();
-        notificationRepository.clear();
+    beforeEach(async () => {
+        await userRepository.clear();
+        await notificationRepository.clear();
     });
 
     describe("getStats", () => {
@@ -107,7 +124,7 @@ describe("AdminService", () => {
                 { email: "o@x.com" },
             );
             otherAdmin.role = UserRole.ADMIN;
-            userRepository.save(otherAdmin);
+            await userRepository.save(otherAdmin);
 
             await expect(
                 AdminService.updateUserRole(
@@ -137,7 +154,7 @@ describe("AdminService", () => {
             );
 
             expect(result.role).toBe(UserRole.ADMIN);
-            expect(userRepository.findById(targetId)?.role).toBe(
+            expect((await userRepository.findById(targetId))?.role).toBe(
                 UserRole.ADMIN,
             );
         });

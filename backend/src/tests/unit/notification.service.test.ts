@@ -1,15 +1,21 @@
-import { describe, it, expect, beforeEach } from "@jest/globals"
+import { describe, it, expect, beforeEach, jest } from "@jest/globals"
+import { buildNotificationRepoMock as mockBuildNotificationRepo } from "../helpers/repo-mocks"
 import notificationService from "../../modules/notifications/services/notification.service"
 import notificationRepository from "../../modules/notifications/repositories/notification.repository"
 import { NotificationType } from "../../modules/notifications/enums/notification-type.enum"
 import { AppError } from "../../shared/errors/app-error"
 
+jest.mock("../../modules/notifications/repositories/notification.repository", () => ({
+    __esModule: true,
+    default: mockBuildNotificationRepo(),
+}))
+
 const USER_A = "user-a"
 const USER_B = "user-b"
 
 describe("NotificationService", () => {
-    beforeEach(() => {
-        notificationRepository.clear()
+    beforeEach(async () => {
+        await notificationRepository.clear()
     })
 
     describe("notify", () => {
@@ -21,10 +27,10 @@ describe("NotificationService", () => {
                 { offerId: "o-1" },
             )
 
-            expect(n.id).toMatch(/[0-9a-f-]{36}/)
+            expect(n.id).toMatch(/^[0-9a-f]{24}$/)
             expect(n.read).toBe(false)
             expect(n.payload).toEqual({ offerId: "o-1" })
-            expect(notificationRepository.findById(n.id)).toBe(n)
+            expect(await notificationRepository.findById(n.id)).toBe(n)
         })
     })
 
@@ -54,7 +60,7 @@ describe("NotificationService", () => {
             const n = await notificationService.notify(USER_A, NotificationType.RATING_RECEIVED, "calif.")
             const updated = await notificationService.markAsRead(n.id, USER_A)
             expect(updated.read).toBe(true)
-            expect(notificationRepository.findById(n.id)?.read).toBe(true)
+            expect((await notificationRepository.findById(n.id))?.read).toBe(true)
         })
 
         it("rechaza con 403 si el usuario no es el dueño (IDOR)", async () => {

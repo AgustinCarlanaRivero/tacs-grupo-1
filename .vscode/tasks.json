@@ -4,7 +4,7 @@
     {
       "label": "eslint:watch",
       "type": "shell",
-      "command": "npx chokidar \"src/**/*.ts\" \"src/**/*.tsx\" -c \"npm run lint:fix\" --ignore-initial --debounce 300",
+      "command": "npx chokidar \"src/**/*.ts\" \"src/**/*.tsx\" -c \"pnpm run lint:fix\" --ignore-initial --debounce 300",
       "isBackground": true,
       "problemMatcher": [
         "$eslint-stylish"
