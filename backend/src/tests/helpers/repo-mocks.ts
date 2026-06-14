@@ -112,6 +112,13 @@ export const buildUserRepoMock = () => {
                 null
             );
         }),
+        findByTelegramChatId: jest.fn(async (chatId: string) => {
+            return (
+                Array.from(store.values()).find(
+                    (u) => u.telegramChatId === chatId,
+                ) ?? null
+            );
+        }),
         findAll: jest.fn(async () => Array.from(store.values())),
         findMany: jest.fn(async (filter: Filter = {}) =>
             Array.from(store.values()).filter((u) => matchesFilter(u, filter)),
