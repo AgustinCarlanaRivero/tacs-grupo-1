@@ -344,22 +344,22 @@ export default class OfferService {
             postId,
             postOwnerId: post.owner.id,
         });
-        await offerRepository.save(stored);
+        const savedOffer = await offerRepository.save(stored);
 
         if (state === OfferState.APPROVED) {
-            await notifications.offerAccepted(updated.offerer.id, {
+            await notifications.offerAccepted(savedOffer.offerer.id, {
                 offerId,
                 postId,
             });
         }
 
         if (state === OfferState.REJECTED) {
-            await notifications.offerRejected(updated.offerer.id, {
+            await notifications.offerRejected(savedOffer.offerer.id, {
                 offerId,
                 postId,
             });
         }
 
-        return toOfferResponse(stored);
+        return toOfferResponse(savedOffer);
     }
 }
