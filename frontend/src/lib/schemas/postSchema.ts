@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { stickerSchema } from "./stickerSchema";
-import { collectionItemSchema, userSchema } from "./userSchema";
 
 export const postTypeSchema = z.enum(["DIRECT_TRADE", "AUCTION"]);
 export const postStateSchema = z.enum(["ACTIVE", "COMPLETED", "CLOSED"]);
@@ -19,20 +18,11 @@ export const postOwnerSchema = z.object({
   username: z.string(),
 });
 
-export const offerSchema = z.object({
-  id: z.string(),
-  offerer: userSchema,
-  state: offerStateSchema,
-  createdAt: z.iso.date(),
-  offered: z.array(collectionItemSchema),
-});
-
 export const basePostSchema = z.object({
   id: z.string().min(1),
   state: postStateSchema,
   sticker: stickerSchema,
   owner: postOwnerSchema,
-  offers: z.array(offerSchema),
 });
 
 export const directTradePostSchema = basePostSchema.extend({
@@ -41,9 +31,9 @@ export const directTradePostSchema = basePostSchema.extend({
 
 export const auctionPostSchema = basePostSchema.extend({
   type: z.literal("AUCTION"),
-  createdAt: z.iso.date(),
-  endsAt: z.iso.date(),
-  minimumRequirement: z.number().int().positive(),
+  createdAt: z.string(),
+  endsAt: z.string(),
+  minimumRequirement: z.number().int().positive().optional(),
 });
 
 export const postSchema = z.discriminatedUnion("type", [
@@ -62,7 +52,7 @@ export const auctionPostCreateRequestSchema = z
   .object({
     type: z.literal("AUCTION"),
     stickerId: postCreateStickerIdSchema,
-    endsAt: z.iso.datetime(),
+    endsAt: z.string(),
     minimumRequirement: z.number().int().positive(),
   })
   .strict();

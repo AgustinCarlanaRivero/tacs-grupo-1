@@ -1,4 +1,4 @@
-export type Category = "SHINY" | "REGULAR" | "COMMON";
+export type StickerType = "SHINY" | "REGULAR" | "COMMON";
 
 export interface MockTeam {
   name: string;
@@ -7,15 +7,15 @@ export interface MockTeam {
 
 export interface MockPlayer {
   name: string;
-  nationalTeam: MockTeam;
-  club: MockTeam;
+  nationalTeam?: MockTeam | null;
+  club?: MockTeam | null;
   image: string;
 }
 
 export interface MockSticker {
   number: number;
   player: MockPlayer;
-  category: Category;
+  type: StickerType;
 }
 
 export interface MockUser {
@@ -29,28 +29,28 @@ export interface MockCollectionItem {
   quantity: number;
 }
 
-export type AuctionState = "ACTIVE" | "CLOSED" | "CANCELLED";
+export type AuctionState = "ACTIVE" | "COMPLETED" | "CLOSED";
 
 export interface MockAuction {
-  id: number;
+  id: number | string;
   state: AuctionState;
   sticker: MockSticker;
   owner: MockUser;
-  createdAt: Date;
-  endsAt: Date;
-  minimumRequirements: MockCollectionItem[];
+  createdAt: Date | string;
+  endsAt: Date | string;
+  minimumRequirement?: number;
 }
 
-export type TradeState = "ACTIVE" | "CLOSED" | "CANCELLED";
+export type TradeState = "ACTIVE" | "COMPLETED" | "CLOSED";
 
 export interface MockTrade {
-  id: number;
+  id: number | string;
   state: TradeState;
   sticker: MockSticker;
   owner: MockUser;
 }
 
-export type OfferState = "PENDING" | "ACCEPTED" | "REJECTED";
+export type OfferState = "PENDING" | "ACCEPTED" | "REJECTED" | "APPROVED" | "CANCELLED";
 
 export interface MockOffer {
   id: string;
@@ -60,7 +60,7 @@ export interface MockOffer {
   offered: MockCollectionItem[];
 }
 
-export type MockOffersByTradeId = Record<number, MockOffer[]>;
+export type MockOffersByTradeId = Record<number | string, MockOffer[]>;
 
 export interface MockSuggestion {
   id: number;

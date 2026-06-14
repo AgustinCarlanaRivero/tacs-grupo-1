@@ -1,17 +1,12 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import {
-  useState,
-  useRef,
-  type ChangeEvent,
-  type ReactNode,
-} from "react";
+import { useState, useRef, type ChangeEvent, type ReactNode } from "react";
 import Link from "next/link";
 import RequireAuth from "@/components/layout/RequireAuth";
-import { mockStickers, mockMissingStickers } from "@/data/mock-stickers";
-import { mockAuctions } from "@/data/mock-auctions";
-import { mockTrades } from "@/data/mock-trades";
+import { useGetCollectionQuery } from "@/store/api/collectionApi";
+import { useGetUserAuctionsQuery, useGetUserDirectTradesQuery } from "@/store/api/postApi";
+import { useGetRatingsByUserQuery } from "@/store/api/ratingApi";
 import {
   Camera,
   Gavel,
@@ -22,8 +17,6 @@ import {
   Copy,
   ChevronRight,
 } from "lucide-react";
-
-const CURRENT_USER_ID = 1;
 
 interface StatCardProps {
   icon: ReactNode;
@@ -73,6 +66,11 @@ function PerfilContent() {
   const [uploading, setUploading] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const { data: collectionData } = useGetCollectionQuery(user?.id ?? "", { skip: !user?.id });
+  const { data: myAuctions = [] } = useGetUserAuctionsQuery(user?.id ?? "", { skip: !user?.id });
+  const { data: myTrades = [] } = useGetUserDirectTradesQuery(user?.id ?? "", { skip: !user?.id });
+  const { data: ratings = [] } = useGetRatingsByUserQuery(user?.id ?? "", { skip: !user?.id });
+
   const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -89,26 +87,23 @@ function PerfilContent() {
     reader.readAsDataURL(file);
   };
 
-  const ownedStickers = mockStickers.filter((s) => s.quantity > 0);
-  const totalOwned = ownedStickers.reduce((acc, s) => acc + s.quantity, 0);
-  const totalMissing = mockMissingStickers.length;
-  const totalDuplicates = ownedStickers.reduce(
-    (acc, s) => acc + Math.max(0, s.quantity - 1),
-    0
-  );
+  const ownedItems = collectionData?.items ?? [];
+  const totalOwned = ownedItems.reduce((acc, s) => acc + s.quantity, 0);
+  const totalMissing = collectionData?.missingStickers?.length ?? 0;
+  const totalDuplicates = ownedItems.reduce((acc, s) => acc + Math.max(0, s.quantity - 1), 0);
 
-  const myAuctions = mockAuctions.filter(
-    (a) => a.owner.id === CURRENT_USER_ID && a.state === "ACTIVE"
-  );
-  const myTrades = mockTrades.filter(
-    (t) => t.owner.id === CURRENT_USER_ID && t.state === "ACTIVE"
-  );
+  const activeAuctions = myAuctions.filter((a) => a.state === "ACTIVE");
+  const activeTrades = myTrades.filter((t) => t.state === "ACTIVE");
+
+  const avgReputation =
+    ratings.length > 0
+      ? (ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length).toFixed(1)
+      : null;
 
   const avatarSrc = customAvatar || user?.picture;
 
   return (
     <main className="container mx-auto px-4 pb-24 max-w-2xl">
-      {/* Avatar + datos */}
       <div className="mt-8 flex flex-col items-center gap-3">
         <div className="relative">
           <img
@@ -138,7 +133,11 @@ function PerfilContent() {
           <p className="text-sm text-slate-500 mt-0.5">{user?.email}</p>
           <div className="flex items-center justify-center gap-1 mt-2">
             <Star size={13} className="text-yellow-400 fill-yellow-400" />
-            <span className="text-sm font-semibold text-slate-600">Reputación: —</span>
+            <span className="text-sm font-semibold text-slate-600">
+              {avgReputation !== null
+                ? `Reputación: ${avgReputation} (${ratings.length} valoracion${ratings.length !== 1 ? "es" : ""})`
+                : "Sin valoraciones aún"}
+            </span>
           </div>
         </div>
 
@@ -150,7 +149,6 @@ function PerfilContent() {
         </button>
       </div>
 
-      {/* Colección */}
       <div className="mt-8">
         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
           Mi Colección
@@ -174,7 +172,6 @@ function PerfilContent() {
         </div>
       </div>
 
-      {/* Actividad */}
       <div className="mt-6">
         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
           Actividad
@@ -182,13 +179,13 @@ function PerfilContent() {
         <div className="grid grid-cols-2 gap-3">
           <ActivityCard
             icon={<Gavel size={18} className="text-[#002B5E]" />}
-            count={myAuctions.length}
+            count={activeAuctions.length}
             label="Subastas activas"
             href="/auctions"
           />
           <ActivityCard
             icon={<ArrowLeftRight size={18} className="text-[#002B5E]" />}
-            count={myTrades.length}
+            count={activeTrades.length}
             label="Intercambios activos"
             href="/trades"
           />

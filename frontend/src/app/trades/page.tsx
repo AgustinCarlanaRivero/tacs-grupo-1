@@ -13,50 +13,64 @@ import SuggestionCard from "@/components/trade/SuggestionCard";
 import CreateTradeModal from "@/components/trade/CreateTradeModal";
 import { useSearch } from "@/hooks/useSearch";
 import { useAuth } from "@/hooks/useAuth";
-import { mockStickers } from "@/data/mock-stickers";
-import { mockOffers } from "@/data/mock-offers";
-import { mockSuggestions } from "@/data/mock-suggestions";
+import { useGetSuggestionsByUserQuery } from "@/store/api/matchingApi";
 import {
   useCreatePostMutation,
+  useClosePostMutation,
+  useGetMarketPostsQuery,
   useGetUserDirectTradesQuery,
 } from "@/store/api/postApi";
+import { useGetCollectionQuery } from "@/store/api/collectionApi";
+import { useCreateOfferMutation } from "@/store/api/offerApi";
+import type { OfferSubmitItem } from "@/components/auction/OfferModal";
 import RequireAuth from "@/components/layout/RequireAuth";
-import type {
-  MockCollectionItem,
-  MockSuggestion,
-  MockTrade,
-} from "@/data/types";
+import type { DirectTradePostDTO } from "@/lib/schemas/postSchema";
+import type { MockCollectionItem } from "@/data/types";
+import type { SuggestionDTO } from "@/store/api/matchingApi";
 
 type TradeTabKey = "market" | "mine" | "suggestions";
-
-const myCollection: MockCollectionItem[] = mockStickers.filter(
-  (item) => item.quantity > 0
-);
 
 function TradesPageInner() {
   const { isAuthenticated, user } = useAuth();
   const searchParams = useSearchParams();
   const initialTab: TradeTabKey =
-    searchParams.get("tab") === "suggestions" && isAuthenticated
-      ? "suggestions"
-      : "market";
+    searchParams.get("tab") === "suggestions" && isAuthenticated ? "suggestions" : "market";
   const [tab, setTab] = useState<TradeTabKey>(initialTab);
-  const [cancelledTradeIds, setCancelledTradeIds] = useState<number[]>([]);
-  const [selectedTrade, setSelectedTrade] = useState<MockTrade | null>(null);
-  const [suggestions, setSuggestions] = useState<MockSuggestion[]>(mockSuggestions);
+  const [selectedTrade, setSelectedTrade] = useState<DirectTradePostDTO | null>(null);
+  const [dismissedIds, setDismissedIds] = useState<string[]>([]);
   const [showCreateTrade, setShowCreateTrade] = useState(false);
+
   const [createPost] = useCreatePostMutation();
-  const { data: directTrades = [] } = useGetUserDirectTradesQuery(user?.id ?? "", {
+  const [closePost] = useClosePostMutation();
+  const [createOffer] = useCreateOfferMutation();
+
+  const { data: suggestionsRaw = [] } = useGetSuggestionsByUserQuery(user?.id ?? "", {
+    skip: !user?.id || tab !== "suggestions",
+  });
+  const suggestions = suggestionsRaw.filter((s) => !dismissedIds.includes(s.userId));
+
+  const { data: marketTradesRaw = [] } = useGetMarketPostsQuery(
+    { type: "DIRECT_TRADE", state: "ACTIVE" },
+    { skip: tab !== "market" }
+  );
+  const { data: myTradesRaw = [] } = useGetUserDirectTradesQuery(user?.id ?? "", {
+    skip: !user?.id || tab !== "mine",
+  });
+  const { data: collectionData } = useGetCollectionQuery(user?.id ?? "", {
     skip: !user?.id,
   });
-  const allTrades = (directTrades as unknown as MockTrade[]).filter(
-    (trade) => !cancelledTradeIds.includes(trade.id)
-  );
 
-  const { query, setQuery, filtered } = useSearch<MockTrade>(
-    allTrades,
+  const marketTrades = marketTradesRaw.filter(
+    (p): p is DirectTradePostDTO => p.type === "DIRECT_TRADE" && p.owner.id !== user?.id
+  );
+  const myTrades = myTradesRaw;
+
+  const activeList = tab === "market" ? marketTrades : myTrades;
+
+  const { query, setQuery, filtered } = useSearch<DirectTradePostDTO>(
+    tab !== "suggestions" ? activeList : [],
     useCallback(
-      ({ sticker }: MockTrade) => [
+      ({ sticker }: DirectTradePostDTO) => [
         sticker.player.name,
         sticker.player.nationalTeam?.name,
         sticker.player.club?.name,
@@ -65,21 +79,27 @@ function TradesPageInner() {
     )
   );
 
-  const marketTrades = filtered.filter((t) => t.owner.id !== user?.id);
-  const myTrades = filtered.filter((t) => t.owner.id === user?.id);
+  const myCollection: MockCollectionItem[] = (collectionData?.items ?? []).map((item) => ({
+    sticker: {
+      number: item.sticker.number,
+      player: item.sticker.player,
+      type: item.sticker.type,
+    },
+    quantity: item.quantity,
+  }));
 
-  function cancelTrade(trade: MockTrade) {
-    if (
-      window.confirm(
-        `¿Cancelar el intercambio de ${trade.sticker.player.name}?`
-      )
-    ) {
-      setCancelledTradeIds((prev) => [...prev, trade.id]);
+  async function cancelTrade(trade: DirectTradePostDTO) {
+    if (!user?.id) return;
+    if (!window.confirm(`¿Cancelar el intercambio de ${trade.sticker.player.name}?`)) return;
+    try {
+      await closePost({ userId: user.id, postId: trade.id }).unwrap();
       setSelectedTrade(null);
+    } catch {
+      alert("No se pudo cancelar el intercambio. Intentá nuevamente.");
     }
   }
 
-  function handleSelectTrade(trade: MockTrade) {
+  function handleSelectTrade(trade: DirectTradePostDTO) {
     if (!isAuthenticated) {
       alert("Iniciá sesión para hacer una oferta.");
       return;
@@ -87,12 +107,12 @@ function TradesPageInner() {
     setSelectedTrade(trade);
   }
 
-  function handleAcceptSuggestion(suggestion: MockSuggestion) {
-    setSuggestions((prev) => prev.filter((s) => s.id !== suggestion.id));
+  function handleAcceptSuggestion(suggestion: SuggestionDTO) {
+    setDismissedIds((prev) => [...prev, suggestion.userId]);
   }
 
-  function handleRejectSuggestion(suggestion: MockSuggestion) {
-    setSuggestions((prev) => prev.filter((s) => s.id !== suggestion.id));
+  function handleRejectSuggestion(suggestion: SuggestionDTO) {
+    setDismissedIds((prev) => [...prev, suggestion.userId]);
   }
 
   const tabs: PageTab<TradeTabKey>[] = [
@@ -103,7 +123,7 @@ function TradesPageInner() {
           {
             key: "suggestions",
             label: "Sugerencias",
-            badge: suggestions.length || null,
+            badge: suggestionsRaw.length || null,
           },
         ] as PageTab<TradeTabKey>[])
       : []),
@@ -150,7 +170,7 @@ function TradesPageInner() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {suggestions.map((suggestion) => (
                 <SuggestionCard
-                  key={suggestion.id}
+                  key={suggestion.userId}
                   suggestion={suggestion}
                   onAccept={() => handleAcceptSuggestion(suggestion)}
                   onReject={() => handleRejectSuggestion(suggestion)}
@@ -162,7 +182,7 @@ function TradesPageInner() {
 
       {tab !== "suggestions" && (
         <>
-          {(tab === "market" ? marketTrades : myTrades).length === 0 ? (
+          {filtered.length === 0 ? (
             <EmptyState
               message={
                 query
@@ -174,7 +194,7 @@ function TradesPageInner() {
             />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-              {(tab === "market" ? marketTrades : myTrades).map((trade) => (
+              {filtered.map((trade) => (
                 <TradeCard
                   key={trade.id}
                   trade={trade}
@@ -188,7 +208,6 @@ function TradesPageInner() {
           {selectedTrade && tab === "mine" && (
             <TradeOffersModal
               trade={selectedTrade}
-              offers={mockOffers[Number(selectedTrade.id)] ?? []}
               onClose={() => setSelectedTrade(null)}
               onCancelTrade={() => cancelTrade(selectedTrade)}
             />
@@ -199,7 +218,18 @@ function TradesPageInner() {
               post={selectedTrade}
               myCollection={myCollection}
               onClose={() => setSelectedTrade(null)}
-              onSubmit={(stickers) => console.log("Oferta enviada:", stickers)}
+              onSubmit={async (offered: OfferSubmitItem[]) => {
+                if (!user?.id) return;
+                try {
+                  await createOffer({
+                    userId: selectedTrade.owner.id,
+                    postId: selectedTrade.id,
+                    offered,
+                  }).unwrap();
+                } catch {
+                  alert("No se pudo enviar la oferta. Intentá nuevamente.");
+                }
+              }}
             />
           )}
 
@@ -209,12 +239,10 @@ function TradesPageInner() {
               onClose={() => setShowCreateTrade(false)}
               onSubmit={async (post) => {
                 if (!user?.id) return;
-
                 try {
                   await createPost({ userId: user.id, post }).unwrap();
                   setShowCreateTrade(false);
-                } catch (error) {
-                  console.error("No se pudo crear el intercambio", error);
+                } catch {
                   alert("No se pudo publicar el intercambio. Intentá nuevamente.");
                 }
               }}

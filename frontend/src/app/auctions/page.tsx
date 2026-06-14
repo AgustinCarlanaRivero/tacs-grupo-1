@@ -10,39 +10,53 @@ import OfferModal from "@/components/auction/OfferModal";
 import CreateAuctionModal from "@/components/auction/CreateAuctionModal";
 import { useSearch } from "@/hooks/useSearch";
 import { useAuth } from "@/hooks/useAuth";
-import { mockStickers } from "@/data/mock-stickers";
-
 import {
   useCreatePostMutation,
+  useClosePostMutation,
+  useGetMarketPostsQuery,
   useGetUserAuctionsQuery,
 } from "@/store/api/postApi";
+import { useGetCollectionQuery } from "@/store/api/collectionApi";
+import { useCreateOfferMutation } from "@/store/api/offerApi";
 import RequireAuth from "@/components/layout/RequireAuth";
-import type { MockAuction, MockCollectionItem } from "@/data/types";
+import type { AuctionPostDTO } from "@/lib/schemas/postSchema";
+import type { MockCollectionItem } from "@/data/types";
+import type { OfferSubmitItem } from "@/components/auction/OfferModal";
 
 type AuctionTabKey = "market" | "mine";
-
-const myCollection: MockCollectionItem[] = mockStickers.filter(
-  (item) => item.quantity > 0
-);
 
 function AuctionsContent() {
   const { isAuthenticated, user } = useAuth();
   const [tab, setTab] = useState<AuctionTabKey>("market");
-  const [selectedAuction, setSelectedAuction] = useState<MockAuction | null>(null);
+  const [selectedAuction, setSelectedAuction] = useState<AuctionPostDTO | null>(null);
   const [showCreateAuction, setShowCreateAuction] = useState(false);
-  const [cancelledAuctionIds, setCancelledAuctionIds] = useState<number[]>([]);
+
   const [createPost] = useCreatePostMutation();
-  const { data: auctions = [] } = useGetUserAuctionsQuery(user?.id ?? "", {
+  const [closePost] = useClosePostMutation();
+  const [createOffer] = useCreateOfferMutation();
+
+  const { data: marketAuctionsRaw = [] } = useGetMarketPostsQuery(
+    { type: "AUCTION", state: "ACTIVE" },
+    { skip: tab !== "market" }
+  );
+  const { data: myAuctionsRaw = [] } = useGetUserAuctionsQuery(user?.id ?? "", {
+    skip: !user?.id || tab !== "mine",
+  });
+  const { data: collectionData } = useGetCollectionQuery(user?.id ?? "", {
     skip: !user?.id,
   });
-  const allAuctions = (auctions as unknown as MockAuction[]).filter(
-    (auction) => !cancelledAuctionIds.includes(auction.id)
-  );
 
-  const { query, setQuery, filtered } = useSearch<MockAuction>(
-    allAuctions,
+  const marketAuctions = marketAuctionsRaw.filter(
+    (p): p is AuctionPostDTO => p.type === "AUCTION" && p.owner.id !== user?.id
+  );
+  const myAuctions = myAuctionsRaw;
+
+  const activeList = tab === "market" ? marketAuctions : myAuctions;
+
+  const { query, setQuery, filtered } = useSearch<AuctionPostDTO>(
+    activeList,
     useCallback(
-      ({ sticker }: MockAuction) => [
+      ({ sticker }: AuctionPostDTO) => [
         sticker.player.name,
         sticker.player.nationalTeam?.name,
         sticker.player.club?.name,
@@ -51,19 +65,26 @@ function AuctionsContent() {
     )
   );
 
-  const marketAuctions = filtered.filter((a) => a.owner.id !== user?.id);
-  const myAuctions = filtered.filter((a) => a.owner.id === user?.id);
-  const activeList = tab === "market" ? marketAuctions : myAuctions;
+  const myCollection: MockCollectionItem[] = (collectionData?.items ?? []).map((item) => ({
+    sticker: {
+      number: item.sticker.number,
+      player: item.sticker.player,
+      type: item.sticker.type,
+    },
+    quantity: item.quantity,
+  }));
 
-  function handleCancel(auction: MockAuction) {
-    if (
-      window.confirm(`¿Cancelar la subasta de ${auction.sticker.player.name}?`)
-    ) {
-      setCancelledAuctionIds((prev) => [...prev, auction.id]);
+  async function handleCancel(auction: AuctionPostDTO) {
+    if (!user?.id) return;
+    if (!window.confirm(`¿Cancelar la subasta de ${auction.sticker.player.name}?`)) return;
+    try {
+      await closePost({ userId: user.id, postId: auction.id }).unwrap();
+    } catch {
+      alert("No se pudo cancelar la subasta. Intentá nuevamente.");
     }
   }
 
-  function handleSelectAuction(auction: MockAuction) {
+  function handleSelectAuction(auction: AuctionPostDTO) {
     if (!isAuthenticated) {
       alert("Iniciá sesión para hacer una oferta.");
       return;
@@ -73,9 +94,7 @@ function AuctionsContent() {
 
   const tabs: PageTab<AuctionTabKey>[] = [
     { key: "market", label: "Mercado" },
-    ...(isAuthenticated
-      ? [{ key: "mine" as const, label: "Mis subastas" }]
-      : []),
+    ...(isAuthenticated ? [{ key: "mine" as const, label: "Mis subastas" }] : []),
   ];
 
   return (
@@ -105,7 +124,7 @@ function AuctionsContent() {
         )}
       </div>
 
-      {activeList.length === 0 ? (
+      {filtered.length === 0 ? (
         <EmptyState
           message={
             query
@@ -117,7 +136,7 @@ function AuctionsContent() {
         />
       ) : (
         <div className="flex flex-col gap-3 md:gap-4">
-          {activeList.map((auction) => (
+          {filtered.map((auction) => (
             <AuctionCard
               key={auction.id}
               auction={auction}
@@ -133,7 +152,18 @@ function AuctionsContent() {
           post={selectedAuction}
           myCollection={myCollection}
           onClose={() => setSelectedAuction(null)}
-          onSubmit={(stickers) => console.log("Puja enviada:", stickers)}
+          onSubmit={async (offered: OfferSubmitItem[]) => {
+            if (!user?.id) return;
+            try {
+              await createOffer({
+                userId: selectedAuction.owner.id,
+                postId: selectedAuction.id,
+                offered,
+              }).unwrap();
+            } catch {
+              alert("No se pudo enviar la puja. Intentá nuevamente.");
+            }
+          }}
         />
       )}
 
@@ -143,12 +173,10 @@ function AuctionsContent() {
           onClose={() => setShowCreateAuction(false)}
           onSubmit={async (post) => {
             if (!user?.id) return;
-
             try {
               await createPost({ userId: user.id, post }).unwrap();
               setShowCreateAuction(false);
-            } catch (error) {
-              console.error("No se pudo crear la subasta", error);
+            } catch {
               alert("No se pudo publicar la subasta. Intentá nuevamente.");
             }
           }}
