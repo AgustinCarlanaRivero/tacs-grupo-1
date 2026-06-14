@@ -13,7 +13,7 @@ function getEndsAtMs(endsAt: EndsAt): number {
 
 export function useCountdown(endsAt: EndsAt): number {
   const [timeLeft, setTimeLeft] = useState<number>(
-    getEndsAtMs(endsAt) - Date.now()
+    () => getEndsAtMs(endsAt) - Date.now()
   );
 
   useEffect(() => {

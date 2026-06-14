@@ -45,6 +45,9 @@ export default function CreateTradeModal({
   });
 
   const available = filterStickers(myCollection, searchQuery);
+  // react-hook-form's watch() no se puede memoizar; el React Compiler hace
+  // bailout de este componente a propósito.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedStickerId = watch("stickerId");
   const selected =
     myCollection.find((item) => item.sticker.number === selectedStickerId)

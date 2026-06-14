@@ -166,6 +166,9 @@ export default function CreateAuctionModal({
     },
   });
 
+  // react-hook-form's watch() no se puede memoizar; el React Compiler hace
+  // bailout de este componente a propósito.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedStickerId = watch("stickerId");
   const minimumRequirement = watch("minimumRequirement");
   const selectedSticker =
