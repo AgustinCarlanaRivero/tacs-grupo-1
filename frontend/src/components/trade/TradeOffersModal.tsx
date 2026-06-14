@@ -1,22 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { X } from "lucide-react";
 import StickerCard from "@/components/sticker/StickerCard";
 import EmptyState from "@/components/common/EmptyState";
 import OwnerBadge from "@/components/common/OwnerBadge";
 import StickerRow from "@/components/common/StickerRow";
-import type { MockOffer, MockTrade } from "@/data/types";
-
-type OfferState = MockOffer["state"] | "APPROVED" | "CANCELLED";
-
-interface MutableOffer extends Omit<MockOffer, "state"> {
-  state: OfferState;
-}
+import type { DirectTradePostDTO } from "@/lib/schemas/postSchema";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  useGetOffersByPostQuery,
+  useUpdateOfferStateMutation,
+  type OfferDTO,
+  type OfferState,
+} from "@/store/api/offerApi";
 
 const STATE_STYLES: Record<OfferState, { label: string; className: string }> = {
   PENDING: { label: "Pendiente", className: "bg-yellow-100 text-yellow-700" },
-  ACCEPTED: { label: "Aceptada", className: "bg-green-100 text-green-700" },
   APPROVED: { label: "Aceptada", className: "bg-green-100 text-green-700" },
   REJECTED: { label: "Rechazada", className: "bg-red-100 text-red-500" },
   CANCELLED: { label: "Cancelada", className: "bg-slate-100 text-slate-500" },
@@ -32,17 +32,18 @@ function StatusBadge({ state }: { state: OfferState }) {
 }
 
 interface OfferItemProps {
-  offer: MutableOffer;
+  offer: OfferDTO;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
+  isUpdating: boolean;
 }
 
-function OfferItem({ offer, onApprove, onReject }: OfferItemProps) {
+function OfferItem({ offer, onApprove, onReject, isUpdating }: OfferItemProps) {
   const isPending = offer.state === "PENDING";
   return (
     <div className="p-4 border border-slate-100 rounded-lg flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <OwnerBadge name={offer.offerer.name} />
+        <OwnerBadge name={offer.offerer.username} />
         <StatusBadge state={offer.state} />
       </div>
       <div className="flex flex-col gap-1.5">
@@ -54,13 +55,15 @@ function OfferItem({ offer, onApprove, onReject }: OfferItemProps) {
         <div className="flex gap-2">
           <button
             onClick={() => onApprove(offer.id)}
-            className="flex-1 py-1.5 text-xs font-bold text-green-700 bg-green-50 hover:bg-green-100 rounded transition-colors"
+            disabled={isUpdating}
+            className="flex-1 py-1.5 text-xs font-bold text-green-700 bg-green-50 hover:bg-green-100 rounded transition-colors disabled:opacity-40"
           >
             Aceptar
           </button>
           <button
             onClick={() => onReject(offer.id)}
-            className="flex-1 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded transition-colors"
+            disabled={isUpdating}
+            className="flex-1 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded transition-colors disabled:opacity-40"
           >
             Rechazar
           </button>
@@ -71,37 +74,45 @@ function OfferItem({ offer, onApprove, onReject }: OfferItemProps) {
 }
 
 interface TradeOffersModalProps {
-  trade: MockTrade;
-  offers: MockOffer[];
+  trade: DirectTradePostDTO;
   onClose: () => void;
   onCancelTrade?: () => void;
 }
 
-export default function TradeOffersModal({
-  trade,
-  offers: initialOffers,
-  onClose,
-}: TradeOffersModalProps) {
-  const [offers, setOffers] = useState<MutableOffer[]>(initialOffers);
+export default function TradeOffersModal({ trade, onClose, onCancelTrade }: TradeOffersModalProps) {
+  const { user } = useAuth();
+  const { data: offers = [], isLoading } = useGetOffersByPostQuery(
+    { userId: trade.owner.id, postId: trade.id },
+    { skip: !trade.id }
+  );
+  const [updateOfferState, { isLoading: isUpdating }] = useUpdateOfferStateMutation();
 
-  function approve(offerId: string) {
-    setOffers((prev) =>
-      prev.map((o) => ({
-        ...o,
-        state:
-          o.id === offerId
-            ? "APPROVED"
-            : o.state === "PENDING"
-              ? "REJECTED"
-              : o.state,
-      }))
-    );
+  async function approve(offerId: string) {
+    if (!user?.id) return;
+    try {
+      await updateOfferState({
+        userId: trade.owner.id,
+        postId: trade.id,
+        offerId,
+        state: "APPROVED",
+      }).unwrap();
+    } catch {
+      alert("No se pudo aceptar la oferta.");
+    }
   }
 
-  function reject(offerId: string) {
-    setOffers((prev) =>
-      prev.map((o) => (o.id === offerId ? { ...o, state: "REJECTED" } : o))
-    );
+  async function reject(offerId: string) {
+    if (!user?.id) return;
+    try {
+      await updateOfferState({
+        userId: trade.owner.id,
+        postId: trade.id,
+        offerId,
+        state: "REJECTED",
+      }).unwrap();
+    } catch {
+      alert("No se pudo rechazar la oferta.");
+    }
   }
 
   return (
@@ -131,9 +142,24 @@ export default function TradeOffersModal({
           </button>
         </div>
 
+        {onCancelTrade && (
+          <div className="px-5 pt-3">
+            <button
+              onClick={onCancelTrade}
+              className="w-full py-2 text-xs font-bold uppercase tracking-wider text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
+            >
+              Cancelar intercambio
+            </button>
+          </div>
+        )}
+
         <h3 className="font-bold text-slate-800 px-5 pt-4">Ofertas</h3>
         <div className="overflow-y-auto flex-1 p-4 flex flex-col gap-3">
-          {offers.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-6 h-6 border-4 border-[#002B5E] border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : offers.length === 0 ? (
             <EmptyState message="Todavía no recibiste ofertas para este intercambio." />
           ) : (
             offers.map((offer) => (
@@ -142,6 +168,7 @@ export default function TradeOffersModal({
                 offer={offer}
                 onApprove={approve}
                 onReject={reject}
+                isUpdating={isUpdating}
               />
             ))
           )}

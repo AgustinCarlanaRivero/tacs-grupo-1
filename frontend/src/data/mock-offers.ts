@@ -13,7 +13,7 @@ export const mockOffers: MockOffersByTradeId = {
           sticker: {
             number: 16,
             player: { name: "Pedri", nationalTeam: { name: "España" }, club: { name: "FC Barcelona" }, image: "https://livesport-ott-images.ssl.cdn.cra.cz/r900xfq60/5e49bbcb-86b0-4cce-9065-a20b64e41865.jpeg" },
-            category: "REGULAR"
+            type: "REGULAR"
           },
           quantity: 1
         },
@@ -21,7 +21,7 @@ export const mockOffers: MockOffersByTradeId = {
           sticker: {
             number: 22,
             player: { name: "Jude Bellingham", nationalTeam: { name: "Inglaterra" }, club: { name: "Real Madrid" }, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTni-jJY8d8H0x1ogj34S2n0cOus9P7_cpvBQ&s" },
-            category: "REGULAR"
+            type: "REGULAR"
           },
           quantity: 2
         }
@@ -37,7 +37,7 @@ export const mockOffers: MockOffersByTradeId = {
           sticker: {
             number: 22,
             player: { name: "Jude Bellingham", nationalTeam: { name: "Inglaterra" }, club: { name: "Real Madrid" }, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTni-jJY8d8H0x1ogj34S2n0cOus9P7_cpvBQ&s" },
-            category: "REGULAR"
+            type: "REGULAR"
           },
           quantity: 2
         }
@@ -53,7 +53,7 @@ export const mockOffers: MockOffersByTradeId = {
           sticker: {
             number: 12,
             player: { name: "Jude Bellingham", nationalTeam: { name: "Inglaterra" }, club: { name: "Real Madrid" }, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTni-jJY8d8H0x1ogj34S2n0cOus9P7_cpvBQ&s" },
-            category: "REGULAR"
+            type: "REGULAR"
           },
           quantity: 2
         }
@@ -69,7 +69,7 @@ export const mockOffers: MockOffersByTradeId = {
           sticker: {
             number: 13,
             player: { name: "Jude Bellingham", nationalTeam: { name: "Inglaterra" }, club: { name: "Real Madrid" }, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTni-jJY8d8H0x1ogj34S2n0cOus9P7_cpvBQ&s" },
-            category: "REGULAR"
+            type: "REGULAR"
           },
           quantity: 2
         }
@@ -87,7 +87,7 @@ export const mockOffers: MockOffersByTradeId = {
           sticker: {
             number: 9,
             player: { name: "Erling Haaland", nationalTeam: { name: "Noruega" }, club: { name: "Man. City" }, image: "https://cloudfront-us-east-1.images.arcpublishing.com/infobae/IHKKWOFZOCLXMVSMZABJQYL23I.jpg" },
-            category: "REGULAR"
+            type: "REGULAR"
           },
           quantity: 1
         }

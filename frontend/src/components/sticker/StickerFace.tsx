@@ -49,7 +49,7 @@ export function RegularFace({ sticker, imageClassName }: StickerFaceProps) {
 }
 
 export default function StickerFace({ sticker, imageClassName }: StickerFaceProps) {
-  return sticker.category === "SHINY" ? (
+  return sticker.type === "SHINY" ? (
     <ShinyFace sticker={sticker} imageClassName={imageClassName} />
   ) : (
     <RegularFace sticker={sticker} imageClassName={imageClassName} />

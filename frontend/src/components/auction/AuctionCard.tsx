@@ -3,20 +3,19 @@
 import React from "react";
 import StickerCard from "@/components/sticker/StickerCard";
 import OwnerBadge from "@/components/common/OwnerBadge";
-import StickerRow from "@/components/common/StickerRow";
 import { useCountdown, formatCountdown } from "@/hooks/useCountdown";
 import { Clock, AlertCircle } from "lucide-react";
-import type { MockAuction } from "@/data/types";
+import type { AuctionPostDTO } from "@/lib/schemas/postSchema";
 
 interface AuctionCardProps {
-  auction: MockAuction;
-  onSelect: (auction: MockAuction) => void;
+  auction: AuctionPostDTO;
+  onSelect: (auction: AuctionPostDTO) => void;
   isOwner?: boolean;
 }
 
 export default function AuctionCard({ auction, onSelect, isOwner = false }: AuctionCardProps) {
-  const { sticker, owner, endsAt, minimumRequirements } = auction;
-  const isShiny = sticker.category === "SHINY";
+  const { sticker, owner, endsAt, minimumRequirement } = auction;
+  const isShiny = sticker.type === "SHINY";
   const timeLeftMs = useCountdown(endsAt);
   const isEnded = timeLeftMs <= 0;
 
@@ -46,7 +45,7 @@ export default function AuctionCard({ auction, onSelect, isOwner = false }: Auct
             {sticker.player.nationalTeam?.name} · {sticker.player.club?.name}
           </p>
           <div className="mb-4">
-            <OwnerBadge name={owner.username ?? owner.name} />
+            <OwnerBadge name={owner.username} />
           </div>
           <div className="flex items-center gap-2">
             <Clock size={16} className={isEnded ? "text-red-500" : "text-slate-400"} />
@@ -56,20 +55,14 @@ export default function AuctionCard({ auction, onSelect, isOwner = false }: Auct
           </div>
         </div>
 
-        <div className="p-4 flex flex-col md:min-w-[300px]">
+        <div className="p-4 flex flex-col md:min-w-[260px]">
           <p className="text-xs font-bold uppercase text-slate-400 mb-3 flex items-center gap-1.5">
-            <AlertCircle size={14} className="text-blue-500" /> Requisitos
+            <AlertCircle size={14} className="text-blue-500" /> Requisito mínimo
           </p>
-          {minimumRequirements?.length > 0 ? (
-            <div className="flex flex-col gap-2 mb-4">
-              {minimumRequirements.map((req) => (
-                <StickerRow
-                  key={req.sticker.number}
-                  sticker={req.sticker}
-                  quantity={req.quantity}
-                />
-              ))}
-            </div>
+          {minimumRequirement ? (
+            <p className="text-sm font-semibold text-slate-700 mb-4">
+              Mínimo {minimumRequirement} figurita{minimumRequirement > 1 ? "s" : ""} en la oferta
+            </p>
           ) : (
             <p className="text-sm text-slate-500 italic mb-4">Sin requisitos</p>
           )}

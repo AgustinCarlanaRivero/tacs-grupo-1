@@ -7,7 +7,7 @@ interface StickerRowProps {
 }
 
 export default function StickerRow({ sticker, quantity }: StickerRowProps) {
-  const isShiny = sticker.category === "SHINY";
+  const isShiny = sticker.type === "SHINY";
   return (
     <div className="flex items-center justify-between text-xs bg-white px-3 py-2 rounded border border-slate-200 gap-2">
       <div className="flex items-center gap-2 min-w-0">

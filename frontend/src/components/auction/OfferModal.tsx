@@ -1,41 +1,40 @@
 "use client";
 
 import React, { useState } from "react";
-import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import ModalShell from "@/components/common/ModalShell";
 import StickerSearchInput from "@/components/common/StickerSearchInput";
 import SelectableStickerOption from "@/components/sticker/SelectableStickerOption";
 import StickerCard from "@/components/sticker/StickerCard";
-import StickerRow from "@/components/common/StickerRow";
 import { filterStickers } from "@/lib/utils";
-import type {
-  MockCollectionItem,
-  MockSticker,
-  MockUser,
-} from "@/data/types";
+import type { MockCollectionItem } from "@/data/types";
+import type { MockSticker } from "@/data/types";
 
-// `post` puede ser un trade o una auction; el modal usa los campos comunes.
 export interface OfferPost {
   sticker: MockSticker;
-  owner: MockUser;
-  minimumRequirements?: { sticker: MockSticker; quantity: number }[];
+  owner: { id: string | number; username: string };
+  minimumRequirement?: number;
+}
+
+export interface OfferSubmitItem {
+  stickerId: number;
+  quantity: number;
 }
 
 interface OfferModalProps {
   post: OfferPost;
   myCollection: MockCollectionItem[];
   onClose: () => void;
-  onSubmit: (selectedStickerNumbers: number[]) => void;
+  onSubmit: (offered: OfferSubmitItem[]) => Promise<void> | void;
 }
 
 export default function OfferModal({ post, myCollection, onClose, onSubmit }: OfferModalProps) {
   const [selected, setSelected] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showRequirements, setShowRequirements] = useState(false);
 
-  const { sticker, owner, minimumRequirements } = post;
-  const isShiny = sticker.category === "SHINY";
-  const isAuction = !!minimumRequirements;
+  const { sticker, owner, minimumRequirement } = post;
+  const isShiny = sticker.type === "SHINY";
+  const isAuction = minimumRequirement !== undefined;
 
   function toggleSticker(sticker: MockSticker) {
     setSelected((prev) =>
@@ -53,22 +52,15 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }: Of
   let canSubmit = selected.length > 0;
   let validationMessage = "";
 
-  if (isAuction && minimumRequirements && minimumRequirements.length > 0) {
-    const missing = minimumRequirements.filter((req) => {
-      if (!selected.includes(req.sticker.number)) return true;
-      const item = myCollection.find((c) => c.sticker.number === req.sticker.number);
-      return !item || item.quantity < req.quantity;
-    });
-    if (missing.length > 0) {
-      canSubmit = false;
-      validationMessage = "Debés seleccionar todas las figuritas requeridas para esta subasta.";
-    }
+  if (isAuction && minimumRequirement && selected.length < minimumRequirement) {
+    canSubmit = false;
+    validationMessage = `Debés seleccionar al menos ${minimumRequirement} figurita${minimumRequirement > 1 ? "s" : ""} para esta subasta.`;
   }
 
   return (
     <ModalShell
       title={isAuction ? "Participar en subasta" : "Proponer intercambio"}
-      subtitle={`con ${owner.username ?? owner.name}`}
+      subtitle={`con ${owner.username}`}
       onClose={onClose}
       wide
     >
@@ -98,35 +90,14 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }: Of
             </div>
           </div>
 
-          {isAuction && minimumRequirements && minimumRequirements.length > 0 && (
-            <div className="mt-4 border-t border-slate-200/60">
-              <button
-                onClick={() => setShowRequirements(!showRequirements)}
-                className="w-full flex items-center justify-between pt-4 pb-2 group"
-              >
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5 group-hover:text-[#002B5E] transition-colors">
-                  <AlertCircle size={12} className="text-blue-500" /> Requisitos mínimos
-                  <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-sm text-[9px] ml-1">
-                    {minimumRequirements.length}
-                  </span>
-                </p>
-                {showRequirements ? (
-                  <ChevronUp size={14} className="text-slate-400 group-hover:text-[#002B5E]" />
-                ) : (
-                  <ChevronDown size={14} className="text-slate-400 group-hover:text-[#002B5E]" />
-                )}
-              </button>
-              {showRequirements && (
-                <div className="flex flex-col gap-2 pt-2">
-                  {minimumRequirements.map((req) => (
-                    <StickerRow
-                      key={req.sticker.number}
-                      sticker={req.sticker}
-                      quantity={req.quantity}
-                    />
-                  ))}
-                </div>
-              )}
+          {isAuction && minimumRequirement && (
+            <div className="mt-4 pt-4 border-t border-slate-200/60">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1.5 mb-1">
+                <AlertCircle size={12} className="text-blue-500" /> Requisito mínimo
+              </p>
+              <p className="text-sm font-semibold text-slate-700">
+                {minimumRequirement} figurita{minimumRequirement > 1 ? "s" : ""} como mínimo
+              </p>
             </div>
           )}
         </div>
@@ -160,20 +131,14 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }: Of
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
-              {availableStickers.map((item) => {
-                const req = isAuction
-                  ? minimumRequirements?.find((r) => r.sticker.number === item.sticker.number)
-                  : undefined;
-                return (
-                  <SelectableStickerOption
-                    key={item.sticker.number}
-                    item={item}
-                    selected={selected.includes(item.sticker.number)}
-                    onToggle={toggleSticker}
-                    requiredQuantity={req?.quantity}
-                  />
-                );
-              })}
+              {availableStickers.map((item) => (
+                <SelectableStickerOption
+                  key={item.sticker.number}
+                  item={item}
+                  selected={selected.includes(item.sticker.number)}
+                  onToggle={toggleSticker}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -185,8 +150,9 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }: Of
         )}
         <button
           disabled={!canSubmit}
-          onClick={() => {
-            onSubmit(selected);
+          onClick={async () => {
+            const offered = selected.map((stickerId) => ({ stickerId, quantity: 1 }));
+            await onSubmit(offered);
             onClose();
           }}
           className="w-full py-3.5 md:py-4 rounded-lg text-sm md:text-base font-bold uppercase tracking-wide transition-all bg-[#002B5E] hover:bg-[#003a7a] text-white shadow-lg shadow-blue-900/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"

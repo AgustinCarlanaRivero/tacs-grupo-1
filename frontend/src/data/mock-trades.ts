@@ -12,7 +12,7 @@ export const mockTrades: MockTrade[] = [
         club: { name: "Real Madrid" },
         image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR40uDMbB1wsTWFqhMl7q9eHeY_FAnbwom1mw&s"
       },
-      category: "SHINY"
+      type: "SHINY"
     },
     owner: { id: 2, name: "Carlos Mendez" }
   },
@@ -27,7 +27,7 @@ export const mockTrades: MockTrade[] = [
         club: { name: "Real Madrid" },
         image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8g7p9iBWlKn20Lr3tUCrNkjlPFuZAPafRqA&s"
       },
-      category: "SHINY"
+      type: "SHINY"
     },
     owner: { id: 3, name: "Laura Torres" }
   },
@@ -42,7 +42,7 @@ export const mockTrades: MockTrade[] = [
         club: { name: "Man. City" },
         image: "https://cloudfront-us-east-1.images.arcpublishing.com/infobae/IHKKWOFZOCLXMVSMZABJQYL23I.jpg"
       },
-      category: "REGULAR"
+      type: "REGULAR"
     },
     owner: { id: 4, name: "Diego Silva" }
   },
@@ -57,7 +57,7 @@ export const mockTrades: MockTrade[] = [
         club: { name: "FC Barcelona" },
         image: "https://livesport-ott-images.ssl.cdn.cra.cz/r900xfq60/5e49bbcb-86b0-4cce-9065-a20b64e41865.jpeg"
       },
-      category: "REGULAR"
+      type: "REGULAR"
     },
     owner: { id: 5, name: "Ana García" }
   },
@@ -72,7 +72,7 @@ export const mockTrades: MockTrade[] = [
         club: { name: "Real Madrid" },
         image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTni-jJY8d8H0x1ogj34S2n0cOus9P7_cpvBQ&s"
       },
-      category: "REGULAR"
+      type: "REGULAR"
     },
     owner: { id: 6, name: "Martín López" }
   },
@@ -87,7 +87,7 @@ export const mockTrades: MockTrade[] = [
         club: { name: "FC Barcelona" },
         image: "https://www.directvsports.com/__export/1728830493649/sites/dsports/img/2024/10/12/gzt1yuxwoawo5u5.jpeg_391104171.jpeg"
       },
-      category: "SHINY"
+      type: "SHINY"
     },
     owner: { id: 7, name: "Sofía Ruiz" }
   },
@@ -103,7 +103,7 @@ export const mockTrades: MockTrade[] = [
         club: { name: "Benfica" },
         image: "https://www.clarin.com/2024/08/30/v6SPsl63z_2000x1500__1.jpg"
       },
-      category: "SHINY"
+      type: "SHINY"
     },
     owner: { id: 1, name: "Mateo Díaz" }
   },
@@ -118,7 +118,7 @@ export const mockTrades: MockTrade[] = [
         club: { name: "Chelsea" },
         image: "https://media.lmneuquen.com/p/072c3680e4a33f817d9a0d90a9273352/adjuntos/195/imagenes/007/736/0007736389/770x0/smart/enzo-fernandez-1jpg.jpg"
       },
-      category: "REGULAR"
+      type: "REGULAR"
     },
     owner: { id: 1, name: "Mateo Díaz" }
   }

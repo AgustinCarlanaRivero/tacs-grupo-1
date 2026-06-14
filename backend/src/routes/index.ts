@@ -10,6 +10,7 @@ import matchingRoutes from "../modules/matching/routes/matching.routes";
 import notificationRoutes from "../modules/notifications/routes/notification.routes";
 import postsRoutes from "../modules/posts/routes/post-direct.routes";
 import stickersRoutes from "../modules/stickers/routes/sticker.routes";
+import templatesRoutes from "../modules/templates/routes/template.routes";
 import userRoutes from "../modules/users/routes/user.routes";
 
 const router = Router();
@@ -22,6 +23,7 @@ router.use("/admin", ...authChain, adminRoutes);
 router.use("/users", ...authChain, userRoutes);
 router.use("/posts", ...authChain, postsRoutes);
 router.use("/stickers", stickersRoutes);
+router.use("/templates", ...authChain, templatesRoutes);
 router.use("/notifications", ...authChain, notificationRoutes);
 router.use("/matches", ...authChain, matchingRoutes);
 
