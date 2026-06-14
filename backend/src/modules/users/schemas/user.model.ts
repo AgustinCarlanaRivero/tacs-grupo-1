@@ -15,11 +15,12 @@ import { userResponseSchema } from "./user.schemas";
 const userPersistenceSchema = userResponseSchema.omit({ id: true }).extend({
     _id: nonEmptyString,
     auth0Sub: z.string(),
+    telegramChatId: z.string().optional(),
     collection: collectionPersistenceSchema.nullable(),
 });
 
 const userModelSchema = createMongooseSchema(userPersistenceSchema, {
-    omitPaths: ["auth0Sub", "collection"],
+    omitPaths: ["auth0Sub", "telegramChatId", "collection"],
     schemaOptions: { suppressReservedKeysWarning: true },
 });
 
@@ -41,6 +42,7 @@ userModelSchema.index({ "collection.missingStickers.type": 1 });
 userModelSchema.index({ "collection.missingStickers.player.nationalTeam.name": 1 });
 userModelSchema.index({ "collection.missingStickers.player.club.name": 1 });
 userModelSchema.index({ reputation: 1 });
+userModelSchema.index({ telegramChatId: 1 });
 
 export const UserModel =
     mongoose.models.User ?? mongoose.model("User", userModelSchema);

@@ -7,6 +7,7 @@ import {
 import { userIdParamSchema } from "../../../shared/validation/common";
 import { UserRole } from "../enums/user-role.enum";
 import {
+    telegramLinkRequestSchema,
     userQuerySchema,
     userUpdateRequestSchema,
 } from "../schemas/user.schemas";
@@ -15,6 +16,7 @@ import UserService from "../services/user.service";
 type UserQuery = z.infer<typeof userQuerySchema>;
 type UserParams = z.infer<typeof userIdParamSchema>;
 type UpdateUserBody = z.infer<typeof userUpdateRequestSchema>;
+type TelegramLinkBody = z.infer<typeof telegramLinkRequestSchema>;
 type AuthenticatedRequest = Request & { user?: { id: string; role: string } };
 
 function requireSelfOrAdmin(req: Request, targetUserId: string) {
@@ -56,5 +58,16 @@ export default class UserController {
 
         await UserService.deleteUser(userId);
         return res.status(204).send();
+    };
+
+    linkTelegram = async (req: Request, res: Response) => {
+        const actor = (req as AuthenticatedRequest).user;
+        if (!actor) {
+            throw new UnauthorizedError();
+        }
+
+        const { token } = req.body as TelegramLinkBody;
+        const result = await UserService.linkTelegramChat(actor.id, token);
+        return res.status(200).json(result);
     };
 }

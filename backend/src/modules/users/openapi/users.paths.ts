@@ -9,6 +9,8 @@ import {
 } from "../../../infra/openapi/path-helpers"
 import { nonEmptyString } from "../../../shared/validation/common"
 import {
+    telegramLinkRequestSchema,
+    telegramLinkResponseSchema,
     userQuerySchema,
     userResponseSchema,
     usersResponseSchema,
@@ -27,6 +29,21 @@ registry.registerPath({
     responses: {
         200: jsonResponse("Usuarios paginados", usersResponseSchema),
         401: errorResponses[401],
+    },
+})
+
+registry.registerPath({
+    method: "post",
+    path: "/users/telegram/link",
+    tags: ["Users"],
+    summary: "Vincular chat de Telegram a la cuenta",
+    security: bearer,
+    request: { body: jsonBody(telegramLinkRequestSchema) },
+    responses: {
+        200: jsonResponse("Vínculo creado", telegramLinkResponseSchema),
+        400: errorResponses[400],
+        401: errorResponses[401],
+        404: errorResponses[404],
     },
 })
 

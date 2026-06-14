@@ -6,7 +6,11 @@ import {
     validateQuery,
 } from "../../../shared/middleware/validation.middleware"
 import { userIdParamSchema } from "../../../shared/validation/common"
-import { userQuerySchema, userUpdateRequestSchema } from "../schemas/user.schemas"
+import {
+    telegramLinkRequestSchema,
+    userQuerySchema,
+    userUpdateRequestSchema,
+} from "../schemas/user.schemas"
 import UserController from "../controllers/user.controller"
 import collectionRouter from "../../collection/routes/collection.routes"
 import postRouter from "../../posts/routes/post.routes"
@@ -20,6 +24,12 @@ const userController = new UserController()
 
 router.route("/")
     .get(validateQuery(userQuerySchema), asyncHandler(userController.getUsers))
+
+router.post(
+    "/telegram/link",
+    validateBody(telegramLinkRequestSchema),
+    asyncHandler(userController.linkTelegram),
+)
 
 router.use("/:userId/collection", collectionRouter)
 router.use("/:userId/posts", postRouter)

@@ -8,6 +8,7 @@ import {
     normalizeQuery,
     paginate,
 } from "../../../shared/utils/query";
+import { verifyLinkToken } from "../../../shared/utils/link-token";
 import userRepository from "../repositories/user.repository";
 import {
     userResponseSchema,
@@ -125,5 +126,30 @@ export default class UserService {
         if (!deleted) {
             throw new NotFoundError("Usuario no encontrado");
         }
+    }
+
+    /**
+     * Vincula el chat de Telegram (extraído del token firmado) a la cuenta del
+     * usuario autenticado. Un chat pertenece a un solo usuario: si ya estaba
+     * vinculado a otra cuenta, libera el vínculo previo antes de reasignarlo.
+     */
+    static async linkTelegramChat(userId: string, token: string) {
+        const { chatId } = verifyLinkToken(token);
+
+        const user = await userRepository.findById(userId);
+        if (!user) {
+            throw new NotFoundError("Usuario no encontrado");
+        }
+
+        const previous = await userRepository.findByTelegramChatId(chatId);
+        if (previous && previous.id !== userId) {
+            previous.telegramChatId = undefined;
+            await userRepository.save(previous);
+        }
+
+        user.telegramChatId = chatId;
+        await userRepository.save(user);
+
+        return { linked: true };
     }
 }

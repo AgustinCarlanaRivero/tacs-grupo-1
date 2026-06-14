@@ -30,6 +30,20 @@ export const userQuerySchema = paginationQuerySchema.extend({
     query: queryString,
 })
 
+/** POST /users/telegram/link — vincula el chat de Telegram a la cuenta. */
+export const telegramLinkRequestSchema = z
+    .object({
+        token: nonEmptyString,
+    })
+    .meta({ id: "TelegramLinkRequest" })
+
+/** Respuesta de la vinculación de Telegram. */
+export const telegramLinkResponseSchema = z
+    .object({
+        linked: z.boolean(),
+    })
+    .meta({ id: "TelegramLinkResponse" })
+
 /**
  * Forma pública de un usuario expuesta por la API. Espeja `UserResponseDto`
  * (no incluye `auth0Sub` ni datos internos).

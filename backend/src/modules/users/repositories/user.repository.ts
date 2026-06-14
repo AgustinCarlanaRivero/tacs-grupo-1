@@ -15,6 +15,7 @@ import { UserModel } from "../schemas/user.model";
 type UserPersistence = {
     _id: PersistenceId;
     auth0Sub?: string;
+    telegramChatId?: string;
     firstName: string;
     lastName: string;
     username: string;
@@ -96,6 +97,7 @@ class UserRepository extends BaseRepository<UserPersistence, User> {
         );
 
         user.auth0Sub = doc.auth0Sub ?? "";
+        user.telegramChatId = doc.telegramChatId ?? undefined;
         return user;
     }
 
@@ -110,6 +112,7 @@ class UserRepository extends BaseRepository<UserPersistence, User> {
         return {
             _id: toObjectId(id),
             auth0Sub: user.auth0Sub || undefined,
+            telegramChatId: user.telegramChatId || undefined,
             firstName: user.firstName,
             lastName: user.lastName,
             username: user.username,
@@ -143,6 +146,10 @@ class UserRepository extends BaseRepository<UserPersistence, User> {
 
     async findByUsername(username: string): Promise<User | null> {
         return this.findOne({ username } as FilterQuery<UserPersistence>);
+    }
+
+    async findByTelegramChatId(chatId: string): Promise<User | null> {
+        return this.findOne({ telegramChatId: chatId } as FilterQuery<UserPersistence>);
     }
 
     async findStickerByNumber(stickerNumber: number): Promise<Sticker | null> {

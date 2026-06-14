@@ -12,6 +12,7 @@ export class User {
   role: UserRole;
   reputation: number;
   collection: Collection | null;
+  telegramChatId?: string;
 
   constructor(
     firstName: string,
