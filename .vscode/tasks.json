@@ -2,17 +2,50 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "eslint:watch",
+      "label": "eslint:watch (backend)",
       "type": "shell",
-      "command": "npx chokidar \"src/**/*.ts\" \"src/**/*.tsx\" -c \"pnpm run lint:fix\" --ignore-initial --debounce 300",
+      "command": "npx chokidar-cli \"src/**/*.ts\" \"src/**/*.tsx\" -c \"pnpm run lint:fix\" --ignore-initial --debounce 300",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
       "isBackground": true,
       "problemMatcher": [
         "$eslint-stylish"
       ],
       "presentation": {
         "reveal": "always",
-        "panel": "dedicated"
+        "panel": "dedicated",
+        "group": "eslint:watch"
       }
+    },
+    {
+      "label": "eslint:watch (frontend)",
+      "type": "shell",
+      "command": "npx chokidar-cli \"src/**/*.ts\" \"src/**/*.tsx\" -c \"pnpm run lint:fix\" --ignore-initial --debounce 300",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "isBackground": true,
+      "problemMatcher": [
+        "$eslint-stylish"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "eslint:watch"
+      }
+    },
+    {
+      "label": "eslint:watch (all)",
+      "dependsOn": [
+        "eslint:watch (backend)",
+        "eslint:watch (frontend)"
+      ],
+      "dependsOrder": "parallel",
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "problemMatcher": []
     }
   ]
 }
