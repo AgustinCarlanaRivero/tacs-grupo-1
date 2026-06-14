@@ -136,8 +136,16 @@ export default class PostService {
                 page: filters.page,
                 limit: filters.limit,
             });
+            const validPosts: ReturnType<typeof toPostResponse>[] = [];
+            for (const post of result.data) {
+                try {
+                    validPosts.push(toPostResponse(post));
+                } catch {
+                    // skip posts with invalid/incomplete data
+                }
+            }
             return {
-                data: result.data.map(toPostResponse),
+                data: validPosts,
                 total: result.total,
                 page: result.page,
                 limit: result.limit,
