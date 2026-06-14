@@ -79,9 +79,15 @@ interface TradeOffersModalProps {
   trade: DirectTradePostDTO;
   onClose: () => void;
   onCancelTrade?: () => void;
+  onDeleteTrade?: () => void;
 }
 
-export default function TradeOffersModal({ trade, onClose, onCancelTrade }: TradeOffersModalProps) {
+export default function TradeOffersModal({
+  trade,
+  onClose,
+  onCancelTrade,
+  onDeleteTrade,
+}: TradeOffersModalProps) {
   const { user } = useAuth();
   const { data: offers = [], isLoading } = useGetOffersByPostQuery(
     { userId: trade.owner.id, postId: trade.id },
@@ -144,14 +150,24 @@ export default function TradeOffersModal({ trade, onClose, onCancelTrade }: Trad
           </button>
         </div>
 
-        {onCancelTrade && (
-          <div className="px-5 pt-3">
-            <button
-              onClick={onCancelTrade}
-              className="w-full py-2 text-xs font-bold uppercase tracking-wider text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
-            >
-              Cancelar intercambio
-            </button>
+        {(onCancelTrade || onDeleteTrade) && (
+          <div className="px-5 pt-3 flex gap-2">
+            {onCancelTrade && (
+              <button
+                onClick={onCancelTrade}
+                className="flex-1 py-2 text-xs font-bold uppercase tracking-wider text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
+              >
+                Cancelar intercambio
+              </button>
+            )}
+            {onDeleteTrade && (
+              <button
+                onClick={onDeleteTrade}
+                className="flex-1 py-2 text-xs font-bold uppercase tracking-wider text-white bg-[#BF0A30] hover:bg-[#a00828] rounded-lg transition-colors"
+              >
+                Eliminar publicación
+              </button>
+            )}
           </div>
         )}
 

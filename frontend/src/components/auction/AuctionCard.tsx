@@ -10,10 +10,11 @@ import type { AuctionPostDTO } from "@/lib/schemas/postSchema";
 interface AuctionCardProps {
   auction: AuctionPostDTO;
   onSelect: (auction: AuctionPostDTO) => void;
+  onDelete?: (auction: AuctionPostDTO) => void;
   isOwner?: boolean;
 }
 
-export default function AuctionCard({ auction, onSelect, isOwner = false }: AuctionCardProps) {
+export default function AuctionCard({ auction, onSelect, onDelete, isOwner = false }: AuctionCardProps) {
   const { sticker, owner, endsAt, minimumRequirement } = auction;
   const isShiny = sticker.type === "SHINY";
   const timeLeftMs = useCountdown(endsAt);
@@ -66,7 +67,7 @@ export default function AuctionCard({ auction, onSelect, isOwner = false }: Auct
           ) : (
             <p className="text-sm text-slate-500 italic mb-4">Sin requisitos</p>
           )}
-          <div className="mt-auto pt-2">
+          <div className="mt-auto pt-2 flex flex-col gap-2">
             <button
               disabled={!isOwner && isEnded}
               onClick={() => onSelect(auction)}
@@ -80,6 +81,14 @@ export default function AuctionCard({ auction, onSelect, isOwner = false }: Auct
             >
               {isOwner ? "Cancelar subasta" : isEnded ? "Cerrada" : "Pujar"}
             </button>
+            {isOwner && onDelete && (
+              <button
+                onClick={() => onDelete(auction)}
+                className="w-full py-3 text-sm font-bold uppercase tracking-wider rounded bg-[#BF0A30] hover:bg-[#a00828] text-white transition-colors"
+              >
+                Eliminar publicación
+              </button>
+            )}
           </div>
         </div>
       </div>

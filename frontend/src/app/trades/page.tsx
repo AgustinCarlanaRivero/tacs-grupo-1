@@ -17,6 +17,7 @@ import { useGetSuggestionsByUserQuery } from "@/store/api/matchingApi";
 import {
   useCreatePostMutation,
   useClosePostMutation,
+  useDeletePostMutation,
   useGetMarketPostsQuery,
   useGetUserDirectTradesQuery,
 } from "@/store/api/postApi";
@@ -42,6 +43,7 @@ function TradesPageInner() {
 
   const [createPost] = useCreatePostMutation();
   const [closePost] = useClosePostMutation();
+  const [deletePost] = useDeletePostMutation();
   const [createOffer] = useCreateOfferMutation();
 
   const { data: suggestionsRaw = [] } = useGetSuggestionsByUserQuery(user?.id ?? "", {
@@ -96,6 +98,17 @@ function TradesPageInner() {
       setSelectedTrade(null);
     } catch {
       alert("No se pudo cancelar el intercambio. Intentá nuevamente.");
+    }
+  }
+
+  async function deleteTrade(trade: DirectTradePostDTO) {
+    if (!user?.id) return;
+    if (!window.confirm(`¿Eliminar definitivamente el intercambio de ${trade.sticker.player.name}?`)) return;
+    try {
+      await deletePost({ userId: user.id, postId: trade.id }).unwrap();
+      setSelectedTrade(null);
+    } catch {
+      alert("No se pudo eliminar el intercambio. Intentá nuevamente.");
     }
   }
 
@@ -210,6 +223,7 @@ function TradesPageInner() {
               trade={selectedTrade}
               onClose={() => setSelectedTrade(null)}
               onCancelTrade={() => cancelTrade(selectedTrade)}
+              onDeleteTrade={() => deleteTrade(selectedTrade)}
             />
           )}
 

@@ -64,6 +64,13 @@ export const postApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ["Posts"],
         }),
+        deletePost: builder.mutation<void, ClosePostArgs>({
+            query: ({ userId, postId }) => ({
+                url: `/users/${userId}/posts/${postId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["Posts"],
+        }),
         getUserAuctions: builder.query<AuctionPostDTO[], string>({
             query: (userId: string) => `/users/${userId}/posts?type=AUCTION`,
             transformResponse: (response: PaginatedResponse<PostDTO>) =>
@@ -84,6 +91,7 @@ export const {
     useGetMarketPostsQuery,
     useCreatePostMutation,
     useClosePostMutation,
+    useDeletePostMutation,
     useGetUserAuctionsQuery,
     useGetUserDirectTradesQuery,
 } = postApi;

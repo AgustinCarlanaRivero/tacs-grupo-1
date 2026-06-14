@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   useCreatePostMutation,
   useClosePostMutation,
+  useDeletePostMutation,
   useGetMarketPostsQuery,
   useGetUserAuctionsQuery,
 } from "@/store/api/postApi";
@@ -33,6 +34,7 @@ function AuctionsContent() {
 
   const [createPost] = useCreatePostMutation();
   const [closePost] = useClosePostMutation();
+  const [deletePost] = useDeletePostMutation();
   const [createOffer] = useCreateOfferMutation();
 
   const { data: marketAuctionsRaw = [] } = useGetMarketPostsQuery(
@@ -81,6 +83,16 @@ function AuctionsContent() {
       await closePost({ userId: user.id, postId: auction.id }).unwrap();
     } catch {
       alert("No se pudo cancelar la subasta. Intentá nuevamente.");
+    }
+  }
+
+  async function handleDelete(auction: AuctionPostDTO) {
+    if (!user?.id) return;
+    if (!window.confirm(`¿Eliminar definitivamente la subasta de ${auction.sticker.player.name}?`)) return;
+    try {
+      await deletePost({ userId: user.id, postId: auction.id }).unwrap();
+    } catch {
+      alert("No se pudo eliminar la subasta. Intentá nuevamente.");
     }
   }
 
@@ -142,6 +154,7 @@ function AuctionsContent() {
               auction={auction}
               isOwner={tab === "mine"}
               onSelect={tab === "mine" ? handleCancel : handleSelectAuction}
+              onDelete={tab === "mine" ? handleDelete : undefined}
             />
           ))}
         </div>
