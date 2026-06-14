@@ -44,20 +44,8 @@ const MOCK_USER: AuthUser = {
 };
 
 export function useAuth(): UseAuthResult {
-    // ── Modo dev sin Auth0 ──────────────────────────────────────────────────────
-    if (DISABLE_AUTH) {
-        return {
-            isAuthenticated: true,
-            isLoading: false,
-            user: MOCK_USER,
-            loginWithRedirect: async () => {},
-            logout: async () => {},
-            getAccessTokenSilently: async () => "dev-token",
-        };
-    }
-
-    // ── Modo normal con Auth0 ───────────────────────────────────────────────────
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // Los hooks se llaman siempre, antes de cualquier return condicional, para
+    // respetar las reglas de hooks de React.
     const {
         isAuthenticated,
         isLoading: auth0Loading,
@@ -74,6 +62,19 @@ export function useAuth(): UseAuthResult {
         }
     );
 
+    // ── Modo dev sin Auth0 ──────────────────────────────────────────────────────
+    if (DISABLE_AUTH) {
+        return {
+            isAuthenticated: true,
+            isLoading: false,
+            user: MOCK_USER,
+            loginWithRedirect: async () => {},
+            logout: async () => {},
+            getAccessTokenSilently: async () => "dev-token",
+        };
+    }
+
+    // ── Modo normal con Auth0 ───────────────────────────────────────────────────
     if (isAuthDisabled) {
         return {
             isAuthenticated: true,
