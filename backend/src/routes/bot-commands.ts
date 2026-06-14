@@ -1,7 +1,8 @@
 import type { Bot } from "grammy";
 import {
     attachTelegramUser,
-    loginPrompt,
+    loginUrl,
+    promptLogin,
     type AppContext,
 } from "../modules/auth/middleware/telegram-auth.middleware";
 import { registerNotificationCommands } from "../modules/notifications/telegram/notification.commands";
@@ -20,14 +21,20 @@ export function registerBotCommands(bot: Bot<AppContext>): void {
     bot.use(attachTelegramUser);
 
     bot.command("start", async (ctx) => {
-        const status = ctx.appUser
-            ? `Ya estás vinculado como ${ctx.appUser.getFullName()}.`
-            : `Todavía no vinculaste tu cuenta.\n${loginPrompt(ctx)}`;
+        if (ctx.appUser) {
+            await ctx.reply(
+                "¡Bienvenido al bot de Figuritas! 🃏\n\n" +
+                    `Ya estás vinculado como ${ctx.appUser.getFullName()}.\n\n` +
+                    "Escribí /help para ver qué puedo hacer.",
+            );
+            return;
+        }
 
         await ctx.reply(
             "¡Bienvenido al bot de Figuritas! 🃏\n\n" +
-                `${status}\n\n` +
-                "Escribí /help para ver qué puedo hacer.",
+                "Todavía no vinculaste tu cuenta. Iniciá sesión para empezar:\n" +
+                loginUrl(ctx) +
+                "\n\nEscribí /help para ver qué puedo hacer.",
         );
     });
 
@@ -43,7 +50,11 @@ export function registerBotCommands(bot: Bot<AppContext>): void {
         ];
 
         if (!ctx.appUser) {
-            lines.push("", "Para consultar tus datos primero iniciá sesión:", loginPrompt(ctx));
+            lines.push(
+                "",
+                "Para consultar tus datos primero iniciá sesión:",
+                loginUrl(ctx),
+            );
         }
 
         await ctx.reply(lines.join("\n"));
@@ -58,7 +69,7 @@ export function registerBotCommands(bot: Bot<AppContext>): void {
     // (plan §4, paso 1 y paso 4).
     bot.on("message", async (ctx) => {
         if (!ctx.appUser) {
-            await ctx.reply(loginPrompt(ctx));
+            await promptLogin(ctx);
             return;
         }
         await ctx.reply(

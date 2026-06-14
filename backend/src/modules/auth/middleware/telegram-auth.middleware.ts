@@ -28,15 +28,23 @@ export async function attachTelegramUser(
 }
 
 /**
- * Mensaje de bienvenida con el link de login del front (token de un solo uso).
- * Se usa cuando un chat no vinculado manda cualquier mensaje (plan §4, paso 1).
+ * URL de login del front (token de un solo uso). Se manda como texto plano: con
+ * un dominio público (prod) Telegram la convierte en link clickeable solo; con
+ * `localhost` no la linkea (no tiene TLD), pero al menos queda copiable.
  */
-export function loginPrompt(ctx: AppContext): string {
+export function loginUrl(ctx: AppContext): string {
     const chatId = ctx.chat?.id;
-    const url = chatId !== undefined ? buildLoginUrl(String(chatId)) : "";
-    return (
+    return chatId !== undefined ? buildLoginUrl(String(chatId)) : "";
+}
+
+/**
+ * Pide login a un chat no vinculado: un mensaje corto + la URL de login. Lo usan
+ * el catch-all de mensajes y `requireLinkedUser` (plan §4, paso 1).
+ */
+export async function promptLogin(ctx: AppContext): Promise<void> {
+    await ctx.reply(
         "¡Hola coleccionista! Para ayudarte con tu solicitud, primero iniciá sesión:\n" +
-        url
+            loginUrl(ctx),
     );
 }
 
@@ -48,6 +56,6 @@ export async function requireLinkedUser(
     ctx: AppContext,
 ): Promise<User | null> {
     if (ctx.appUser) return ctx.appUser;
-    await ctx.reply(loginPrompt(ctx));
+    await promptLogin(ctx);
     return null;
 }
