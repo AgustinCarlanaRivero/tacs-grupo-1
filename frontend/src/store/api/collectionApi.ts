@@ -36,8 +36,45 @@ export const collectionApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ["Collection"],
         }),
+        updateCollectionItemQuantity: builder.mutation<
+            CollectionItemDTO,
+            { userId: string; stickerNumber: number; quantity: number }
+        >({
+            query: ({ userId, stickerNumber, quantity }) => ({
+                url: `/users/${userId}/collection/items/${stickerNumber}`,
+                method: "PATCH",
+                body: { quantity },
+            }),
+            invalidatesTags: ["Collection"],
+        }),
+        removeCollectionItem: builder.mutation<
+            void,
+            { userId: string; stickerNumber: number }
+        >({
+            query: ({ userId, stickerNumber }) => ({
+                url: `/users/${userId}/collection/items/${stickerNumber}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["Collection"],
+        }),
+        removeMissingSticker: builder.mutation<
+            void,
+            { userId: string; stickerNumber: number }
+        >({
+            query: ({ userId, stickerNumber }) => ({
+                url: `/users/${userId}/collection/missing/${stickerNumber}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["Collection"],
+        }),
     }),
 });
 
-export const { useGetCollectionQuery, useAddCollectionItemMutation, useAddMissingCollectionItemMutation } =
-    collectionApi;
+export const {
+    useGetCollectionQuery,
+    useAddCollectionItemMutation,
+    useAddMissingCollectionItemMutation,
+    useUpdateCollectionItemQuantityMutation,
+    useRemoveCollectionItemMutation,
+    useRemoveMissingStickerMutation,
+} = collectionApi;

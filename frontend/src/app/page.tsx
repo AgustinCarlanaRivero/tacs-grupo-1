@@ -68,6 +68,7 @@ function HomeContent() {
                 missingStickers={missingItems}
                 onAddToCollection={handleAddToCollection}
                 onAddMissing={handleAddMissing}
+                editable
             />
         </main>
     );

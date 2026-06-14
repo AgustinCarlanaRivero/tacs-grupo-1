@@ -35,6 +35,8 @@ interface StickerGridProps {
   missingStickers?: MockCollectionItem[];
   onAddToCollection?: (item: AddStickerSubmit) => void;
   onAddMissing?: (item: AddStickerSubmit) => void;
+  /** Habilita editar cantidad / eliminar en las tarjetas (colección propia). */
+  editable?: boolean;
 }
 
 export default function StickerGrid({
@@ -42,6 +44,7 @@ export default function StickerGrid({
   missingStickers = [],
   onAddToCollection = () => {},
   onAddMissing = () => {},
+  editable = false,
 }: StickerGridProps) {
   const [showAddToCollection, setShowAddToCollection] = useState(false);
   const [showAddMissing, setShowAddMissing] = useState(false);
@@ -59,7 +62,7 @@ export default function StickerGrid({
         ) : (
           <div className={GRID_CLASSES}>
             {collection.map((item) => (
-              <StickerCard key={item.sticker.number} item={item} />
+              <StickerCard key={item.sticker.number} item={item} editable={editable} />
             ))}
           </div>
         )}
@@ -76,7 +79,7 @@ export default function StickerGrid({
         ) : (
           <div className={GRID_CLASSES}>
             {missingStickers.map((item) => (
-              <StickerCard key={item.sticker.number} item={item} missing />
+              <StickerCard key={item.sticker.number} item={item} missing editable={editable} />
             ))}
           </div>
         )}
