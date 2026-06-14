@@ -110,6 +110,7 @@ class User {
   +role: UserRole
   +reputation: number
   +collection: Collection | null
+  +telegramChatId?: string
   +setId(id: string): void
   +isAdmin(): boolean
   +hasCollection(): boolean
@@ -247,6 +248,10 @@ class InAppChannel {
   +send(notification: Notification): Promise<void>
 }
 
+class TelegramChannel {
+  +send(notification: Notification): Promise<void>
+}
+
 ' ============================================================
 ' Relaciones
 ' ============================================================
@@ -290,6 +295,8 @@ Post <|-- Auction
 ' Notificaciones
 NotificationType <-- Notification
 NotificationChannel <|.. InAppChannel
+NotificationChannel <|.. TelegramChannel
 Notification <-- InAppChannel
+Notification <-- TelegramChannel
 
 @enduml

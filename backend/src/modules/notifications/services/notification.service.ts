@@ -21,8 +21,9 @@ class NotificationService {
     }
 
     /**
-     * Crea la notificación y la entrega por todos los canales en paralelo.
-     * Si un canal falla, propaga el error (Promise.all).
+     * Crea la notificación y la entrega por todos los canales de forma aislada:
+     * si un canal falla, se loguea sin cortar a los demás (`Promise.allSettled`).
+     * Así, p. ej., un fallo de Telegram no impide la entrega in-app.
      */
     async notify(
         userId: string,
@@ -32,9 +33,18 @@ class NotificationService {
     ) {
         const notification = new Notification(userId, type, message, payload);
 
-        await Promise.all(
+        const results = await Promise.allSettled(
             this.channels.map((channel) => channel.send(notification)),
         );
+
+        results.forEach((result) => {
+            if (result.status === "rejected") {
+                console.error(
+                    `Falló un canal de notificación (${type}):`,
+                    result.reason,
+                );
+            }
+        });
 
         return notification;
     }
