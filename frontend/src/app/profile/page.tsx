@@ -20,6 +20,7 @@ import {
   BookmarkX,
   Copy,
   ChevronRight,
+  Layers,
 } from "lucide-react";
 
 interface StatCardProps {
@@ -198,6 +199,23 @@ function PerfilContent() {
             href="/trades"
           />
         </div>
+      </div>
+
+      <div className="mt-6">
+        <Link href="/templates">
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm hover:border-[#002B5E]/30 transition-colors cursor-pointer">
+            <div className="flex items-center gap-3">
+              <Layers size={18} className="text-[#002B5E]" />
+              <div>
+                <span className="font-bold text-slate-800">Mis plantillas</span>
+                <p className="text-xs text-slate-500 font-medium">
+                  Reutilizá datos de figuritas al cargar tu colección
+                </p>
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-slate-300" />
+          </div>
+        </Link>
       </div>
 
       <div className="mt-6">

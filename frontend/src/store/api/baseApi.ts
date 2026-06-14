@@ -19,6 +19,7 @@ export const baseApi = createApi({
     "Offers",
     "Admin",
     "Notifications",
+    "Templates",
   ],
 
   endpoints: () => ({}),

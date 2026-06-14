@@ -2,10 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
+import { Save, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
+import {
+    useCreateTemplateMutation,
+    useGetTemplatesQuery,
+} from "@/store/api/templateApi";
 
 const addStickerFormSchema = z.object({
     number: z
@@ -68,6 +72,8 @@ export default function AddStickerModal({
     const {
         register,
         handleSubmit,
+        reset,
+        getValues,
         formState: { errors },
     } = useForm<AddStickerFormValues>({
         resolver: addStickerFormResolver,
@@ -76,6 +82,57 @@ export default function AddStickerModal({
             quantity: 1,
         },
     });
+
+    const { data: templates = [] } = useGetTemplatesQuery();
+    const [createTemplate, { isLoading: isSavingTemplate }] = useCreateTemplateMutation();
+
+    function applyTemplate(templateId: string) {
+        const template = templates.find((t) => t._id === templateId);
+        if (!template) return;
+        const { sticker } = template;
+        reset({
+            number: sticker.number,
+            playerName: sticker.player.name,
+            nationalTeam: sticker.player.nationalTeam?.name ?? "",
+            club: sticker.player.club?.name ?? "",
+            imageUrl: sticker.player.image ?? "",
+            type: sticker.type,
+            quantity: 1,
+        });
+    }
+
+    async function saveAsTemplate() {
+        const values = getValues();
+        if (!values.number || !values.playerName?.trim()) {
+            alert("Completá al menos el número y el nombre del jugador para guardar la plantilla.");
+            return;
+        }
+        const name = window.prompt("Nombre de la plantilla", values.playerName.trim());
+        if (!name?.trim()) return;
+
+        const nationalTeam = values.nationalTeam?.trim();
+        const club = values.club?.trim();
+        const imageUrl = values.imageUrl?.trim();
+        try {
+            await createTemplate({
+                name: name.trim(),
+                sticker: {
+                    number: values.number,
+                    state: "NEW",
+                    type: values.type,
+                    description: "",
+                    player: {
+                        name: values.playerName.trim(),
+                        nationalTeam: nationalTeam ? { name: nationalTeam } : null,
+                        club: club ? { name: club } : null,
+                        image: imageUrl ? imageUrl : null,
+                    },
+                },
+            }).unwrap();
+        } catch {
+            alert("No se pudo guardar la plantilla. Intentá nuevamente.");
+        }
+    }
 
     function submitForm(values: AddStickerFormValues) {
         const nationalTeam = values.nationalTeam?.trim();
@@ -123,6 +180,23 @@ export default function AddStickerModal({
                     onSubmit={handleSubmit(submitForm)}
                     className="p-5 flex flex-col gap-4"
                 >
+                    {templates.length > 0 && (
+                        <FormField label="Usar plantilla">
+                            <select
+                                defaultValue=""
+                                onChange={(e) => applyTemplate(e.target.value)}
+                                className="form-input"
+                            >
+                                <option value="">Elegí una plantilla...</option>
+                                {templates.map((t) => (
+                                    <option key={t._id} value={t._id}>
+                                        {t.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </FormField>
+                    )}
+
                     <FormField
                         label="Número de figurita"
                         required
@@ -212,12 +286,23 @@ export default function AddStickerModal({
                         </FormField>
                     </div>
 
-                    <Button
-                        type="submit"
-                        className="w-full py-2.5 mt-2 bg-[#002B5E] hover:bg-[#003a7a] text-white font-bold text-sm uppercase tracking-wide"
-                    >
-                        Agregar figurita
-                    </Button>
+                    <div className="flex flex-col gap-2 mt-2">
+                        <Button
+                            type="submit"
+                            className="w-full py-2.5 bg-[#002B5E] hover:bg-[#003a7a] text-white font-bold text-sm uppercase tracking-wide"
+                        >
+                            Agregar figurita
+                        </Button>
+                        <button
+                            type="button"
+                            onClick={saveAsTemplate}
+                            disabled={isSavingTemplate}
+                            className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#002B5E] bg-slate-100 hover:bg-slate-200 rounded transition-colors disabled:opacity-40"
+                        >
+                            <Save size={14} />
+                            Guardar como plantilla
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
