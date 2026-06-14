@@ -7,7 +7,7 @@ import {
     type PersistenceId,
 } from "../../../infra/database/schema-helpers";
 import type { Collection } from "../../collection/entities/collection.entity";
-import type { Sticker } from "../../stickers/entities/sticker.entity";
+import { Sticker } from "../../stickers/entities/sticker.entity";
 import { User } from "../entities/user.entity";
 import { UserRole } from "../enums/user-role.enum";
 import { UserModel } from "../schemas/user.model";
@@ -152,6 +152,21 @@ class UserRepository extends BaseRepository<UserPersistence, User> {
         return this.findOne({ telegramChatId: chatId } as FilterQuery<UserPersistence>);
     }
 
+    /**
+     * Reconstruye una instancia de `Sticker` a partir del documento plano que
+     * devuelve `.lean()`, para que el dominio recupere sus métodos (p. ej.
+     * `getDisplayName()`).
+     */
+    private toStickerEntity(doc: Sticker): Sticker {
+        return new Sticker(
+            doc.number,
+            doc.player,
+            doc.state,
+            doc.type,
+            doc.description,
+        );
+    }
+
     async findStickerByNumber(stickerNumber: number): Promise<Sticker | null> {
         const fromItems = await UserModel.findOne(
             {
@@ -166,7 +181,7 @@ class UserRepository extends BaseRepository<UserPersistence, User> {
 
         const itemSticker = fromItems?.collection?.items?.[0]?.sticker;
         if (itemSticker) {
-            return itemSticker;
+            return this.toStickerEntity(itemSticker);
         }
 
         const fromMissing = await UserModel.findOne(
@@ -180,7 +195,8 @@ class UserRepository extends BaseRepository<UserPersistence, User> {
             .lean<UserCollectionStickerLookup>()
             .exec();
 
-        return fromMissing?.collection?.missingStickers?.[0] ?? null;
+        const missingSticker = fromMissing?.collection?.missingStickers?.[0];
+        return missingSticker ? this.toStickerEntity(missingSticker) : null;
     }
 
     async findStickersByFilters(filters: StickerFilters = {}): Promise<Sticker[]> {

@@ -9,6 +9,7 @@ import {
     paginate,
 } from "../../../shared/utils/query";
 import { verifyLinkToken } from "../../../shared/utils/link-token";
+import { sendTelegramMessage } from "../../../infra/telegram/bot";
 import userRepository from "../repositories/user.repository";
 import {
     userResponseSchema,
@@ -149,6 +150,12 @@ export default class UserService {
 
         user.telegramChatId = chatId;
         await userRepository.save(user);
+
+        await sendTelegramMessage(
+            chatId,
+            `¡Iniciaste sesión exitosamente, ${user.getFullName()}! 🎉\n` +
+                "Escribí /help para ver qué puedo hacer.",
+        );
 
         return { linked: true };
     }

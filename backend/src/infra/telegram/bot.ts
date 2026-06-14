@@ -16,6 +16,23 @@ export function getBot(): Bot<AppContext> | null {
 }
 
 /**
+ * Envía un mensaje suelto a un chat por fuera del flujo de comandos (p. ej. para
+ * confirmar la vinculación desde el endpoint HTTP). No hace nada si el bot no
+ * está corriendo; un fallo de Telegram se loguea pero no se propaga.
+ */
+export async function sendTelegramMessage(
+    chatId: string,
+    text: string,
+): Promise<void> {
+    if (!bot) return;
+    try {
+        await bot.api.sendMessage(chatId, text);
+    } catch (error) {
+        console.error("No se pudo enviar el mensaje de Telegram:", error);
+    }
+}
+
+/**
  * Crea el bot, registra los comandos y arranca el long polling. Si no hay token
  * configurado, loguea un warning y no hace nada (dev/test/CI).
  */
