@@ -1,50 +1,38 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { X } from "lucide-react";
 import StickerCard from "@/components/sticker/StickerCard";
 import EmptyState from "@/components/common/EmptyState";
 import OwnerBadge from "@/components/common/OwnerBadge";
 import StickerRow from "@/components/common/StickerRow";
+import RatingForm from "@/components/rating/RatingForm";
+import OfferStateBadge from "@/components/offer/OfferStateBadge";
 import type { DirectTradePostDTO } from "@/lib/schemas/postSchema";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useGetOffersByPostQuery,
   useUpdateOfferStateMutation,
   type OfferDTO,
-  type OfferState,
 } from "@/store/api/offerApi";
-
-const STATE_STYLES: Record<OfferState, { label: string; className: string }> = {
-  PENDING: { label: "Pendiente", className: "bg-yellow-100 text-yellow-700" },
-  APPROVED: { label: "Aceptada", className: "bg-green-100 text-green-700" },
-  REJECTED: { label: "Rechazada", className: "bg-red-100 text-red-500" },
-  CANCELLED: { label: "Cancelada", className: "bg-slate-100 text-slate-500" },
-};
-
-function StatusBadge({ state }: { state: OfferState }) {
-  const { label, className } = STATE_STYLES[state] ?? STATE_STYLES.PENDING;
-  return (
-    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${className}`}>
-      {label}
-    </span>
-  );
-}
 
 interface OfferItemProps {
   offer: OfferDTO;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
   isUpdating: boolean;
+  canRate: boolean;
 }
 
-function OfferItem({ offer, onApprove, onReject, isUpdating }: OfferItemProps) {
+function OfferItem({ offer, onApprove, onReject, isUpdating, canRate }: OfferItemProps) {
   const isPending = offer.state === "PENDING";
+  const isApproved = offer.state === "APPROVED";
+  const [showRating, setShowRating] = useState(false);
   return (
     <div className="p-4 border border-slate-100 rounded-lg flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <OwnerBadge name={offer.offerer.username} />
-        <StatusBadge state={offer.state} />
+        <OfferStateBadge state={offer.state} />
       </div>
       <div className="flex flex-col gap-1.5">
         {offer.offered.map(({ sticker, quantity }) => (
@@ -68,6 +56,20 @@ function OfferItem({ offer, onApprove, onReject, isUpdating }: OfferItemProps) {
             Rechazar
           </button>
         </div>
+      )}
+      {isApproved && canRate && !showRating && (
+        <button
+          onClick={() => setShowRating(true)}
+          className="py-1.5 text-xs font-bold text-[#002B5E] bg-slate-50 hover:bg-slate-100 rounded transition-colors"
+        >
+          Calificar a {offer.offerer.username}
+        </button>
+      )}
+      {isApproved && canRate && showRating && (
+        <RatingForm
+          revieweeId={offer.offerer.id}
+          revieweeName={offer.offerer.username}
+        />
       )}
     </div>
   );
@@ -169,6 +171,7 @@ export default function TradeOffersModal({ trade, onClose, onCancelTrade }: Trad
                 onApprove={approve}
                 onReject={reject}
                 isUpdating={isUpdating}
+                canRate={!!user?.id && user.id !== offer.offerer.id}
               />
             ))
           )}
