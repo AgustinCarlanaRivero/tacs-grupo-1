@@ -153,6 +153,17 @@ class UserRepository extends BaseRepository<UserPersistence, User> {
     }
 
     /**
+     * Desvincula el chat de Telegram de un usuario borrando el campo en la DB.
+     * Usa `$unset` a propósito: un `save` con `telegramChatId: undefined` no
+     * limpia el campo (Mongoose ignora los `undefined` en los updates).
+     */
+    async clearTelegramChatId(userId: string): Promise<void> {
+        await UserModel.findByIdAndUpdate(userId, {
+            $unset: { telegramChatId: "" },
+        }).exec();
+    }
+
+    /**
      * Reconstruye una instancia de `Sticker` a partir del documento plano que
      * devuelve `.lean()`, para que el dominio recupere sus métodos (p. ej.
      * `getDisplayName()`).

@@ -7,6 +7,7 @@ import {
 } from "../modules/auth/middleware/telegram-auth.middleware";
 import { registerNotificationCommands } from "../modules/notifications/telegram/notification.commands";
 import { registerPostCommands } from "../modules/posts/telegram/post.commands";
+import UserService from "../modules/users/services/user.service";
 
 /**
  * Raíz de composición de los comandos del bot (equivalente a `routes/index.ts`
@@ -47,6 +48,7 @@ export function registerBotCommands(bot: Bot<AppContext>): void {
             "/mispublicaciones — ver tus publicaciones",
             "/figurita <número> — detalle de una figurita y sus publicaciones",
             "/notificaciones — tus notificaciones sin leer",
+            "/logout — desvincular tu cuenta de este chat",
         ];
 
         if (!ctx.appUser) {
@@ -58,6 +60,25 @@ export function registerBotCommands(bot: Bot<AppContext>): void {
         }
 
         await ctx.reply(lines.join("\n"));
+    });
+
+    bot.command("logout", async (ctx) => {
+        if (!ctx.appUser) {
+            await ctx.reply(
+                "No tenés ninguna cuenta vinculada a este chat.\n" +
+                    "Si querés iniciar sesión:\n" +
+                    loginUrl(ctx),
+            );
+            return;
+        }
+
+        const name = ctx.appUser.getFullName();
+        await UserService.unlinkTelegramChat(ctx.appUser.id);
+        await ctx.reply(
+            `Listo, ${name}. Desvinculé tu cuenta de este chat. 👋\n\n` +
+                "Para volver a iniciar sesión:\n" +
+                loginUrl(ctx),
+        );
     });
 
     // Comandos de consulta (read-only) de cada módulo. Se registran antes del

@@ -24,6 +24,10 @@ jest.mock("../../modules/users/repositories/user.repository", () => ({
             mockUsersById.set(user.id, user);
             return user;
         },
+        clearTelegramChatId: (id: string) => {
+            const user = mockUsersById.get(id);
+            if (user) user.telegramChatId = undefined;
+        },
         delete: (id: string) => mockUsersById.delete(id),
         clear: () => {
             mockUsersById.clear();
@@ -68,5 +72,19 @@ describe("UserService", () => {
         await expect(
             UserService.updateUser("b", { username: "same" }),
         ).rejects.toThrow(ConflictError);
+    });
+
+    test("unlinkTelegramChat clears the user's telegramChatId", async () => {
+        const u = new User("A", "One", "aone", "a@x.com");
+        u.setId("u1");
+        u.telegramChatId = "555";
+        userRepository.save(u);
+
+        const res = await UserService.unlinkTelegramChat("u1");
+
+        expect(res).toEqual({ unlinked: true });
+        expect(
+            (await userRepository.findById("u1"))?.telegramChatId,
+        ).toBeUndefined();
     });
 });

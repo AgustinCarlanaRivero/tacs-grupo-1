@@ -119,6 +119,10 @@ export const buildUserRepoMock = () => {
                 ) ?? null
             );
         }),
+        clearTelegramChatId: jest.fn(async (userId: string) => {
+            const user = store.get(userId);
+            if (user) user.telegramChatId = undefined;
+        }),
         findAll: jest.fn(async () => Array.from(store.values())),
         findMany: jest.fn(async (filter: Filter = {}) =>
             Array.from(store.values()).filter((u) => matchesFilter(u, filter)),

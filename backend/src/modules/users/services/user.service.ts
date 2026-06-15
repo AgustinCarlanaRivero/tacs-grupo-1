@@ -144,8 +144,7 @@ export default class UserService {
 
         const previous = await userRepository.findByTelegramChatId(chatId);
         if (previous && previous.id !== userId) {
-            previous.telegramChatId = undefined;
-            await userRepository.save(previous);
+            await userRepository.clearTelegramChatId(previous.id);
         }
 
         user.telegramChatId = chatId;
@@ -158,5 +157,14 @@ export default class UserService {
         );
 
         return { linked: true };
+    }
+
+    /**
+     * Desvincula el chat de Telegram de la cuenta del usuario (comando /logout).
+     * Tras esto el chat queda "deslogueado" y puede volver a iniciar sesión.
+     */
+    static async unlinkTelegramChat(userId: string) {
+        await userRepository.clearTelegramChatId(userId);
+        return { unlinked: true };
     }
 }
