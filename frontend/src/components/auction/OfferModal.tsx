@@ -29,19 +29,28 @@ interface OfferModalProps {
 }
 
 export default function OfferModal({ post, myCollection, onClose, onSubmit }: OfferModalProps) {
-  const [selected, setSelected] = useState<number[]>([]);
+  // stickerNumber -> cantidad elegida a ofrecer
+  const [selected, setSelected] = useState<Record<number, number>>({});
   const [searchQuery, setSearchQuery] = useState("");
 
   const { sticker, owner, minimumRequirement } = post;
   const isShiny = sticker.type === "SHINY";
   const isAuction = minimumRequirement !== undefined;
+  const selectedCount = Object.keys(selected).length;
 
   function toggleSticker(sticker: MockSticker) {
-    setSelected((prev) =>
-      prev.includes(sticker.number)
-        ? prev.filter((n) => n !== sticker.number)
-        : [...prev, sticker.number]
-    );
+    setSelected((prev) => {
+      if (prev[sticker.number] !== undefined) {
+        const next = { ...prev };
+        delete next[sticker.number];
+        return next;
+      }
+      return { ...prev, [sticker.number]: 1 };
+    });
+  }
+
+  function setStickerQuantity(sticker: MockSticker, quantity: number) {
+    setSelected((prev) => ({ ...prev, [sticker.number]: quantity }));
   }
 
   const availableStickers = filterStickers(
@@ -49,10 +58,10 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }: Of
     searchQuery
   );
 
-  let canSubmit = selected.length > 0;
+  let canSubmit = selectedCount > 0;
   let validationMessage = "";
 
-  if (isAuction && minimumRequirement && selected.length < minimumRequirement) {
+  if (isAuction && minimumRequirement && selectedCount < minimumRequirement) {
     canSubmit = false;
     validationMessage = `Debés seleccionar al menos ${minimumRequirement} figurita${minimumRequirement > 1 ? "s" : ""} para esta subasta.`;
   }
@@ -107,9 +116,9 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }: Of
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
               Elegí qué ofrecés
             </p>
-            {selected.length > 0 && (
+            {selectedCount > 0 && (
               <span className="text-sm font-bold text-[#002B5E] bg-blue-50 px-2 py-0.5 rounded">
-                {selected.length} seleccionada{selected.length > 1 ? "s" : ""}
+                {selectedCount} seleccionada{selectedCount > 1 ? "s" : ""}
               </span>
             )}
           </div>
@@ -135,8 +144,10 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }: Of
                 <SelectableStickerOption
                   key={item.sticker.number}
                   item={item}
-                  selected={selected.includes(item.sticker.number)}
+                  selected={selected[item.sticker.number] !== undefined}
+                  selectedQuantity={selected[item.sticker.number] ?? 1}
                   onToggle={toggleSticker}
+                  onQuantityChange={setStickerQuantity}
                 />
               ))}
             </div>
@@ -151,15 +162,18 @@ export default function OfferModal({ post, myCollection, onClose, onSubmit }: Of
         <button
           disabled={!canSubmit}
           onClick={async () => {
-            const offered = selected.map((stickerId) => ({ stickerId, quantity: 1 }));
+            const offered = Object.entries(selected).map(([stickerId, quantity]) => ({
+              stickerId: Number(stickerId),
+              quantity,
+            }));
             await onSubmit(offered);
             onClose();
           }}
           className="w-full py-3.5 md:py-4 rounded-lg text-sm md:text-base font-bold uppercase tracking-wide transition-all bg-[#002B5E] hover:bg-[#003a7a] text-white shadow-lg shadow-blue-900/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
         >
-          {selected.length === 0
+          {selectedCount === 0
             ? "Seleccioná figuritas para ofrecer"
-            : `Enviar propuesta · ${selected.length} figurita${selected.length > 1 ? "s" : ""}`}
+            : `Enviar propuesta · ${selectedCount} figurita${selectedCount > 1 ? "s" : ""}`}
         </button>
       </div>
     </ModalShell>
