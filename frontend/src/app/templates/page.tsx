@@ -5,6 +5,7 @@ import PageHeader from "@/components/common/PageHeader";
 import RequireAuth from "@/components/layout/RequireAuth";
 import EmptyState from "@/components/common/EmptyState";
 import TemplateFormModal from "@/components/template/TemplateFormModal";
+import Toast, { type ToastVariant } from "@/components/common/Toast";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import {
   useGetTemplatesQuery,
@@ -17,13 +18,15 @@ function TemplatesContent() {
   const [deleteTemplate] = useDeleteTemplateMutation();
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<TemplateDTO | null>(null);
+  const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null);
 
   async function handleDelete(template: TemplateDTO) {
     if (!window.confirm(`¿Eliminar la plantilla "${template.name}"?`)) return;
     try {
       await deleteTemplate(template._id).unwrap();
+      setToast({ message: `Plantilla "${template.name}" eliminada.`, variant: "success" });
     } catch {
-      alert("No se pudo eliminar la plantilla.");
+      setToast({ message: "No se pudo eliminar la plantilla.", variant: "error" });
     }
   }
 
@@ -92,8 +95,27 @@ function TemplatesContent() {
         </div>
       )}
 
-      {showCreate && <TemplateFormModal onClose={() => setShowCreate(false)} />}
-      {editing && <TemplateFormModal template={editing} onClose={() => setEditing(null)} />}
+      {showCreate && (
+        <TemplateFormModal
+          onClose={() => setShowCreate(false)}
+          onSuccess={(message) => setToast({ message, variant: "success" })}
+        />
+      )}
+      {editing && (
+        <TemplateFormModal
+          template={editing}
+          onClose={() => setEditing(null)}
+          onSuccess={(message) => setToast({ message, variant: "success" })}
+        />
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          variant={toast.variant}
+          onClose={() => setToast(null)}
+        />
+      )}
     </main>
   );
 }

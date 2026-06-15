@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -40,10 +40,13 @@ const resolver = zodResolver(templateFormSchema as never) as Resolver<TemplateFo
 interface TemplateFormModalProps {
   template?: TemplateDTO;
   onClose: () => void;
+  /** Se llama con un mensaje de éxito tras crear/editar (antes de cerrar). */
+  onSuccess?: (message: string) => void;
 }
 
-export default function TemplateFormModal({ template, onClose }: TemplateFormModalProps) {
+export default function TemplateFormModal({ template, onClose, onSuccess }: TemplateFormModalProps) {
   const isEdit = !!template;
+  const [error, setError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -83,15 +86,19 @@ export default function TemplateFormModal({ template, onClose }: TemplateFormMod
         image: imageUrl ? imageUrl : null,
       },
     };
+    setError(null);
     try {
       if (template) {
         await updateTemplate({ templateId: template._id, name: values.name.trim(), sticker }).unwrap();
       } else {
         await createTemplate({ name: values.name.trim(), sticker }).unwrap();
       }
+      onSuccess?.(
+        `Plantilla "${values.name.trim()}" ${isEdit ? "actualizada" : "creada"}.`,
+      );
       onClose();
     } catch {
-      alert("No se pudo guardar la plantilla. Intentá nuevamente.");
+      setError("No se pudo guardar la plantilla. Intentá nuevamente.");
     }
   }
 
@@ -151,6 +158,8 @@ export default function TemplateFormModal({ template, onClose }: TemplateFormMod
               <option value="SHINY">Shiny ✦</option>
             </select>
           </Field>
+
+          {error && <p className="text-xs text-red-500 -mb-1">{error}</p>}
 
           <Button
             type="submit"

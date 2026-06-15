@@ -3,9 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Save, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
+import Toast, { type ToastVariant } from "@/components/common/Toast";
 import {
     useCreateTemplateMutation,
     useGetTemplatesQuery,
@@ -85,6 +86,9 @@ export default function AddStickerModal({
 
     const { data: templates = [] } = useGetTemplatesQuery();
     const [createTemplate, { isLoading: isSavingTemplate }] = useCreateTemplateMutation();
+    const [nameInputOpen, setNameInputOpen] = useState(false);
+    const [templateName, setTemplateName] = useState("");
+    const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null);
 
     function applyTemplate(templateId: string) {
         const template = templates.find((t) => t._id === templateId);
@@ -101,21 +105,29 @@ export default function AddStickerModal({
         });
     }
 
-    async function saveAsTemplate() {
+    function openTemplateName() {
         const values = getValues();
         if (!values.number || !values.playerName?.trim()) {
-            alert("Completá al menos el número y el nombre del jugador para guardar la plantilla.");
+            setToast({
+                message: "Completá el número y el nombre del jugador para guardar la plantilla.",
+                variant: "error",
+            });
             return;
         }
-        const name = window.prompt("Nombre de la plantilla", values.playerName.trim());
-        if (!name?.trim()) return;
+        setTemplateName(values.playerName.trim());
+        setNameInputOpen(true);
+    }
 
+    async function confirmSaveTemplate() {
+        const name = templateName.trim();
+        if (!name) return;
+        const values = getValues();
         const nationalTeam = values.nationalTeam?.trim();
         const club = values.club?.trim();
         const imageUrl = values.imageUrl?.trim();
         try {
             await createTemplate({
-                name: name.trim(),
+                name,
                 sticker: {
                     number: values.number,
                     state: "NEW",
@@ -129,8 +141,11 @@ export default function AddStickerModal({
                     },
                 },
             }).unwrap();
+            setNameInputOpen(false);
+            setTemplateName("");
+            setToast({ message: `Plantilla "${name}" guardada.`, variant: "success" });
         } catch {
-            alert("No se pudo guardar la plantilla. Intentá nuevamente.");
+            setToast({ message: "No se pudo guardar la plantilla. Intentá nuevamente.", variant: "error" });
         }
     }
 
@@ -293,18 +308,46 @@ export default function AddStickerModal({
                         >
                             Agregar figurita
                         </Button>
-                        <button
-                            type="button"
-                            onClick={saveAsTemplate}
-                            disabled={isSavingTemplate}
-                            className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#002B5E] bg-slate-100 hover:bg-slate-200 rounded transition-colors disabled:opacity-40"
-                        >
-                            <Save size={14} />
-                            Guardar como plantilla
-                        </button>
+                        {nameInputOpen ? (
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={templateName}
+                                    onChange={(e) => setTemplateName(e.target.value)}
+                                    placeholder="Nombre de la plantilla"
+                                    autoFocus
+                                    className="form-input flex-1"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={confirmSaveTemplate}
+                                    disabled={isSavingTemplate || !templateName.trim()}
+                                    className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-white bg-[#002B5E] hover:bg-[#003a7a] rounded transition-colors disabled:opacity-40"
+                                >
+                                    {isSavingTemplate ? "..." : "Guardar"}
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={openTemplateName}
+                                className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#002B5E] bg-slate-100 hover:bg-slate-200 rounded transition-colors"
+                            >
+                                <Save size={14} />
+                                Guardar como plantilla
+                            </button>
+                        )}
                     </div>
                 </form>
             </div>
+
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    variant={toast.variant}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 }
