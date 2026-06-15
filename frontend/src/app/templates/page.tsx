@@ -18,10 +18,11 @@ function TemplatesContent() {
   const [deleteTemplate] = useDeleteTemplateMutation();
   const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<TemplateDTO | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null);
 
   async function handleDelete(template: TemplateDTO) {
-    if (!window.confirm(`¿Eliminar la plantilla "${template.name}"?`)) return;
+    setConfirmDeleteId(null);
     try {
       await deleteTemplate(template._id).unwrap();
       setToast({ message: `Plantilla "${template.name}" eliminada.`, variant: "success" });
@@ -74,22 +75,40 @@ function TemplatesContent() {
                   {template.sticker.type === "SHINY" ? " · ✦ Shiny" : ""}
                 </p>
               </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setEditing(template)}
-                  className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
-                  title="Editar"
-                >
-                  <Pencil size={16} />
-                </button>
-                <button
-                  onClick={() => handleDelete(template)}
-                  className="p-2 text-[#BF0A30] hover:bg-red-50 rounded-lg transition-colors"
-                  title="Eliminar"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+              {confirmDeleteId === template._id ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 hidden sm:block">¿Eliminar?</span>
+                  <button
+                    onClick={() => handleDelete(template)}
+                    className="px-3 py-1.5 text-xs font-bold text-white bg-[#BF0A30] hover:bg-[#a00828] rounded-lg transition-colors"
+                  >
+                    Sí
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteId(null)}
+                    className="px-3 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                  >
+                    No
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setEditing(template)}
+                    className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+                    title="Editar"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteId(template._id)}
+                    className="p-2 text-[#BF0A30] hover:bg-red-50 rounded-lg transition-colors"
+                    title="Eliminar"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
