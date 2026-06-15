@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,7 +31,33 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function BackToTelegram() {
+const MOBILE_UA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+
+// Detecta dispositivos móviles por user agent. Usa `useSyncExternalStore` para
+// resolver en cliente sin romper la hidratación: en SSR devuelve `false` y, ya
+// montado, lee el `navigator.userAgent`. El valor no cambia, así que no hay
+// suscripción real.
+function useIsMobile() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => MOBILE_UA.test(navigator.userAgent),
+    () => false
+  );
+}
+
+// En mobile el deep link abre la app de Telegram (funciona). En PC abre el
+// Telegram web, donde "Start Bot" no hace nada, así que mostramos un texto.
+function BackToTelegram({
+  desktopHint = "Ya podés cerrar esta pestaña.",
+}: {
+  desktopHint?: string;
+}) {
+  const isMobile = useIsMobile();
+
+  if (!isMobile) {
+    return <p className="text-slate-400 mt-6 text-sm font-medium">{desktopHint}</p>;
+  }
+
   return (
     <Link
       href={BOT_DEEP_LINK}
@@ -83,21 +109,8 @@ function TelegramLinker() {
   }, [isAuthenticated, token, linkTelegram]);
 
   // ── Render por estado ──────────────────────────────────────────────────────
-
-  // Sin token: entraron a /telegram a mano.
-  if (!token) {
-    return (
-      <Shell>
-        <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
-          Vinculación de Telegram
-        </h2>
-        <p className="text-slate-500 mt-3 text-sm">
-          Abrí este link desde el bot de Telegram para vincular tu cuenta.
-        </p>
-        <BackToTelegram />
-      </Shell>
-    );
-  }
+  // El resultado de la vinculación se evalúa primero: al terminar borramos el
+  // token del sessionStorage, así que el guard de "sin token" no debe taparlo.
 
   // Éxito.
   if (isSuccess) {
@@ -133,7 +146,22 @@ function TelegramLinker() {
             ? "El link expiró o es inválido. Volvé a Telegram y reintentá con /start."
             : "Ocurrió un error inesperado. Volvé a Telegram y reintentá."}
         </p>
-        <BackToTelegram />
+        <BackToTelegram desktopHint="Reintentá desde Telegram en tu celular." />
+      </Shell>
+    );
+  }
+
+  // Sin token: entraron a /telegram a mano.
+  if (!token) {
+    return (
+      <Shell>
+        <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+          Vinculación de Telegram
+        </h2>
+        <p className="text-slate-500 mt-3 text-sm">
+          Abrí este link desde el bot de Telegram para vincular tu cuenta.
+        </p>
+        <BackToTelegram desktopHint="Abrí este link desde Telegram en tu celular." />
       </Shell>
     );
   }

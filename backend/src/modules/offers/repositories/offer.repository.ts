@@ -88,6 +88,12 @@ class OfferRepository extends BaseRepository<OfferPersistence, OfferReadModel> {
         return this.findMany({ postId } as FilterQuery<OfferPersistence>);
     }
 
+    async countByPostId(postId: string): Promise<number> {
+        return this.model
+            .countDocuments({ postId } as FilterQuery<OfferPersistence>)
+            .exec();
+    }
+
     async findByUserId(userId: string): Promise<OfferReadModel[]> {
         return this.findMany({
             $or: [{ postOwnerId: userId }, { offererId: userId }],

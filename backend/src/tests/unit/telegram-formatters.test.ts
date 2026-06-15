@@ -4,16 +4,25 @@ import { formatNotificationsPage } from "../../modules/notifications/telegram/no
 import { PostState } from "../../modules/posts/enums/post-state.enum";
 import { PostType } from "../../modules/posts/enums/post-type.enum";
 import {
+    formatOffersPage,
     formatPostsPage,
     formatStickerDetail,
+    type OffersPage,
     type PostsPage,
 } from "../../modules/posts/telegram/post.formatter";
+import { formatSuggestionsPage } from "../../modules/matching/telegram/matching.formatter";
+import {
+    formatProfile,
+    type RatingsPage,
+} from "../../modules/users/telegram/user.formatter";
+import { formatTemplatesPage } from "../../modules/templates/telegram/template.formatter";
+import { Template } from "../../modules/templates/entities/template.entity";
 import {
     hasNextPage,
     pagerKeyboard,
     totalPages,
 } from "../../shared/utils/telegram-pagination";
-import { buildNotification, buildSticker } from "../helpers/builders";
+import { buildNotification, buildSticker, buildUser } from "../helpers/builders";
 
 const buildPostsPage = (overrides: Partial<PostsPage> = {}): PostsPage => ({
     data: [
@@ -72,6 +81,165 @@ describe("post.formatter", () => {
         expect(text).toContain("Club: Benfica");
         expect(text).toContain("Selección: Argentina");
         expect(text).toContain("Brillante");
+    });
+
+    test("formatPostsPage agrega la cantidad de ofertas cuando se pasa el mapa", () => {
+        const withOffers = formatPostsPage(
+            buildPostsPage(),
+            "📋 Publicaciones",
+            new Map([["p1", 2]]),
+        );
+        expect(withOffers).toContain("💬 2 ofertas");
+
+        const withoutOffers = formatPostsPage(
+            buildPostsPage(),
+            "📋 Publicaciones",
+            new Map([["p1", 0]]),
+        );
+        expect(withoutOffers).toContain("sin ofertas");
+    });
+});
+
+describe("offers.formatter", () => {
+    const buildOffersPage = (overrides: Partial<OffersPage> = {}): OffersPage =>
+        ({
+            data: [
+                {
+                    id: "o1",
+                    state: "PENDING",
+                    createdAt: new Date(),
+                    offerer: { id: "u2", username: "pedro" },
+                    offered: [
+                        {
+                            sticker: { number: 5, player: { name: "Mbappé" } },
+                            quantity: 1,
+                        },
+                        {
+                            sticker: { number: 8, player: { name: "Neymar" } },
+                            quantity: 2,
+                        },
+                    ],
+                    postId: "p1",
+                    postOwnerId: "u1",
+                },
+            ],
+            total: 1,
+            page: 1,
+            limit: 5,
+            ...overrides,
+        }) as unknown as OffersPage;
+
+    test("formatOffersPage lista oferente, figuritas y estado", () => {
+        const text = formatOffersPage(buildOffersPage(), 10);
+        expect(text).toContain("figurita #10");
+        expect(text).toContain("@pedro");
+        expect(text).toContain("#5 Mbappé");
+        expect(text).toContain("#8 Neymar (x2)");
+        expect(text).toContain("Pendiente");
+    });
+
+    test("formatOffersPage avisa cuando no hay ofertas", () => {
+        const text = formatOffersPage(
+            buildOffersPage({ data: [], total: 0 }),
+            10,
+        );
+        expect(text).toContain("Todavía no tiene ofertas");
+    });
+});
+
+describe("matching.formatter", () => {
+    test("formatSuggestionsPage lista usuario y figuritas que puede dar", () => {
+        const text = formatSuggestionsPage({
+            data: [
+                {
+                    userId: "u2",
+                    username: "pedro",
+                    offerableStickers: [
+                        { number: 5, title: "#5 Mbappé" },
+                        { number: 8, title: "#8 Neymar" },
+                    ],
+                },
+            ],
+            total: 1,
+            page: 1,
+            limit: 5,
+        });
+        expect(text).toContain("Sugerencias de intercambio");
+        expect(text).toContain("@pedro");
+        expect(text).toContain("#5 Mbappé");
+    });
+
+    test("formatSuggestionsPage avisa cuando no hay sugerencias", () => {
+        const text = formatSuggestionsPage({
+            data: [],
+            total: 0,
+            page: 1,
+            limit: 5,
+        });
+        expect(text).toContain("No encontramos");
+    });
+});
+
+describe("user.formatter (perfil)", () => {
+    const buildRatingsPage = (
+        overrides: Partial<RatingsPage> = {},
+    ): RatingsPage => ({
+        data: [
+            {
+                id: "r1",
+                reviewerId: "u2",
+                revieweeId: "u1",
+                score: 5,
+                comment: "Excelente intercambio",
+                createdAt: new Date(),
+            },
+        ],
+        total: 1,
+        page: 1,
+        limit: 5,
+        ...overrides,
+    });
+
+    test("formatProfile muestra datos y reseñas con estrellas", () => {
+        const user = buildUser("u1");
+        user.reputation = 4.5;
+        const text = formatProfile(user, buildRatingsPage());
+        expect(text).toContain("Tu perfil");
+        expect(text).toContain("@u1");
+        expect(text).toContain("★★★★★");
+        expect(text).toContain("Excelente intercambio");
+        expect(text).toContain("4.5");
+    });
+
+    test("formatProfile avisa cuando no hay reseñas", () => {
+        const user = buildUser("u1");
+        const text = formatProfile(
+            user,
+            buildRatingsPage({ data: [], total: 0 }),
+        );
+        expect(text).toContain("Todavía no recibiste reseñas");
+        expect(text).toContain("sin calificaciones");
+    });
+});
+
+describe("template.formatter", () => {
+    test("formatTemplatesPage lista nombre y figurita de cada plantilla", () => {
+        const template = new Template(
+            "Messi NEW",
+            buildSticker(10, { playerName: "Messi", teamName: "Argentina" }),
+            "u1",
+        );
+        const text = formatTemplatesPage([template], 1, 5);
+        expect(text).toContain("Tus plantillas");
+        expect(text).toContain('"Messi NEW"');
+        expect(text).toContain("#10 Messi");
+        expect(text).toContain("Argentina");
+        expect(text).toContain("Nueva");
+    });
+
+    test("formatTemplatesPage avisa cuando no hay plantillas", () => {
+        const text = formatTemplatesPage([], 1, 5);
+        expect(text).toContain("Todavía no tenés plantillas");
     });
 });
 

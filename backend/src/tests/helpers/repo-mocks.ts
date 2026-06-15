@@ -207,6 +207,9 @@ export const buildOfferRepoMock = () => {
         findByPostId: jest.fn(async (postId: string) =>
             store.filter((o) => o.postId === postId),
         ),
+        countByPostId: jest.fn(async (postId: string) =>
+            store.filter((o) => o.postId === postId).length,
+        ),
         findByUserId: jest.fn(async (userId: string) =>
             store.filter(
                 (o) => o.offerer.id === userId || o.postOwnerId === userId,

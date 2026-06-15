@@ -1,12 +1,22 @@
-import type { Bot, InlineKeyboard } from "grammy";
-import { pagerKeyboard } from "../../../shared/utils/telegram-pagination";
+import { InlineKeyboard, type Bot } from "grammy";
+import {
+    hasNextPage,
+    pagerKeyboard,
+} from "../../../shared/utils/telegram-pagination";
 import {
     requireLinkedUser,
     type AppContext,
 } from "../../auth/middleware/telegram-auth.middleware";
+import OfferService from "../../offers/services/offer.service";
 import StickerService from "../../stickers/services/sticker.service";
+import { PostState } from "../enums/post-state.enum";
 import PostService from "../services/post.service";
-import { formatPostsPage, formatStickerDetail } from "./post.formatter";
+import {
+    formatOffersPage,
+    formatPostsPage,
+    formatStickerDetail,
+    type PostsPage,
+} from "./post.formatter";
 
 const PAGE_SIZE = 5;
 
@@ -25,15 +35,62 @@ async function respond(
     await ctx.reply(text, { reply_markup: keyboard });
 }
 
-async function sendPostsPage(ctx: AppContext, mode: Mode, page: number) {
-    const result = await PostService.listPosts({ page, limit: PAGE_SIZE });
-    const text = formatPostsPage(result, "📋 Publicaciones");
-    await respond(
-        ctx,
-        mode,
-        text,
-        pagerKeyboard(result, (p) => `pub:${p}`),
+/** Cantidad de ofertas por publicación de la página (mapa postId -> total). */
+async function offerCountsFor(result: PostsPage): Promise<Map<string, number>> {
+    const entries = await Promise.all(
+        result.data.map(
+            async (post) =>
+                [post.id, await OfferService.countOffersByPost(post.id)] as const,
+        ),
     );
+    return new Map(entries);
+}
+
+/**
+ * Teclado de una página de publicaciones: un botón "Ver ofertas" por cada
+ * publicación que tenga ofertas, más la fila de paginación.
+ */
+function buildPostsKeyboard(
+    result: PostsPage,
+    offerCounts: Map<string, number>,
+    makePagerData: (page: number) => string,
+): InlineKeyboard | undefined {
+    const keyboard = new InlineKeyboard();
+    let hasButtons = false;
+
+    for (const post of result.data) {
+        const count = offerCounts.get(post.id) ?? 0;
+        if (count > 0) {
+            keyboard
+                .text(
+                    `💬 Ofertas de #${post.sticker.number} (${count})`,
+                    `ofs:${post.id}:${post.sticker.number}:1`,
+                )
+                .row();
+            hasButtons = true;
+        }
+    }
+
+    if (result.page > 1) {
+        keyboard.text("◀️ Anterior", makePagerData(result.page - 1));
+        hasButtons = true;
+    }
+    if (hasNextPage(result)) {
+        keyboard.text("Siguiente ▶️", makePagerData(result.page + 1));
+        hasButtons = true;
+    }
+
+    return hasButtons ? keyboard : undefined;
+}
+
+async function sendPostsPage(ctx: AppContext, mode: Mode, page: number) {
+    const result = await PostService.listPosts({
+        state: PostState.ACTIVE,
+        page,
+        limit: PAGE_SIZE,
+    });
+    const text = formatPostsPage(result, "📋 Publicaciones");
+    await respond(ctx, mode, text, pagerKeyboard(result, (p) => `pub:${p}`));
 }
 
 async function sendMyPostsPage(
@@ -43,16 +100,14 @@ async function sendMyPostsPage(
     page: number,
 ) {
     const result = await PostService.listPostsByOwner(userId, {
+        state: PostState.ACTIVE,
         page,
         limit: PAGE_SIZE,
     });
-    const text = formatPostsPage(result, "🗂️ Tus publicaciones");
-    await respond(
-        ctx,
-        mode,
-        text,
-        pagerKeyboard(result, (p) => `mis:${p}`),
-    );
+    // Solo las publicaciones propias muestran sus ofertas (conteo + botón).
+    const counts = await offerCountsFor(result);
+    const text = formatPostsPage(result, "🗂️ Tus publicaciones", counts);
+    await respond(ctx, mode, text, buildPostsKeyboard(result, counts, (p) => `mis:${p}`));
 }
 
 async function sendFigPostsPage(
@@ -63,6 +118,7 @@ async function sendFigPostsPage(
 ) {
     const result = await PostService.listPosts({
         query: numero,
+        state: PostState.ACTIVE,
         page,
         limit: PAGE_SIZE,
     });
@@ -79,9 +135,31 @@ async function sendFigPostsPage(
 }
 
 /**
- * Comandos de consulta de publicaciones (read-only). Cada handler resuelve el
- * usuario vinculado y delega en `PostService` / `StickerService`; el bot solo
- * formatea. La paginación usa botones inline ("Siguiente"/"Anterior").
+ * Muestra (editando el mensaje) la página de ofertas de una publicación propia.
+ * Usa `getOffersByPost`, que valida que el chat sea el dueño de la publicación.
+ */
+async function sendOffersPage(
+    ctx: AppContext,
+    ownerId: string,
+    postId: string,
+    stickerNumber: number,
+    page: number,
+) {
+    const result = await OfferService.getOffersByPost(ownerId, postId, {
+        page,
+        limit: PAGE_SIZE,
+    });
+    const text = formatOffersPage(result, stickerNumber);
+    const keyboard = pagerKeyboard(
+        result,
+        (p) => `ofs:${postId}:${stickerNumber}:${p}`,
+    );
+    await ctx.editMessageText(text, { reply_markup: keyboard });
+}
+
+/**
+ * Comandos de consulta de publicaciones (read-only). Solo se listan las
+ * publicaciones activas; cada una puede desplegar sus ofertas con un botón.
  */
 export function registerPostCommands(bot: Bot<AppContext>): void {
     bot.command("publicaciones", async (ctx) => {
@@ -139,6 +217,23 @@ export function registerPostCommands(bot: Bot<AppContext>): void {
 
     bot.callbackQuery(/^fig:(\d+):(\d+)$/, async (ctx) => {
         await sendFigPostsPage(ctx, ctx.match[2], "edit", Number(ctx.match[1]));
+        await ctx.answerCallbackQuery();
+    });
+
+    // Despliega las ofertas de una publicación propia:
+    // `ofs:<postId>:<número>:<página>`. Solo aparece en /mispublicaciones.
+    bot.callbackQuery(/^ofs:([^:]+):(\d+):(\d+)$/, async (ctx) => {
+        if (!ctx.appUser) {
+            await ctx.answerCallbackQuery();
+            return;
+        }
+        await sendOffersPage(
+            ctx,
+            ctx.appUser.id,
+            ctx.match[1],
+            Number(ctx.match[2]),
+            Number(ctx.match[3]),
+        );
         await ctx.answerCallbackQuery();
     });
 }

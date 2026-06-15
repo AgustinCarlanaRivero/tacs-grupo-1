@@ -5,8 +5,11 @@ import {
     promptLogin,
     type AppContext,
 } from "../modules/auth/middleware/telegram-auth.middleware";
+import { registerMatchingCommands } from "../modules/matching/telegram/matching.commands";
 import { registerNotificationCommands } from "../modules/notifications/telegram/notification.commands";
 import { registerPostCommands } from "../modules/posts/telegram/post.commands";
+import { registerTemplateCommands } from "../modules/templates/telegram/template.commands";
+import { registerProfileCommands } from "../modules/users/telegram/user.commands";
 import UserService from "../modules/users/services/user.service";
 
 /**
@@ -47,6 +50,9 @@ export function registerBotCommands(bot: Bot<AppContext>): void {
             "/publicaciones — ver las publicaciones del sistema",
             "/mispublicaciones — ver tus publicaciones",
             "/figurita <número> — detalle de una figurita y sus publicaciones",
+            "/sugerencias — usuarios que tienen tus figuritas faltantes",
+            "/perfil — tus datos y las reseñas que recibiste",
+            "/plantillas — tus plantillas de figuritas guardadas",
             "/notificaciones — tus notificaciones sin leer",
             "/logout — desvincular tu cuenta de este chat",
         ];
@@ -84,6 +90,9 @@ export function registerBotCommands(bot: Bot<AppContext>): void {
     // Comandos de consulta (read-only) de cada módulo. Se registran antes del
     // catch-all para que `bot.on("message")` solo atrape lo no reconocido.
     registerPostCommands(bot);
+    registerMatchingCommands(bot);
+    registerProfileCommands(bot);
+    registerTemplateCommands(bot);
     registerNotificationCommands(bot);
 
     // Cualquier otro mensaje de un chat no vinculado recibe el link de login

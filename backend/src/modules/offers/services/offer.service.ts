@@ -239,6 +239,11 @@ export default class OfferService {
         return paginate(data, filters.page, filters.limit);
     }
 
+    /** Cantidad de ofertas de una publicación (para el badge de /mispublicaciones). */
+    static async countOffersByPost(postId: string): Promise<number> {
+        return offerRepository.countByPostId(postId);
+    }
+
     static async createOffer(
         postOwnerId: string,
         postId: string,
