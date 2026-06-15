@@ -38,6 +38,13 @@ export interface OfferDTO {
   postOwnerId: string;
 }
 
+export type OfferRole = "sent" | "received" | "all";
+
+type GetOffersByUserArgs = {
+  userId: string;
+  role?: OfferRole;
+};
+
 type GetOffersByPostArgs = {
   userId: string;
   postId: string;
@@ -65,6 +72,11 @@ type PaginatedResponse<T> = {
 
 export const offerApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getOffersByUser: builder.query<OfferDTO[], GetOffersByUserArgs>({
+      query: ({ userId, role = "sent" }) => `/users/${userId}/offers?role=${role}`,
+      transformResponse: (response: PaginatedResponse<OfferDTO>) => response.data,
+      providesTags: ["Offers"],
+    }),
     getOffersByPost: builder.query<OfferDTO[], GetOffersByPostArgs>({
       query: ({ userId, postId }) => `/users/${userId}/posts/${postId}/offers`,
       transformResponse: (response: PaginatedResponse<OfferDTO>) => response.data,
@@ -90,6 +102,7 @@ export const offerApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetOffersByUserQuery,
   useGetOffersByPostQuery,
   useCreateOfferMutation,
   useUpdateOfferStateMutation,

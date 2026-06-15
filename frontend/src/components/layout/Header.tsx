@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Gavel, ArrowLeftRight, User, LogOut, Shield, type LucideIcon } from "lucide-react";
+import { LayoutGrid, Library, Gavel, ArrowLeftRight, User, LogOut, Shield, type LucideIcon } from "lucide-react";
 import NotificationBell from "@/components/notification/NotificationBell";
 
 interface NavLink {
@@ -16,6 +16,7 @@ interface NavLink {
 
 const NAV_LINKS: NavLink[] = [
   { href: "/", label: "Mi Colección", icon: LayoutGrid },
+  { href: "/catalog", label: "Catálogo", icon: Library },
   { href: "/auctions", label: "Subastas", icon: Gavel },
   { href: "/trades", label: "Intercambios", icon: ArrowLeftRight },
   { href: "/profile", label: "Perfil", icon: User },

@@ -7,6 +7,10 @@ import RequireAuth from "@/components/layout/RequireAuth";
 import { useGetCollectionQuery } from "@/store/api/collectionApi";
 import { useGetUserAuctionsQuery, useGetUserDirectTradesQuery } from "@/store/api/postApi";
 import { useGetRatingsByUserQuery } from "@/store/api/ratingApi";
+import { useGetOffersByUserQuery } from "@/store/api/offerApi";
+import StickerRow from "@/components/common/StickerRow";
+import OfferStateBadge from "@/components/offer/OfferStateBadge";
+import EmptyState from "@/components/common/EmptyState";
 import {
   Camera,
   Gavel,
@@ -16,6 +20,7 @@ import {
   BookmarkX,
   Copy,
   ChevronRight,
+  Layers,
 } from "lucide-react";
 
 interface StatCardProps {
@@ -70,6 +75,10 @@ function PerfilContent() {
   const { data: myAuctions = [] } = useGetUserAuctionsQuery(user?.id ?? "", { skip: !user?.id });
   const { data: myTrades = [] } = useGetUserDirectTradesQuery(user?.id ?? "", { skip: !user?.id });
   const { data: ratings = [] } = useGetRatingsByUserQuery(user?.id ?? "", { skip: !user?.id });
+  const { data: sentOffers = [] } = useGetOffersByUserQuery(
+    { userId: user?.id ?? "", role: "sent" },
+    { skip: !user?.id }
+  );
 
   const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -190,6 +199,53 @@ function PerfilContent() {
             href="/trades"
           />
         </div>
+      </div>
+
+      <div className="mt-6">
+        <Link href="/templates">
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm hover:border-[#002B5E]/30 transition-colors cursor-pointer">
+            <div className="flex items-center gap-3">
+              <Layers size={18} className="text-[#002B5E]" />
+              <div>
+                <span className="font-bold text-slate-800">Mis plantillas</span>
+                <p className="text-xs text-slate-500 font-medium">
+                  Reutilizá datos de figuritas al cargar tu colección
+                </p>
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-slate-300" />
+          </div>
+        </Link>
+      </div>
+
+      <div className="mt-6">
+        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+          Mis ofertas enviadas
+        </h3>
+        {sentOffers.length === 0 ? (
+          <EmptyState message="Todavía no enviaste ofertas." />
+        ) : (
+          <div className="flex flex-col gap-3">
+            {sentOffers.map((offer) => (
+              <div
+                key={offer.id}
+                className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-2 shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">
+                    {new Date(offer.createdAt).toLocaleDateString("es-AR")}
+                  </span>
+                  <OfferStateBadge state={offer.state} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  {offer.offered.map(({ sticker, quantity }) => (
+                    <StickerRow key={sticker.number} sticker={sticker} quantity={quantity} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );
