@@ -39,6 +39,9 @@ const templateModelSchema = createMongooseSchema(
 templateModelSchema.loadClass(Template);
 overrideSchemaPath(templateModelSchema, "_id", {
   type: mongoose.Schema.Types.ObjectId,
+  // overrideSchemaPath hace remove+add y pierde el auto-gen por defecto del _id;
+  // sin esto, create() falla con "document must have an _id before saving".
+  auto: true,
 });
 overrideSchemaPath(templateModelSchema, "userId", {
   type: mongoose.Schema.Types.ObjectId,
