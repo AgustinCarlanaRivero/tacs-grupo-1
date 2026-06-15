@@ -310,6 +310,7 @@ export default class OfferService {
                 offerId: offer.id ?? "",
                 postId,
                 fromUserId: offererId,
+                postType: post.getType(),
             });
         }
 
@@ -333,23 +334,40 @@ export default class OfferService {
             throw new NotFoundError("Usuario actor no encontrado");
         }
 
-        let updated: Offer;
         if (state === OfferState.APPROVED) {
-            updated = post.approveOffer(offerId, actor);
+            post.approveOffer(offerId, actor);
         } else if (state === OfferState.REJECTED) {
-            updated = post.rejectOffer(offerId, actor);
+            post.rejectOffer(offerId, actor);
         } else if (state === OfferState.CANCELLED) {
-            updated = post.cancelOffer(offerId, actor);
+            post.cancelOffer(offerId, actor);
         } else {
             throw new BadRequestError("Estado de oferta invalido");
         }
 
         await postRepository.save(post);
-        const stored = Object.assign(updated, {
-            postId,
-            postOwnerId: post.owner.id,
-        });
-        const savedOffer = await offerRepository.save(stored);
+
+        // Las ofertas hidratadas en el post vienen como docs crudos sin `offerer`
+        // poblado; las recargamos del repo (entidades reales) para poder persistir
+        // su nuevo estado sin romper toPersistence.
+        const postOffers = await offerRepository.findByPostId(postId);
+        const target = postOffers.find((o) => o.id === offerId);
+        if (!target) {
+            throw new NotFoundError("Oferta no encontrada");
+        }
+
+        target.state = state;
+        const savedOffer = await offerRepository.save(target);
+
+        // Al aprobar, el resto de las ofertas pendientes quedan rechazadas
+        // (espeja la logica de dominio de approveOffer).
+        if (state === OfferState.APPROVED) {
+            for (const other of postOffers) {
+                if (other.id !== offerId && other.state === OfferState.PENDING) {
+                    other.state = OfferState.REJECTED;
+                    await offerRepository.save(other);
+                }
+            }
+        }
 
         if (state === OfferState.APPROVED) {
             await notifications.offerAccepted(savedOffer.offerer.id, {
