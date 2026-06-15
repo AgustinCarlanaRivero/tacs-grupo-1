@@ -75,8 +75,8 @@ export default class TemplateController {
       throw new NotFoundError(`Template with id ${templateId} not found`);
     }
 
-    // Verify ownership
-    if (template.userId !== userId) {
+    // Verify ownership (userId persiste como ObjectId; comparar como string)
+    if (String(template.userId) !== String(userId)) {
       throw new NotFoundError(
         `Template with id ${templateId} not found or not owned by user`,
       );
@@ -123,8 +123,8 @@ export default class TemplateController {
       throw new NotFoundError(`Template with id ${templateId} not found`);
     }
 
-    // Verify ownership
-    if (template.userId !== userId) {
+    // Verify ownership (userId persiste como ObjectId; comparar como string)
+    if (String(template.userId) !== String(userId)) {
       throw new NotFoundError(
         `Template with id ${templateId} not found or not owned by user`,
       );
@@ -172,8 +172,8 @@ export default class TemplateController {
       throw new NotFoundError(`Template with id ${templateId} not found`);
     }
 
-    // Verify ownership
-    if (template.userId !== userId) {
+    // Verify ownership (userId persiste como ObjectId; comparar como string)
+    if (String(template.userId) !== String(userId)) {
       throw new NotFoundError(
         `Template with id ${templateId} not found or not owned by user`,
       );
