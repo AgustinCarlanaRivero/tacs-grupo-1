@@ -17,11 +17,18 @@ export const notifications = {
     /**
      * Disparar cuando un usuario recibe una nueva oferta sobre una de sus publicaciones.
      */
-    offerReceived(toUserId: string, ctx: { offerId: string; postId: string; fromUserId: string }) {
+    offerReceived(
+        toUserId: string,
+        ctx: { offerId: string; postId: string; fromUserId: string; postType?: string },
+    ) {
+        const message =
+            ctx.postType === "AUCTION"
+                ? "Recibiste una nueva oferta en tu subasta"
+                : "Recibiste una nueva propuesta de intercambio"
         return notificationService.notify(
             toUserId,
             NotificationType.OFFER_RECEIVED,
-            "Recibiste una nueva propuesta de intercambio",
+            message,
             ctx,
         )
     },
