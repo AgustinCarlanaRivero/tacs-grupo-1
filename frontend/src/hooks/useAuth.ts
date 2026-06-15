@@ -36,11 +36,11 @@ export interface UseAuthResult {
 const DISABLE_AUTH = process.env.NEXT_PUBLIC_DISABLE_AUTH === "true";
 
 const MOCK_USER: AuthUser = {
-    id: "seed-user-ana",
+    id: mockUserId,
     name: "Ana Lopez",
     email: "ana@seed.local",
-    sub: "dev|seed-user-ana",
-    role: "ADMIN",
+    sub: `dev|${mockUserId}`,
+    role: mockUserRole,
 };
 
 export function useAuth(): UseAuthResult {

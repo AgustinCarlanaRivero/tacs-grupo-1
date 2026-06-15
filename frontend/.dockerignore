@@ -1,3 +1,6 @@
 node_modules
 .next
 .git
+# Overrides locales (no deben entrar al build; .env.production sí entra)
+.env.local
+.env*.local
