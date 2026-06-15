@@ -8,6 +8,7 @@ import PageTabs, { type PageTab } from "@/components/common/PageTabs";
 import AuctionCard from "@/components/auction/AuctionCard";
 import OfferModal from "@/components/auction/OfferModal";
 import CreateAuctionModal from "@/components/auction/CreateAuctionModal";
+import PostOffersModal from "@/components/offer/PostOffersModal";
 import { useSearch } from "@/hooks/useSearch";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -30,6 +31,7 @@ function AuctionsContent() {
   const { isAuthenticated, user } = useAuth();
   const [tab, setTab] = useState<AuctionTabKey>("market");
   const [selectedAuction, setSelectedAuction] = useState<AuctionPostDTO | null>(null);
+  const [viewingOffers, setViewingOffers] = useState<AuctionPostDTO | null>(null);
   const [showCreateAuction, setShowCreateAuction] = useState(false);
 
   const [createPost] = useCreatePostMutation();
@@ -153,7 +155,8 @@ function AuctionsContent() {
               key={auction.id}
               auction={auction}
               isOwner={tab === "mine"}
-              onSelect={tab === "mine" ? handleCancel : handleSelectAuction}
+              onSelect={tab === "mine" ? setViewingOffers : handleSelectAuction}
+              onCancel={tab === "mine" ? handleCancel : undefined}
               onDelete={tab === "mine" ? handleDelete : undefined}
             />
           ))}
@@ -177,6 +180,23 @@ function AuctionsContent() {
               alert("No se pudo enviar la puja. Intentá nuevamente.");
             }
           }}
+        />
+      )}
+
+      {viewingOffers && (
+        <PostOffersModal
+          post={viewingOffers}
+          onClose={() => setViewingOffers(null)}
+          onCancel={() => {
+            void handleCancel(viewingOffers);
+            setViewingOffers(null);
+          }}
+          onDelete={() => {
+            void handleDelete(viewingOffers);
+            setViewingOffers(null);
+          }}
+          cancelLabel="Cancelar subasta"
+          emptyMessage="Todavía no recibiste ofertas para esta subasta."
         />
       )}
 

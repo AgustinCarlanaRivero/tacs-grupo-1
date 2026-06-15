@@ -8,7 +8,7 @@ import OwnerBadge from "@/components/common/OwnerBadge";
 import StickerRow from "@/components/common/StickerRow";
 import RatingForm from "@/components/rating/RatingForm";
 import OfferStateBadge from "@/components/offer/OfferStateBadge";
-import type { DirectTradePostDTO } from "@/lib/schemas/postSchema";
+import type { DirectTradePostDTO, PostOwnerDTO } from "@/lib/schemas/postSchema";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useGetOffersByPostQuery,
@@ -66,44 +66,40 @@ function OfferItem({ offer, onApprove, onReject, isUpdating, canRate }: OfferIte
         </button>
       )}
       {isApproved && canRate && showRating && (
-        <RatingForm
-          revieweeId={offer.offerer.id}
-          revieweeName={offer.offerer.username}
-        />
+        <RatingForm revieweeId={offer.offerer.id} revieweeName={offer.offerer.username} />
       )}
     </div>
   );
 }
 
-interface TradeOffersModalProps {
-  trade: DirectTradePostDTO;
+interface PostOffersModalProps {
+  post: { id: string; owner: PostOwnerDTO; sticker: DirectTradePostDTO["sticker"] };
   onClose: () => void;
-  onCancelTrade?: () => void;
-  onDeleteTrade?: () => void;
+  onCancel?: () => void;
+  onDelete?: () => void;
+  cancelLabel?: string;
+  emptyMessage?: string;
 }
 
-export default function TradeOffersModal({
-  trade,
+export default function PostOffersModal({
+  post,
   onClose,
-  onCancelTrade,
-  onDeleteTrade,
-}: TradeOffersModalProps) {
+  onCancel,
+  onDelete,
+  cancelLabel = "Cancelar publicación",
+  emptyMessage = "Todavía no recibiste ofertas.",
+}: PostOffersModalProps) {
   const { user } = useAuth();
   const { data: offers = [], isLoading } = useGetOffersByPostQuery(
-    { userId: trade.owner.id, postId: trade.id },
-    { skip: !trade.id }
+    { userId: post.owner.id, postId: post.id },
+    { skip: !post.id }
   );
   const [updateOfferState, { isLoading: isUpdating }] = useUpdateOfferStateMutation();
 
   async function approve(offerId: string) {
     if (!user?.id) return;
     try {
-      await updateOfferState({
-        userId: trade.owner.id,
-        postId: trade.id,
-        offerId,
-        state: "APPROVED",
-      }).unwrap();
+      await updateOfferState({ userId: post.owner.id, postId: post.id, offerId, state: "APPROVED" }).unwrap();
     } catch {
       alert("No se pudo aceptar la oferta.");
     }
@@ -112,12 +108,7 @@ export default function TradeOffersModal({
   async function reject(offerId: string) {
     if (!user?.id) return;
     try {
-      await updateOfferState({
-        userId: trade.owner.id,
-        postId: trade.id,
-        offerId,
-        state: "REJECTED",
-      }).unwrap();
+      await updateOfferState({ userId: post.owner.id, postId: post.id, offerId, state: "REJECTED" }).unwrap();
     } catch {
       alert("No se pudo rechazar la oferta.");
     }
@@ -135,34 +126,31 @@ export default function TradeOffersModal({
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <div className="flex items-center gap-4">
             <div className="w-48">
-              <StickerCard sticker={trade.sticker} />
+              <StickerCard sticker={post.sticker} />
             </div>
             <div>
               <h3 className="font-bold text-slate-800">Ofertas recibidas</h3>
-              <p className="text-sm text-slate-500 mt-0.5">{trade.sticker.player.name}</p>
+              <p className="text-sm text-slate-500 mt-0.5">{post.sticker.player.name}</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
             <X size={18} className="text-slate-500" />
           </button>
         </div>
 
-        {(onCancelTrade || onDeleteTrade) && (
+        {(onCancel || onDelete) && (
           <div className="px-5 pt-3 flex gap-2">
-            {onCancelTrade && (
+            {onCancel && (
               <button
-                onClick={onCancelTrade}
+                onClick={onCancel}
                 className="flex-1 py-2 text-xs font-bold uppercase tracking-wider text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
               >
-                Cancelar intercambio
+                {cancelLabel}
               </button>
             )}
-            {onDeleteTrade && (
+            {onDelete && (
               <button
-                onClick={onDeleteTrade}
+                onClick={onDelete}
                 className="flex-1 py-2 text-xs font-bold uppercase tracking-wider text-white bg-[#BF0A30] hover:bg-[#a00828] rounded-lg transition-colors"
               >
                 Eliminar publicación
@@ -178,7 +166,7 @@ export default function TradeOffersModal({
               <div className="w-6 h-6 border-4 border-[#002B5E] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : offers.length === 0 ? (
-            <EmptyState message="Todavía no recibiste ofertas para este intercambio." />
+            <EmptyState message={emptyMessage} />
           ) : (
             offers.map((offer) => (
               <OfferItem

@@ -7,7 +7,7 @@ import EmptyState from "@/components/common/EmptyState";
 import SearchBar from "@/components/common/SearchBar";
 import PageTabs, { type PageTab } from "@/components/common/PageTabs";
 import TradeCard from "@/components/trade/TradeCard";
-import TradeOffersModal from "@/components/trade/TradeOffersModal";
+import PostOffersModal from "@/components/offer/PostOffersModal";
 import OfferModal from "@/components/auction/OfferModal";
 import SuggestionCard from "@/components/trade/SuggestionCard";
 import CreateTradeModal from "@/components/trade/CreateTradeModal";
@@ -219,11 +219,13 @@ function TradesPageInner() {
           )}
 
           {selectedTrade && tab === "mine" && (
-            <TradeOffersModal
-              trade={selectedTrade}
+            <PostOffersModal
+              post={selectedTrade}
               onClose={() => setSelectedTrade(null)}
-              onCancelTrade={() => cancelTrade(selectedTrade)}
-              onDeleteTrade={() => deleteTrade(selectedTrade)}
+              onCancel={() => cancelTrade(selectedTrade)}
+              onDelete={() => deleteTrade(selectedTrade)}
+              cancelLabel="Cancelar intercambio"
+              emptyMessage="Todavía no recibiste ofertas para este intercambio."
             />
           )}
 

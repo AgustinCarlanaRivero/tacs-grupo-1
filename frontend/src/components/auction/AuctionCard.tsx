@@ -10,11 +10,12 @@ import type { AuctionPostDTO } from "@/lib/schemas/postSchema";
 interface AuctionCardProps {
   auction: AuctionPostDTO;
   onSelect: (auction: AuctionPostDTO) => void;
+  onCancel?: (auction: AuctionPostDTO) => void;
   onDelete?: (auction: AuctionPostDTO) => void;
   isOwner?: boolean;
 }
 
-export default function AuctionCard({ auction, onSelect, onDelete, isOwner = false }: AuctionCardProps) {
+export default function AuctionCard({ auction, onSelect, onCancel, onDelete, isOwner = false }: AuctionCardProps) {
   const { sticker, owner, endsAt, minimumRequirement } = auction;
   const isShiny = sticker.type === "SHINY";
   const timeLeftMs = useCountdown(endsAt);
@@ -68,25 +69,42 @@ export default function AuctionCard({ auction, onSelect, onDelete, isOwner = fal
             <p className="text-sm text-slate-500 italic mb-4">Sin requisitos</p>
           )}
           <div className="mt-auto pt-2 flex flex-col gap-2">
-            <button
-              disabled={!isOwner && isEnded}
-              onClick={() => onSelect(auction)}
-              className={`w-full py-3 text-sm font-bold uppercase tracking-wider rounded transition-colors ${
-                isOwner
-                  ? "bg-red-50 hover:bg-red-100 text-red-600 border border-red-200"
-                  : isEnded
+            {isOwner ? (
+              <>
+                <button
+                  onClick={() => onSelect(auction)}
+                  className="w-full py-3 text-sm font-bold uppercase tracking-wider rounded bg-[#002B5E] hover:bg-[#003a7a] text-white transition-colors"
+                >
+                  Ver ofertas
+                </button>
+                {onCancel && (
+                  <button
+                    onClick={() => onCancel(auction)}
+                    className="w-full py-3 text-sm font-bold uppercase tracking-wider rounded bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors"
+                  >
+                    Cancelar subasta
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    onClick={() => onDelete(auction)}
+                    className="w-full py-3 text-sm font-bold uppercase tracking-wider rounded bg-[#BF0A30] hover:bg-[#a00828] text-white transition-colors"
+                  >
+                    Eliminar publicación
+                  </button>
+                )}
+              </>
+            ) : (
+              <button
+                disabled={isEnded}
+                onClick={() => onSelect(auction)}
+                className={`w-full py-3 text-sm font-bold uppercase tracking-wider rounded transition-colors ${
+                  isEnded
                     ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                     : "bg-[#002B5E] hover:bg-[#003a7a] text-white"
-              }`}
-            >
-              {isOwner ? "Cancelar subasta" : isEnded ? "Cerrada" : "Pujar"}
-            </button>
-            {isOwner && onDelete && (
-              <button
-                onClick={() => onDelete(auction)}
-                className="w-full py-3 text-sm font-bold uppercase tracking-wider rounded bg-[#BF0A30] hover:bg-[#a00828] text-white transition-colors"
+                }`}
               >
-                Eliminar publicación
+                {isEnded ? "Cerrada" : "Pujar"}
               </button>
             )}
           </div>
