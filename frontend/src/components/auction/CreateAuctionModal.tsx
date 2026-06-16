@@ -40,10 +40,18 @@ function getEndsAtIso(durationHours: number) {
 interface StepStickerProps {
   myCollection: MockCollectionItem[];
   selected: MockSticker | null;
+  selectedQuantity: number;
   onSelect: (sticker: MockSticker) => void;
+  onQuantityChange: (sticker: MockSticker, quantity: number) => void;
 }
 
-function StepSticker({ myCollection, selected, onSelect }: StepStickerProps) {
+function StepSticker({
+  myCollection,
+  selected,
+  selectedQuantity,
+  onSelect,
+  onQuantityChange,
+}: StepStickerProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const available = filterStickers(myCollection, searchQuery);
 
@@ -65,7 +73,11 @@ function StepSticker({ myCollection, selected, onSelect }: StepStickerProps) {
               key={item.sticker.number}
               item={item}
               selected={selected?.number === item.sticker.number}
+              selectedQuantity={
+                selected?.number === item.sticker.number ? selectedQuantity : 1
+              }
               onToggle={onSelect}
+              onQuantityChange={onQuantityChange}
             />
           ))}
         </div>
@@ -161,6 +173,7 @@ export default function CreateAuctionModal({
     defaultValues: {
       type: "AUCTION",
       stickerId: 0,
+      quantity: 1,
       endsAt: getEndsAtIso(duration),
       minimumRequirement: 1,
     },
@@ -170,6 +183,8 @@ export default function CreateAuctionModal({
   // bailout de este componente a propósito.
   // eslint-disable-next-line react-hooks/incompatible-library
   const selectedStickerId = watch("stickerId");
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const selectedQuantity = watch("quantity");
   const minimumRequirement = watch("minimumRequirement");
   const selectedSticker =
     myCollection.find((item) => item.sticker.number === selectedStickerId)
@@ -180,6 +195,12 @@ export default function CreateAuctionModal({
       shouldDirty: true,
       shouldValidate: true,
     });
+    // Al cambiar de figurita, la cantidad vuelve a 1.
+    setValue("quantity", 1, { shouldDirty: true, shouldValidate: true });
+  }
+
+  function changeQuantity(_sticker: MockSticker, quantity: number) {
+    setValue("quantity", quantity, { shouldDirty: true, shouldValidate: true });
   }
 
   function selectDuration(hours: number) {
@@ -226,7 +247,9 @@ export default function CreateAuctionModal({
           <StepSticker
             myCollection={myCollection}
             selected={selectedSticker}
+            selectedQuantity={selectedQuantity}
             onSelect={selectSticker}
+            onQuantityChange={changeQuantity}
           />
         )}
         {step === 2 && (

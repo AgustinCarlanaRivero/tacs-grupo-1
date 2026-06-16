@@ -13,6 +13,7 @@ export abstract class Post {
     id: string;
     owner: User;
     sticker: Sticker;
+    quantity: number;
     state: PostState;
     offers: Offer[];
 
@@ -22,10 +23,12 @@ export abstract class Post {
         state: PostState = PostState.ACTIVE,
         offers: Offer[] = [],
         id?: string,
+        quantity: number = 1,
     ) {
         this.id = id ?? "";
         this.owner = owner;
         this.sticker = sticker;
+        this.quantity = quantity;
         this.state = state;
         this.offers = offers;
     }

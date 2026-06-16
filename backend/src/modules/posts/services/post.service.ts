@@ -36,6 +36,7 @@ type PostListFilters = {
 type PostCreatePayload = {
     type: PostType;
     stickerId: number;
+    quantity?: number;
     endsAt?: string;
     minimumRequirement?: number;
 };
@@ -98,6 +99,7 @@ function toPostResponse(post: Post) {
         type: post.getType(),
         state: post.state,
         sticker: toStickerResponse(post.sticker),
+        quantity: post.quantity,
         owner: {
             id: post.owner.id,
             username: post.owner.username,
@@ -165,6 +167,7 @@ export default class PostService {
         const sticker = await StickerService.getStickerByNumberOrFail(
             String(body.stickerId)
         );
+        const quantity = body.quantity ?? 1;
         let post: Post;
 
         if (body.type === PostType.AUCTION) {
@@ -192,10 +195,11 @@ export default class PostService {
                 owner,
                 sticker,
                 endsAt,
-                minimumRequirement
+                minimumRequirement,
+                quantity
             );
         } else {
-            post = TradeService.createTrade(owner, sticker);
+            post = TradeService.createTrade(owner, sticker, quantity);
         }
 
         await postRepository.save(post);

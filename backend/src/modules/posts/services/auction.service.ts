@@ -9,6 +9,7 @@ export default class AuctionService {
         sticker: Sticker,
         endsAt: Date,
         minimumRequirement: number = 1,
+        quantity: number = 1,
     ): Auction {
         if (Number.isNaN(endsAt.getTime())) {
             throw new BadRequestError("endsAt debe ser una fecha valida");
@@ -30,6 +31,10 @@ export default class AuctionService {
             new Date(),
             endsAt,
             minimumRequirement,
+            undefined,
+            undefined,
+            undefined,
+            quantity,
         );
     }
 }

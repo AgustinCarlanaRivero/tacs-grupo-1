@@ -21,8 +21,8 @@ import {
   useGetMarketPostsQuery,
   useGetUserDirectTradesQuery,
 } from "@/store/api/postApi";
-import { useGetCollectionQuery } from "@/store/api/collectionApi";
 import { useCreateOfferMutation } from "@/store/api/offerApi";
+import { useAvailableCollection } from "@/hooks/useAvailableCollection";
 import type { OfferSubmitItem } from "@/components/auction/OfferModal";
 import RequireAuth from "@/components/layout/RequireAuth";
 import type { DirectTradePostDTO } from "@/lib/schemas/postSchema";
@@ -58,9 +58,6 @@ function TradesPageInner() {
   const { data: myTradesRaw = [] } = useGetUserDirectTradesQuery(user?.id ?? "", {
     skip: !user?.id || tab !== "mine",
   });
-  const { data: collectionData } = useGetCollectionQuery(user?.id ?? "", {
-    skip: !user?.id,
-  });
 
   const marketTrades = marketTradesRaw.filter(
     (p): p is DirectTradePostDTO => p.type === "DIRECT_TRADE" && p.owner.id !== user?.id
@@ -81,14 +78,7 @@ function TradesPageInner() {
     )
   );
 
-  const myCollection: MockCollectionItem[] = (collectionData?.items ?? []).map((item) => ({
-    sticker: {
-      number: item.sticker.number,
-      player: item.sticker.player,
-      type: item.sticker.type,
-    },
-    quantity: item.quantity,
-  }));
+  const myCollection: MockCollectionItem[] = useAvailableCollection(user?.id);
 
   async function cancelTrade(trade: DirectTradePostDTO) {
     if (!user?.id) return;

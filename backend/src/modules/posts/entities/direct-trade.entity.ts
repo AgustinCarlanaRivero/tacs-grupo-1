@@ -12,8 +12,9 @@ export class DirectTrade extends Post {
     state: PostState = PostState.ACTIVE,
     offers: Offer[] = [],
     id?: string,
+    quantity: number = 1,
   ) {
-    super(owner, sticker, state, offers, id);
+    super(owner, sticker, state, offers, id, quantity);
   }
 
   getType(): PostType {

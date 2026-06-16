@@ -62,17 +62,22 @@ export default function SelectableStickerOption({
         <div className="absolute inset-x-0 bottom-0 z-30 flex items-center justify-center gap-2 bg-[#002B5E]/85 py-1.5">
           <button
             type="button"
+            aria-label="Disminuir cantidad"
             onClick={(e) => changeQuantity(e, selectedQuantity - 1)}
             disabled={selectedQuantity <= 1}
             className="w-6 h-6 rounded-full bg-white/90 flex items-center justify-center disabled:opacity-40"
           >
             <Minus size={12} className="text-[#002B5E]" />
           </button>
-          <span className="text-white font-bold text-sm min-w-[1.5rem] text-center">
+          <span
+            aria-label="Cantidad seleccionada"
+            className="text-white font-bold text-sm min-w-[1.5rem] text-center"
+          >
             {selectedQuantity}
           </span>
           <button
             type="button"
+            aria-label="Aumentar cantidad"
             onClick={(e) => changeQuantity(e, selectedQuantity + 1)}
             disabled={selectedQuantity >= quantity}
             className="w-6 h-6 rounded-full bg-white/90 flex items-center justify-center disabled:opacity-40"

@@ -24,11 +24,13 @@ export const postFilterQuerySchema = paginationQuerySchema.extend({
 const directTradePostCreateRequestSchema = z.object({
     type: z.literal(PostType.DIRECT_TRADE),
     stickerId: positiveInt,
+    quantity: positiveInt.default(1),
 }).strict()
 
 const auctionPostCreateRequestSchema = z.object({
     type: z.literal(PostType.AUCTION),
     stickerId: positiveInt,
+    quantity: positiveInt.default(1),
     endsAt: isoDateTime,
     minimumRequirement: positiveInt.optional(),
 }).strict()
@@ -53,6 +55,7 @@ export const postResponseSchema = z.object({
     type: postTypeEnum,
     state: postStateEnum,
     sticker: stickerResponseSchema,
+    quantity: positiveInt.default(1),
     owner: z.object({
         id: nonEmptyString,
         username: z.string(),

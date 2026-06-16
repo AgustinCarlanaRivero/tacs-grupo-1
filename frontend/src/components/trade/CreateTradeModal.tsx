@@ -41,6 +41,7 @@ export default function CreateTradeModal({
     defaultValues: {
       type: "DIRECT_TRADE",
       stickerId: 0,
+      quantity: 1,
     },
   });
 
@@ -49,6 +50,8 @@ export default function CreateTradeModal({
   // bailout de este componente a propósito.
   // eslint-disable-next-line react-hooks/incompatible-library
   const selectedStickerId = watch("stickerId");
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const selectedQuantity = watch("quantity");
   const selected =
     myCollection.find((item) => item.sticker.number === selectedStickerId)
       ?.sticker ?? null;
@@ -58,6 +61,12 @@ export default function CreateTradeModal({
       shouldDirty: true,
       shouldValidate: true,
     });
+    // Al cambiar de figurita, la cantidad vuelve a 1.
+    setValue("quantity", 1, { shouldDirty: true, shouldValidate: true });
+  }
+
+  function changeQuantity(_sticker: MockSticker, quantity: number) {
+    setValue("quantity", quantity, { shouldDirty: true, shouldValidate: true });
   }
 
   async function submitForm(values: TradeFormValues) {
@@ -90,7 +99,11 @@ export default function CreateTradeModal({
                 key={item.sticker.number}
                 item={item}
                 selected={selected?.number === item.sticker.number}
+                selectedQuantity={
+                  selected?.number === item.sticker.number ? selectedQuantity : 1
+                }
                 onToggle={selectSticker}
+                onQuantityChange={changeQuantity}
               />
             ))}
           </div>

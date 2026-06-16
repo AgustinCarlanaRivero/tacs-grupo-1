@@ -16,15 +16,22 @@ interface AuctionCardProps {
 }
 
 export default function AuctionCard({ auction, onSelect, onCancel, onDelete, isOwner = false }: AuctionCardProps) {
-  const { sticker, owner, endsAt, minimumRequirement } = auction;
+  const { sticker, owner, endsAt, minimumRequirement, quantity } = auction;
   const isShiny = sticker.type === "SHINY";
+  const isClosed = auction.state === "CLOSED";
+  const isCompleted = auction.state === "COMPLETED";
+  const isTerminal = isClosed || isCompleted;
   const timeLeftMs = useCountdown(endsAt);
   const isEnded = timeLeftMs <= 0;
 
   return (
     <div
       className={`flex flex-col md:flex-row bg-white border ${
-        isEnded ? "border-red-200 opacity-80" : "border-slate-200"
+        isTerminal
+          ? "border-slate-300 opacity-75"
+          : isEnded
+            ? "border-red-200 opacity-80"
+            : "border-slate-200"
       }`}
     >
       <div className="p-3 flex items-center justify-center">
@@ -40,6 +47,21 @@ export default function AuctionCard({ auction, onSelect, onCancel, onDelete, isO
             {isShiny && (
               <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 border border-yellow-200">
                 Shiny
+              </span>
+            )}
+            {quantity && quantity > 1 && (
+              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-gray-900 text-white">
+                x{quantity}
+              </span>
+            )}
+            {isClosed && (
+              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-slate-200 text-slate-600 border border-slate-300">
+                Cerrada
+              </span>
+            )}
+            {isCompleted && (
+              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">
+                Completada
               </span>
             )}
           </div>
@@ -77,7 +99,7 @@ export default function AuctionCard({ auction, onSelect, onCancel, onDelete, isO
                 >
                   Ver ofertas
                 </button>
-                {onCancel && (
+                {onCancel && !isTerminal && (
                   <button
                     onClick={() => onCancel(auction)}
                     className="w-full py-3 text-sm font-bold uppercase tracking-wider rounded bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors"
@@ -96,15 +118,15 @@ export default function AuctionCard({ auction, onSelect, onCancel, onDelete, isO
               </>
             ) : (
               <button
-                disabled={isEnded}
+                disabled={isEnded || isTerminal}
                 onClick={() => onSelect(auction)}
                 className={`w-full py-3 text-sm font-bold uppercase tracking-wider rounded transition-colors ${
-                  isEnded
+                  isEnded || isTerminal
                     ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                     : "bg-[#002B5E] hover:bg-[#003a7a] text-white"
                 }`}
               >
-                {isEnded ? "Cerrada" : "Pujar"}
+                {isClosed ? "Cerrada" : isCompleted ? "Completada" : isEnded ? "Cerrada" : "Pujar"}
               </button>
             )}
           </div>

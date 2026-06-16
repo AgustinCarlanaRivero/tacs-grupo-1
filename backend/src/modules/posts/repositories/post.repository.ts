@@ -23,6 +23,7 @@ type PostPersistence = {
     state: PostState;
     ownerId: PersistenceId;
     sticker: Sticker;
+    quantity?: number;
     createdAt?: Date;
     endsAt?: Date;
     minimumRequirement?: number;
@@ -58,10 +59,11 @@ class PostRepository extends BaseRepository<PostPersistence, Post> {
                 doc.state,
                 offers,
                 id,
+                doc.quantity ?? 1,
             );
         }
 
-        return new DirectTrade(owner, doc.sticker, doc.state, offers, id);
+        return new DirectTrade(owner, doc.sticker, doc.state, offers, id, doc.quantity ?? 1);
     }
 
     protected toPersistence(
@@ -78,6 +80,7 @@ class PostRepository extends BaseRepository<PostPersistence, Post> {
             state: post.state,
             ownerId: toObjectId(post.owner.id),
             sticker: post.sticker,
+            quantity: post.quantity,
         } as Partial<PostPersistence> & { _id?: PersistenceId };
 
         if (post instanceof Auction) {

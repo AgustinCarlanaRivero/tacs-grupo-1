@@ -18,8 +18,8 @@ import {
   useGetMarketPostsQuery,
   useGetUserAuctionsQuery,
 } from "@/store/api/postApi";
-import { useGetCollectionQuery } from "@/store/api/collectionApi";
 import { useCreateOfferMutation } from "@/store/api/offerApi";
+import { useAvailableCollection } from "@/hooks/useAvailableCollection";
 import RequireAuth from "@/components/layout/RequireAuth";
 import type { AuctionPostDTO } from "@/lib/schemas/postSchema";
 import type { MockCollectionItem } from "@/data/types";
@@ -46,9 +46,6 @@ function AuctionsContent() {
   const { data: myAuctionsRaw = [] } = useGetUserAuctionsQuery(user?.id ?? "", {
     skip: !user?.id || tab !== "mine",
   });
-  const { data: collectionData } = useGetCollectionQuery(user?.id ?? "", {
-    skip: !user?.id,
-  });
 
   const marketAuctions = marketAuctionsRaw.filter(
     (p): p is AuctionPostDTO => p.type === "AUCTION" && p.owner.id !== user?.id
@@ -69,14 +66,7 @@ function AuctionsContent() {
     )
   );
 
-  const myCollection: MockCollectionItem[] = (collectionData?.items ?? []).map((item) => ({
-    sticker: {
-      number: item.sticker.number,
-      player: item.sticker.player,
-      type: item.sticker.type,
-    },
-    quantity: item.quantity,
-  }));
+  const myCollection: MockCollectionItem[] = useAvailableCollection(user?.id);
 
   async function handleCancel(auction: AuctionPostDTO) {
     if (!user?.id) return;

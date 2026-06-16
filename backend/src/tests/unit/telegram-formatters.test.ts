@@ -30,6 +30,7 @@ const buildPostsPage = (overrides: Partial<PostsPage> = {}): PostsPage => ({
             id: "p1",
             type: PostType.DIRECT_TRADE,
             state: PostState.ACTIVE,
+            quantity: 1,
             sticker: {
                 number: 10,
                 state: "NEW",

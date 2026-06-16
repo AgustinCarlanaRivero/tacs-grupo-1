@@ -22,6 +22,7 @@ export const basePostSchema = z.object({
   id: z.string().min(1),
   state: postStateSchema,
   sticker: stickerSchema,
+  quantity: z.number().int().positive().optional(),
   owner: postOwnerSchema,
 });
 
@@ -45,6 +46,7 @@ export const directTradePostCreateRequestSchema = z
   .object({
     type: z.literal("DIRECT_TRADE"),
     stickerId: postCreateStickerIdSchema,
+    quantity: z.number().int().positive(),
   })
   .strict();
 
@@ -52,6 +54,7 @@ export const auctionPostCreateRequestSchema = z
   .object({
     type: z.literal("AUCTION"),
     stickerId: postCreateStickerIdSchema,
+    quantity: z.number().int().positive(),
     endsAt: z.string(),
     minimumRequirement: z.number().int().positive(),
   })
