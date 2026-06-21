@@ -1,4 +1,10 @@
-import { Schema, Types, type SchemaDefinition, type SchemaOptions } from "mongoose";
+import {
+    Schema,
+    Types,
+    type SchemaDefinition,
+    type SchemaOptions,
+    type SchemaTypeOptions,
+} from "mongoose";
 import type { ZodObject, ZodRawShape } from "zod";
 import { generateRawSchema } from "zod-to-mongoose";
 
@@ -114,7 +120,11 @@ export const configureEmbeddedSchema = (
     }
 };
 
-type SchemaPathValue = Schema | Schema[] | SchemaDefinition;
+type SchemaPathValue =
+    | Schema
+    | Schema[]
+    | SchemaDefinition
+    | SchemaTypeOptions<unknown>;
 type SchemaInternals = Schema & {
     paths: Record<string, unknown>;
     nested: Record<string, unknown>;
