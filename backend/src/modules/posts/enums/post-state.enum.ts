@@ -15,7 +15,3 @@ const POST_STATE_TRANSITIONS: Record<PostState, readonly PostState[]> = {
 export function canTransitionPostState(from: PostState, to: PostState): boolean {
   return POST_STATE_TRANSITIONS[from].includes(to);
 }
-
-export function isTerminalPostState(state: PostState): boolean {
-  return POST_STATE_TRANSITIONS[state].length === 0;
-}

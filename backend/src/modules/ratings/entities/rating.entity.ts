@@ -31,14 +31,6 @@ export class Rating {
         this.id = id;
     }
 
-    isBy(user: User): boolean {
-        if (this.reviewer.id && user.id) {
-            return this.reviewer.id === user.id;
-        }
-
-        return this.reviewer === user;
-    }
-
     isFor(user: User): boolean {
         if (this.reviewee.id && user.id) {
             return this.reviewee.id === user.id;

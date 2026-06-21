@@ -17,7 +17,3 @@ const OFFER_STATE_TRANSITIONS: Record<OfferState, readonly OfferState[]> = {
 export function canTransitionOfferState(from: OfferState, to: OfferState): boolean {
   return OFFER_STATE_TRANSITIONS[from].includes(to);
 }
-
-export function isTerminalOfferState(state: OfferState): boolean {
-  return OFFER_STATE_TRANSITIONS[state].length === 0;
-}

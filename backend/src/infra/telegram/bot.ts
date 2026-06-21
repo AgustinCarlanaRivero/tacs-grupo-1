@@ -11,10 +11,6 @@ import { registerBotCommands } from "../../routes/bot-commands";
  */
 let bot: Bot<AppContext> | null = null;
 
-export function getBot(): Bot<AppContext> | null {
-    return bot;
-}
-
 /**
  * Envía un mensaje suelto a un chat por fuera del flujo de comandos (p. ej. para
  * confirmar la vinculación desde el endpoint HTTP). No hace nada si el bot no

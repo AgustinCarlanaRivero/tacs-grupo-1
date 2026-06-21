@@ -40,10 +40,6 @@ export class Auction extends Post {
     return super.canReceiveOffers(at) && !this.hasEnded(at);
   }
 
-  duration(): number {
-    return this.endsAt.getTime() - this.createdAt.getTime();
-  }
-
   lastOffer(): Offer | null {
     const offers = this.requireHydratedOffers();
 

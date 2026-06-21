@@ -43,10 +43,8 @@ export default class AdminService {
             users: {
                 total: users.length,
                 byRole: {
-                    standard: users.filter((u) => u.role === UserRole.STANDARD)
-                        .length,
-                    admin: users.filter((u) => u.role === UserRole.ADMIN)
-                        .length,
+                    standard: users.filter((u) => !u.isAdmin()).length,
+                    admin: users.filter((u) => u.isAdmin()).length,
                 },
                 topByReputation: [...users]
                     .sort((a, b) => b.reputation - a.reputation)
@@ -104,7 +102,7 @@ export default class AdminService {
         }
 
         const isDemotingFromAdmin =
-            user.role === UserRole.ADMIN && newRole !== UserRole.ADMIN;
+            user.isAdmin() && newRole !== UserRole.ADMIN;
 
         if (isDemotingFromAdmin && user.id === requesterId) {
             throw new BadRequestError(
@@ -114,7 +112,7 @@ export default class AdminService {
 
         if (isDemotingFromAdmin) {
             const remainingAdmins = (await userRepository.findAll()).filter(
-                (u) => u.role === UserRole.ADMIN && u.id !== user.id,
+                (u) => u.isAdmin() && u.id !== user.id,
             ).length;
             if (remainingAdmins === 0) {
                 throw new BadRequestError(

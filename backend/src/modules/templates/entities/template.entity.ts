@@ -28,12 +28,4 @@ export class Template {
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
-
-  /**
-   * Obtiene una copia del sticker del template
-   * Útil para usar los datos del template como base
-   */
-  getSticker(): Sticker {
-    return this.sticker;
-  }
 }

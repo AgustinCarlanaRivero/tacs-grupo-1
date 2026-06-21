@@ -28,10 +28,6 @@ export class Sticker {
         return this.type === "SHINY";
     }
 
-    public isRegularSticker(): boolean {
-        return this.type === "REGULAR";
-    }
-
     public isNewSticker(): boolean {
         return this.state === "NEW";
     }
@@ -49,10 +45,6 @@ export class Sticker {
 
     public playsForClub(clubName: string): boolean {
         return this.player.club?.name.toLowerCase() === clubName.toLowerCase();
-    }
-
-    public belongsToPlayer(playerName: string): boolean {
-        return this.player.name.toLowerCase() === playerName.toLowerCase();
     }
 
     public matchesState(state: string | undefined): boolean {

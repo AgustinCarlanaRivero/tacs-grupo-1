@@ -43,20 +43,8 @@ export class User {
     return this.role === UserRole.ADMIN;
   }
 
-  hasCollection(): boolean {
-    return this.collection !== null;
-  }
-
   getFullName(): string {
     return `${this.firstName} ${this.lastName}`.trim();
-  }
-
-  canBeRatedBy(reviewer: User): boolean {
-    if (this.id && reviewer.id) {
-      return this.id !== reviewer.id;
-    }
-
-    return this !== reviewer;
   }
 
   recalculateReputationFrom(ratings: readonly Rating[]): number {

@@ -39,10 +39,6 @@ export abstract class Post {
         this.id = id;
     }
 
-    hydrateOffers(offers: Offer[]): void {
-        this.offers = offers;
-    }
-
     isOwnedBy(user: User): boolean {
         if (this.owner.id && user.id) {
             return this.owner.id === user.id;
@@ -131,10 +127,6 @@ export abstract class Post {
 
     complete(): void {
         this.changeState(PostState.COMPLETED);
-    }
-
-    close(): void {
-        this.changeState(PostState.CLOSED);
     }
 
     private ensureOwnerActor(actor: User): void {

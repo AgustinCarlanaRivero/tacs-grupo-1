@@ -19,20 +19,6 @@ export class Collection {
   }
 
   /**
-   * Verifica si posee una figurita
-   */
-  hasSticker(stickerId: number): boolean {
-    return !!this.getItemByStickerId(stickerId)
-  }
-
-  /**
-   * Obtiene la cantidad de una figurita
-   */
-  getQuantity(stickerId: number): number {
-    return this.getItemByStickerId(stickerId)?.quantity || 0
-  }
-
-  /**
    * Agregar un item a la coleccion
    */
   addItem(collectionItem: CollectionItem): void {
@@ -94,41 +80,5 @@ export class Collection {
       throw new NotFoundError(`Sticker #${stickerId} not in missing list`)
     }
     this.missingStickers.splice(index, 1)
-  }
-
-  /**
-   * Obtiene el total de figuritas unicas poseidas
-   */
-  getTotalUnique(): number {
-    return this.items.length
-  }
-
-  /**
-   * Obtiene el total de figuritas (contando cantidad)
-   */
-  getTotalQuantity(): number {
-    return this.items.reduce((sum, item) => sum + item.quantity, 0)
-  }
-
-  /**
-   * Obtiene el total de figuritas faltantes
-   */
-  getTotalMissing(): number {
-    return this.missingStickers.length
-  }
-
-  /**
-   * Calcula el progreso de completitud (%)
-   */
-  getProgress(totalStickers: number): number {
-    if (totalStickers === 0) return 0
-    return Math.round((this.getTotalUnique() / totalStickers) * 100)
-  }
-
-  /**
-   * Verifica si la coleccion esta completa
-   */
-  isComplete(totalStickers: number): boolean {
-    return this.getTotalUnique() === totalStickers && this.getTotalMissing() === 0
   }
 }
