@@ -26,7 +26,7 @@ describe("AuthService", () => {
             expect(user.firstName).toBe("Ana");
             expect(user.lastName).toBe("Perez");
             expect(user.email).toBe("ana@example.com");
-            expect(user.username).toBe("ana@example.com");
+            expect(user.username).toBe("ana");
             expect(user.role).toBe(UserRole.STANDARD);
             expect(user.auth0Sub).toBe("auth0|abc123");
         });
@@ -65,9 +65,33 @@ describe("AuthService", () => {
             expect(await userRepository.findAll()).toHaveLength(1);
         });
 
-        it("usa el sub como username cuando no hay email en el profile", async () => {
+        it("deriva el username de la parte local del email y no lo iguala al email", async () => {
+            const user = await AuthService.getOrCreateUser("auth0|ana", {
+                email: "ana.lopez@example.com",
+                name: "Ana Lopez",
+            });
+
+            expect(user.username).toBe("ana.lopez");
+            expect(user.username).not.toBe(user.email);
+        });
+
+        it("agrega un sufijo numerico cuando el username derivado ya existe", async () => {
+            const first = await AuthService.getOrCreateUser("auth0|ana1", {
+                email: "ana@example.com",
+                name: "Ana Uno",
+            });
+            const second = await AuthService.getOrCreateUser("auth0|ana2", {
+                email: "ana@other.com",
+                name: "Ana Dos",
+            });
+
+            expect(first.username).toBe("ana");
+            expect(second.username).toBe("ana1");
+        });
+
+        it("deriva el username del sub (normalizado) cuando no hay email", async () => {
             const user = await AuthService.getOrCreateUser("auth0|noemail", {});
-            expect(user.username).toBe("auth0|noemail");
+            expect(user.username).toBe("auth0noemail");
             expect(user.email).toBe("");
         });
     });

@@ -32,10 +32,15 @@ export default class AuthService {
         const firstName = parts[0] ?? "Usuario";
         const lastName = parts.slice(1).join(" ") || firstName;
 
+        const username = await this.generateUniqueUsername(
+            profile.email,
+            auth0Sub,
+        );
+
         const user = new User(
             firstName,
             lastName,
-            profile.email ?? auth0Sub,
+            username,
             profile.email ?? "",
             UserRole.STANDARD,
             0,
@@ -45,6 +50,31 @@ export default class AuthService {
         user.auth0Sub = auth0Sub;
 
         return userRepository.save(user);
+    }
+
+    /**
+     * Deriva un username a partir de la parte local del email (o del sub si no
+     * hay email), normalizándolo a caracteres seguros. Si ya existe otro usuario
+     * con ese username, agrega un sufijo numérico hasta encontrar uno libre.
+     */
+    private static async generateUniqueUsername(
+        email: string | undefined,
+        fallback: string,
+    ): Promise<string> {
+        const source = email?.split("@")[0] ?? fallback;
+        const base =
+            source
+                .toLowerCase()
+                .replace(/[^a-z0-9._-]/g, "")
+                .slice(0, 40) || "usuario";
+
+        let username = base;
+        let suffix = 1;
+        while (await userRepository.findByUsername(username)) {
+            username = `${base}${suffix++}`;
+        }
+
+        return username;
     }
 
     /**

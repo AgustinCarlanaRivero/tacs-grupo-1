@@ -41,6 +41,7 @@ userModelSchema.index({ "collection.missingStickers.state": 1 });
 userModelSchema.index({ "collection.missingStickers.type": 1 });
 userModelSchema.index({ "collection.missingStickers.player.nationalTeam.name": 1 });
 userModelSchema.index({ "collection.missingStickers.player.club.name": 1 });
+userModelSchema.index({ username: 1 }, { unique: true });
 userModelSchema.index({ reputation: 1 });
 userModelSchema.index({ telegramChatId: 1 });
 
