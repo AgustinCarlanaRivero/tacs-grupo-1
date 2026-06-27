@@ -24,11 +24,15 @@ const NAV_LINKS: NavLink[] = [
 
 const ADMIN_LINK: NavLink = { href: "/admin", label: "Admin", icon: Shield };
 
+const AUTH_ROUTES = ["/login", "/register"];
+
 export default function Header() {
   const pathname = usePathname();
   const { isAuthenticated, isLoading, user, loginWithRedirect, logout } = useAuth();
   const isAdmin = isAuthenticated && user?.role === "ADMIN";
   const navLinks = isAdmin ? [...NAV_LINKS, ADMIN_LINK] : NAV_LINKS;
+
+  if (AUTH_ROUTES.includes(pathname)) return null;
 
   return (
     <>
