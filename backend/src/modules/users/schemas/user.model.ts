@@ -29,6 +29,12 @@ userModelSchema.loadClass(User);
 overrideSchemaPath(userModelSchema, "_id", {
     type: mongoose.Schema.Types.ObjectId,
 });
+// El apellido es opcional: usuarios provisionados solo con email pueden no
+// tener apellido. Permitimos string vacío (default "") en vez de exigirlo.
+overrideSchemaPath(userModelSchema, "lastName", {
+    type: String,
+    default: "",
+});
 overrideSchemaPath(userModelSchema, "collection", collectionModelSchema);
 
 userModelSchema.index({ "collection.items.sticker.number": 1 });

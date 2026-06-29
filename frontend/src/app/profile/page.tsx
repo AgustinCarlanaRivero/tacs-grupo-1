@@ -21,6 +21,7 @@ import {
   Copy,
   ChevronRight,
   Layers,
+  LogOut,
 } from "lucide-react";
 
 interface StatCardProps {
@@ -64,7 +65,7 @@ function ActivityCard({ icon, count, label, href }: ActivityCardProps) {
 }
 
 function PerfilContent() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [customAvatar, setCustomAvatar] = useState<string | null>(() =>
     typeof window !== "undefined" ? localStorage.getItem("profile_avatar") : null
   );
@@ -246,6 +247,22 @@ function PerfilContent() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mt-8">
+        <button
+          onClick={() =>
+            logout({
+              logoutParams: {
+                returnTo: typeof window !== "undefined" ? window.location.origin : "",
+              },
+            })
+          }
+          className="w-full py-2.5 flex items-center justify-center gap-2 text-sm font-bold text-[#BF0A30] bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-colors"
+        >
+          <LogOut size={16} />
+          Cerrar sesión
+        </button>
       </div>
     </main>
   );

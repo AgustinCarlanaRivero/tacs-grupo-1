@@ -141,18 +141,26 @@ function AdminUsersContent() {
                   key={u.id}
                   className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr_auto_auto_auto] gap-2 md:gap-3 px-4 py-3 items-center"
                 >
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">
-                      {u.username}
-                      {isSelf && (
-                        <span className="ml-2 text-[10px] font-semibold text-slate-400 uppercase">
-                          (Vos)
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {`${u.firstName} ${u.lastName}`.trim() || "—"}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-[#002B5E]/10 text-[#002B5E] text-sm font-bold flex items-center justify-center shrink-0 uppercase">
+                      {(u.firstName?.[0] || u.username[0] || "?")}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-slate-800 truncate">
+                        {u.username}
+                        {isSelf && (
+                          <span className="ml-2 text-[10px] font-semibold text-slate-400 uppercase">
+                            (Vos)
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-slate-500 truncate">
+                        {(u.lastName && u.lastName !== u.firstName
+                          ? `${u.firstName} ${u.lastName}`
+                          : u.firstName
+                        ).trim() || "—"}
+                      </p>
+                    </div>
                   </div>
                   <span className="text-xs text-slate-600 break-all">
                     {u.email}

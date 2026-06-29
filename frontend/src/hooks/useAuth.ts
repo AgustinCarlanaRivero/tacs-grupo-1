@@ -97,8 +97,11 @@ export function useAuth(): UseAuthResult {
             ? {
                   id: internalUser?.id ?? "",
                   name: internalUser
-                      ? `${internalUser.firstName} ${internalUser.lastName}`.trim() ||
-                        internalUser.username
+                      ? (internalUser.lastName &&
+                        internalUser.lastName !== internalUser.firstName
+                            ? `${internalUser.firstName} ${internalUser.lastName}`
+                            : internalUser.firstName
+                        ).trim() || internalUser.username
                       : auth0User.name ??
                         auth0User.nickname ??
                         auth0User.email ??

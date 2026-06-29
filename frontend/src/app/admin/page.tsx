@@ -21,14 +21,17 @@ interface StatCardProps {
   icon: ReactNode;
   value: ReactNode;
   label: ReactNode;
+  accent?: string;
 }
 
-function StatCard({ icon, value, label }: StatCardProps) {
+function StatCard({ icon, value, label, accent = "bg-slate-100" }: StatCardProps) {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col items-center gap-1 shadow-sm">
-      {icon}
-      <span className="text-2xl font-extrabold text-slate-800">{value}</span>
-      <span className="text-xs text-slate-500 font-medium text-center">
+    <div className="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col items-center gap-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+      <div className={`w-11 h-11 rounded-full flex items-center justify-center ${accent}`}>
+        {icon}
+      </div>
+      <span className="text-3xl font-extrabold text-slate-800">{value}</span>
+      <span className="text-[11px] text-slate-500 font-semibold text-center uppercase tracking-wide">
         {label}
       </span>
     </div>
@@ -65,10 +68,19 @@ function AdminDashboardContent() {
 
   return (
     <main className="container mx-auto px-4 pb-24 max-w-3xl">
-      <PageHeader
-        title="Panel de Administración"
-        subtitle="Estadísticas de uso y actividad de la plataforma."
-      />
+      <div className="mt-6 mb-6 rounded-2xl bg-gradient-to-br from-[#002B5E] to-[#0a4a8f] p-6 text-white shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+            <Shield size={24} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-extrabold leading-tight">Panel de Administración</h1>
+            <p className="text-sm text-blue-100/80">
+              Estadísticas de uso y actividad de la plataforma.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div>
         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
@@ -76,17 +88,19 @@ function AdminDashboardContent() {
         </h3>
         <div className="grid grid-cols-3 gap-3">
           <StatCard
-            icon={<Users size={18} className="text-[#002B5E]" />}
+            accent="bg-[#002B5E]/10"
+            icon={<Users size={20} className="text-[#002B5E]" />}
             value={stats.users.total}
             label="Total"
           />
           <StatCard
-            icon={<Shield size={18} className="text-[#BF0A30]" />}
+            accent="bg-[#BF0A30]/10"
+            icon={<Shield size={20} className="text-[#BF0A30]" />}
             value={stats.users.byRole.admin}
             label="Admins"
           />
           <StatCard
-            icon={<UserCog size={18} className="text-slate-500" />}
+            icon={<UserCog size={20} className="text-slate-500" />}
             value={stats.users.byRole.standard}
             label="Standard"
           />
@@ -99,17 +113,19 @@ function AdminDashboardContent() {
         </h3>
         <div className="grid grid-cols-3 gap-3">
           <StatCard
-            icon={<Bell size={18} className="text-[#002B5E]" />}
+            accent="bg-[#002B5E]/10"
+            icon={<Bell size={20} className="text-[#002B5E]" />}
             value={stats.notifications.total}
             label="Total"
           />
           <StatCard
-            icon={<BellRing size={18} className="text-[#BF0A30]" />}
+            accent="bg-[#BF0A30]/10"
+            icon={<BellRing size={20} className="text-[#BF0A30]" />}
             value={stats.notifications.unread}
             label="No leídas"
           />
           <StatCard
-            icon={<BellOff size={18} className="text-slate-400" />}
+            icon={<BellOff size={20} className="text-slate-400" />}
             value={stats.notifications.read}
             label="Leídas"
           />
@@ -132,7 +148,17 @@ function AdminDashboardContent() {
                 className="flex items-center justify-between px-4 py-3"
               >
                 <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center">
+                  <span
+                    className={`w-7 h-7 rounded-full text-xs font-extrabold flex items-center justify-center ${
+                      idx === 0
+                        ? "bg-yellow-100 text-yellow-700 ring-2 ring-yellow-300"
+                        : idx === 1
+                          ? "bg-slate-200 text-slate-600"
+                          : idx === 2
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
                     {idx + 1}
                   </span>
                   <span className="text-sm font-semibold text-slate-700">
