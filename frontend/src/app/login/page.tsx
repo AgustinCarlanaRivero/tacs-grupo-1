@@ -1,10 +1,10 @@
 "use client";
 
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import Image from "next/image";
+import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeftRight, BookOpen, Trophy } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 const FEATURES = [
   {
@@ -28,23 +28,37 @@ export default function LoginPage() {
   const { loginWithRedirect, isLoading } = useAuth();
 
   return (
-    <div className="min-h-screen !pb-0 bg-[#002B5E] flex flex-col justify-center items-center lg:flex-row">
+    <div className="min-h-screen !pb-0 bg-[#002B5E] flex flex-col items-center justify-center lg:flex-row lg:items-stretch lg:justify-normal">
       {/* Hero panel */}
       <div
         className={
+          "relative overflow-hidden " +
           "mx-4 rounded-xl border border-[#1a4a7a] shadow-md shadow-black/15 bg-[#0a3568] px-6 py-6 " +
           "lg:m-0 lg:w-1/2 lg:min-h-screen lg:rounded-none lg:border-0 lg:shadow-none lg:bg-white " +
-          "lg:flex lg:flex-col lg:justify-center lg:px-14 xl:lg:px-20 lg:py-12"
+          "lg:flex lg:flex-col lg:justify-center lg:px-14 xl:px-20 lg:py-12"
         }
       >
-        <Image
-          src="/images/figuswap-logo.png"
-          alt="FiguSwap"
-          width={140}
-          height={140}
-          className="mb-6 lg:mb-10 object-contain w-20 h-auto lg:w-[140px]"
-          priority
-        />
+        {/* Mobile: SVG logo / Desktop: PNG logo */}
+        <div className="lg:hidden mb-6">
+          <Image
+            src="/images/figuswap-logo.svg"
+            alt="FiguSwap"
+            width={120}
+            height={120}
+            className="object-contain w-38 h-auto"
+            priority
+          />
+        </div>
+        <div className="hidden lg:block mb-10">
+          <Image
+            src="/images/logo-desk.png"
+            alt="FiguSwap"
+            width={250}
+            height={140}
+            className="object-contain w-[250px] h-auto"
+            priority
+          />
+        </div>
 
         <h2
           className={
@@ -90,8 +104,8 @@ export default function LoginPage() {
 
       {/* Login card panel */}
       <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-6 lg:px-6 lg:py-12 lg:min-h-screen">
-        <div className="w-full max-w-sm">
-          <div className="bg-white rounded-xl shadow-2xl p-8">
+        <div className="w-full max-w-sm lg:max-w-md">
+          <div className="bg-white rounded-xl shadow-2xl p-8 lg:p-12">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-extrabold text-[#001d42] tracking-tight">
                 Iniciar Sesión
