@@ -24,13 +24,14 @@ export default class AuthService {
         const existing = await userRepository.findByAuth0Sub(auth0Sub);
         if (existing) return existing;
 
-        // El schema exige firstName/lastName no vacíos. Derivamos del name del
-        // perfil y, si falta o trae una sola palabra, usamos fallbacks para no
-        // romper la validación durante el JIT provisioning.
-        const source = (profile.name ?? profile.email ?? auth0Sub).trim();
-        const parts = source.split(/\s+/).filter(Boolean);
-        const firstName = parts[0] ?? "Usuario";
-        const lastName = parts.slice(1).join(" ") || firstName;
+        // Derivamos nombre y apellido del `name` de Auth0. Si no viene un nombre
+        // real, usamos la parte local del email como nombre y dejamos el apellido
+        // vacío (NO duplicamos el email en ambos campos).
+        const rawName = profile.name?.trim();
+        const nameParts = rawName ? rawName.split(/\s+/).filter(Boolean) : [];
+        const emailLocalPart = profile.email?.split("@")[0]?.trim();
+        const firstName = nameParts[0] ?? emailLocalPart ?? "Usuario";
+        const lastName = nameParts.slice(1).join(" ");
 
         const username = await this.generateUniqueUsername(
             profile.email,
