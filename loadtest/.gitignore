@@ -1,0 +1,9 @@
+# binario de vegeta (se descarga por separado, ver README)
+vegeta.exe
+# outputs generados al correr el load test
+results.bin
+report.txt
+latencias.html
+breakpoint/
+breakpoint-report.txt
+breakpoint-plot.html

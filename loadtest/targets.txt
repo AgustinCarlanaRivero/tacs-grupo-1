@@ -1,0 +1,7 @@
+GET http://localhost:3000/health
+GET http://localhost:3000/stickers
+GET http://localhost:3000/stickers/players
+GET http://localhost:3000/stickers/teams
+GET http://localhost:3000/stickers/clubs
+GET http://localhost:3000/posts
+GET http://localhost:3000/templates
